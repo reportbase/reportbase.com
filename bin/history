@@ -1,0 +1,15 @@
+exiftool a.jpg #extract information
+exiftool -artist=me a.jpg #write information
+scp 0* scott@reportbase.com:/srv/http/data/boss #transfer files
+grep -r --include "*.ini" "#auto" . #recursive find
+sed -r 's/\s+//g' filename  #clear whitespace
+find . -type f -name $1  #find file
+sed -i 's/\.//g' meta.ini #clear periods
+sed '/url=/d' meta.ini #delete line from ini
+find data/ -name '*.json' -exec cat {} \; > uber.json   #recurse folders concat them
+rename "s/oldExtension$/newExtension/" *.txt   #rename all files
+mkdir -p 00{00..72}  #make multiple directories
+FOLDER=$(printf "%04d" "$i")
+find . -name "*.png" -exec convert "{}" -alpha off "{}" \; #remove alpha channel from all images in folder
+ls -laS #sort by size. largest on top                                                                                                                                                    
+
