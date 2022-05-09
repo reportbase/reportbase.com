@@ -9,8 +9,8 @@ const SLICEWIDTH = 1;
 const MAXSLIDER = 720;
 const POSITYSPACE = 50;
 const THUMBLINE = 1;
-const THUMBLINEIN = 2.0;
-const THUMBLINEOUT = 3.0;
+const THUMBLINEIN = 1.5;
+const THUMBLINEOUT = 2.0;
 const INFOWIDTH = 960;
 const ROWHEIGHT = 30;
 const JULIETIME = 50;
@@ -40,10 +40,7 @@ const THUMBMAX = 1.00;
 const THUMBMIN = 0.00;
 const ZOOMADJ = 0.025;
 const LOADING = 1;
-const PANNING = 2;
 const ZOOMING = 3;
-const PINCHING = 4;
-const SWIPEING = 5;
 const TIMEMAIN = SAFARI?36:4;
 const SPEEDRANGE = "1-100";
 const STRECHRANGE =  "0.25-1.1";
@@ -655,7 +652,6 @@ CanvasRenderingContext2D.prototype.stretchout = function()
     var k = context.stretchobj.current()+5;
     k = Math.clamp(0,context.stretchobj.length()-1,k);
     context.stretchobj.set(k);
-    globalobj.status = PINCHING;
     _4cnvctx.refresheaders();
 }
 
@@ -665,7 +661,6 @@ CanvasRenderingContext2D.prototype.stretchin = function()
     var k = context.stretchobj.current()-5;
     k = Math.clamp(0,context.stretchobj.length()-1,k);
     context.stretchobj.set(k);
-    globalobj.status = PINCHING;
     _4cnvctx.refresheaders();
 }
 
@@ -726,7 +721,7 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
 CanvasRenderingContext2D.prototype.point2col = function(x,y)
 {
     if (typeof x === "undefined")
-        return this.hitmiddle.col;
+        return this.slicemiddle.col;
 
     var slice = this.point2slice(x,y);
     return this.jlst[slice].col;
@@ -1208,28 +1203,27 @@ var pinchlst =
     {
         context.pinching = 1;
         clearTimeout(context.pinchingtime);
-        context.pinchingtime = setTimeout(function()
-            {
-                _4cnvctx.pinching = 0;
-            }, 50);
+        context.pinchingtime = setTimeout(function() { _4cnvctx.pinching = 0; }, 500);
 
         if (url.footindex == 1)
         {
-            var k = Math.clamp(context.stretchobj.begin,
-                context.stretchobj.end,scale*context.stretchsave);
-            var j = Math.berp(context.stretchobj.begin,
-                context.stretchobj.end,k);
-            var e = Math.lerp(0,context.stretchobj.length(),j)/100;
-            var f = Math.floor(context.stretchobj.length()*e); 
-            context.stretchobj.set(f);
+            var obj = context.stretchobj; 
+            var k = Math.clamp(obj.begin, obj.end,scale*context.stretchsave);
+            var j = Math.berp(obj.begin, obj.end,k);
+            var e = Math.lerp(0,obj.length(),j)/100;
+            var f = Math.floor(obj.length()*e); 
+            obj.set(f);
         }
         else if (url.footindex == 2)
         {
+            delete photo.cached;
             var obj = context.thumbheightobj;
-            var k = Math.clamp(obj.data_[0], obj.data_[obj.data_.length-1],
-                scale*context.thumbheightsave);
-            var e = Math.floor(obj.length()*k); 
-            context.thumbheightobj.set(e);
+            var data = obj.data_; 
+            var k = Math.clamp(data[0], data[data.length-1], scale*context.thumbheightsave);
+            var j = Math.berp(data[0], data[data.length-1], k);
+            var e = Math.lerp(0,obj.length(),j)/100;
+            var f = Math.floor(obj.length()*e); 
+            obj.set(f);
         }
             
         context.refresh();
@@ -1237,10 +1231,10 @@ var pinchlst =
     pinchend: function (context)
     {
         addressobj.refresh();
+        context.refresh();
     }, 
     pinchstart: function (context, rect, x, y) 
     {
-        delete photo.cached;
         context.thumbheightsave = context.thumbheightobj.getcurrent()
         context.stretchsave = context.stretchobj.getcurrent()
     },
@@ -1336,8 +1330,10 @@ var panlst =
 	{
         if ( context.pinching )
              return;
-        globalobj.status = PANNING;//todo
-        context.refresheaders();
+
+        context.panning = 1;
+        clearTimeout(context.panningtime);
+        context.panningtime = setTimeout(function() { _4cnvctx.panning = 0; }, 500);
 
        if (context.isthumbrect)
         {
@@ -1686,7 +1682,6 @@ var keylst =
             var k = context.stretchobj.current()+(evt.key == "Q"?5:-5);
             k = Math.clamp(0,context.stretchobj.length()-1,k);
             context.stretchobj.set(k);
-            globalobj.status = PINCHING;
            addressobj.refresh();
             _4cnvctx.refresheaders();
             evt.preventDefault();
@@ -2293,9 +2288,7 @@ var thumblst =
 
         context.thumbrect = new rectangle(x,y,w,h);
      
-        if (context.hideimage_ || 
-            globalobj.status == PANNING ||
-            context.pinching)
+        if (context.hideimage_ || context.panning)
         {
         }
         else if (photo.cached)
@@ -2766,17 +2759,23 @@ function resetcanvas()
         }
 	}
 
-    var data = context.slicesobj.data_;
-    var rects = gridToRect(url.cols, 1, 0, context.slicesobj.data_.length, 1)
-    for (var n = 0; n < rects.length; ++n)
+    var slice = context.slicesobj.data_;
+    var cols = gridToRect(url.cols, 1, 0, context.slicesobj.data_.length, 1)
+    for (var n = 0; n < cols.length; ++n)
     {
-        var rect = rects[n]
-        for (var e = rect.x; e < rect.x+rect.width; ++e)
-            data[e].col = n;
+        var col = cols[n]
+        for (var e = col.x; e < col.x+col.width; ++e)
+            slice[e].col = n;
         
-        var m = rect.x;
-        data[m].isleft = 1;//todo: broken on safari
+        var m = col.x;
+        if (m < 0 || m >= slice.length)
+            continue;
+
+        slice[m].isleft = 1;
+        slice[m+col.width-1].isright = 1;
+        slice[m+Math.floor(col.width/2)].ismiddle = 1;
     }
+
     context.refresh();
 }
 
@@ -3648,8 +3647,8 @@ var getmenufrompoint = function (context, x, y)
 			continue;
 		var w = hit.fitwidth + 20*2;
 		var h = hit.fitheight + 18*2;
-		var x1 = hit.hitcenter.x - w / 2;
-		var y1 = hit.hitcenter.y - h / 2;
+		var x1 = hit.center.x - w / 2;
+		var y1 = hit.center.y - h / 2;
 		var x2 = x1 + w;
 		var y2 = y1 + h;
 		if (x >= x1 && x < x2 &&
@@ -3674,16 +3673,16 @@ var selectrotated = function (context, x, y)
 
 		var w = hit.fitscale * hit.fitwidth;
 		var h = hit.fitscale * hit.fitheight;
-		var x1 = hit.hitcenter.x - w / 2;
-		var y1 = hit.hitcenter.y - h / 2;
+		var x1 = hit.center.x - w / 2;
+		var y1 = hit.center.y - h / 2;
 		var x2 = x1 + w;
 		var y2 = y1 + h;
 
 		var rt = 0;
-		var pt1 = rotate(x1, y1, hit.hitcenter.x, hit.hitcenter.y, rt);
-		var pt2 = rotate(x2, y1, hit.hitcenter.x, hit.hitcenter.y, rt);
-		var pt3 = rotate(x2, y2, hit.hitcenter.x, hit.hitcenter.y, rt);
-		var pt4 = rotate(x1, y2, hit.hitcenter.x, hit.hitcenter.y, rt);
+		var pt1 = rotate(x1, y1, hit.center.x, hit.center.y, rt);
+		var pt2 = rotate(x2, y1, hit.center.x, hit.center.y, rt);
+		var pt3 = rotate(x2, y2, hit.center.x, hit.center.y, rt);
+		var pt4 = rotate(x1, y2, hit.center.x, hit.center.y, rt);
 		var path = new Path2D();
 		path.moveTo(pt1.x, pt1.y);
 		path.lineTo(pt2.x, pt2.y);
@@ -3816,21 +3815,21 @@ var YollPanel = function ()
                 var lx = 0;
                 for (var m = 0; m < slicesobj.length; ++m)
                 {
-                    var hit = slicesobj[m];
-                    hit.time = context.time + (m*context.delayinterval);
-                    var b = Math.tan(hit.time*VIRTCONST);
+                    var slice = slicesobj[m];
+                    slice.time = context.time + (m*context.delayinterval);
+                    var b = Math.tan(slice.time*VIRTCONST);
                     let x = Math.berp(-1, 1, b) * kv - borderleft;
                     var stretchwidth = x+context.colwidth-lx; 
                     lx = x;
-                    hit.nx = x;
-                    hit.ny = y;
-                    hit.hitcenter = {x:x, y:y};
+                    slice.nx = x;
+                    slice.ny = y;
+                    slice.center = {x:x, y:y};
                     if (x > (rect.width/2)*0.99 && x < (rect.width/2)*1.01)
-                        context.hitmiddle = hit;
+                        context.slicemiddle = slice;
 
-                    hit.fitscale = 0;
-                    hit.fitwidth = 0;
-                    hit.fitheight = 0;
+                    slice.fitscale = 0;
+                    slice.fitwidth = 0;
+                    slice.fitheight = 0;
 
                     if (!first)
                         first = x;
@@ -3842,24 +3841,24 @@ var YollPanel = function ()
                     if (x < 0 || x >= width)
                         continue;
 
-                    context.jlst.push(hit);
+                    context.jlst.push(slice);
                     context.slicelast = m;
                     context.lastx = x;
                     if (x < context.firstx)
                     {
                         context.firstx = x;
                         context.slicefirst = m;
-                        context.firsti = hit.time;
+                        context.firsti = slice.time;
                     }
 
-                    hit.fitwidth = r.width;
-                    hit.fitheight = height;
+                    slice.fitwidth = r.width;
+                    slice.fitheight = height;
                     if (context.setcolumncomplete && 
                         context.complete && 
                         height)
                     {
-                        var k = canvaslst[hit.cavnasno];
-                        context.drawImage(k, hit.x,0,context.colwidth, height,
+                        var k = canvaslst[slice.cavnasno];
+                        context.drawImage(k, slice.x,0,context.colwidth, height,
                             x+r.x,0,context.colwidth*stretchwidth, height);
                     }
                 }
@@ -3888,7 +3887,6 @@ var YollPanel = function ()
                         {
                             if (context.debug)
                             {
-                                toggledebug();
                                 context.save();
                                 context.translate(hit.nx+xt, hit.ny+yt);
                                 var rows = Math.floor((rect.height-ALIEXTENT*4)/ROWHEIGHT);
@@ -3947,7 +3945,7 @@ var YollPanel = function ()
                         { 
                             extent: photo.image.extent,
                             aspect: photo.image.aspect.toFixed(2),
-                            col: context.hitmiddle.col,
+                            col: context.slicemiddle.col,
                             row: ((1-(context.rowobj.getcurrent()/context.rowobj.length()))*window.innerHeight),
                             stretch: context.stretchobj.getcurrent(),
                             size: (photo.image.size/1000000).toFixed(1) + "MP",
@@ -4035,7 +4033,7 @@ var YollPanel = function ()
 
 					var stime = vals.stime;
 					var j = vals.j;
-					hit.hitcenter = j;
+					hit.center = j;
 					hit.fitscale = 0;
 					hit.fitwidth = 0;
 					hit.fitheight = 0;
@@ -4255,7 +4253,6 @@ var headlst =
         this.panstart = function (context, rect, x, y)
 	    {
             clearTimeout(_4cnvctx.headtime);
-            globalobj.status = PANNING;
             _4cnvctx.refresh();
         };
 
@@ -4385,9 +4382,6 @@ var headlst =
 
         this.panstart = function (context, rect, x, y)
 	    {
-            clearTimeout(_4cnvctx.headtime);
-            globalobj.status = PANNING;
-            _4cnvctx.refresh();
         };
 
         this.panend = function (context, rect, x, y)
@@ -4546,14 +4540,6 @@ var footlst =
  	
         this.pan = function (context, rect, x, y, type)
         {
-            if (_4cnvctx.speed || globalobj.status == PANNING)
-            {
-                _4cnvctx.speed  = 0;
-                globalobj.status = 0;
-                _4cnvctx.refresh();
-                return;
-            }
-
             if (!context.slider.hitest(x,y))
                 return;
             x = Math.round5(x-context.slider.x);
@@ -5090,5 +5076,5 @@ var WrapPanel = function(style, lineheight, yt)
 
 window.onerror = function(message, source, lineno, colno, error) 
 { 
-//    window.alert( error+","+lineno+","+console.trace());
+    window.alert( error+","+lineno+","+console.trace());
 };

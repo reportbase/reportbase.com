@@ -141,15 +141,15 @@ Galleries<p>
 <section>
 <h1>Touch</h1><p>
 <div class="grid-container">
-  <div class="grid-item">Zoom Image:</div>
+  <div class="grid-item">Zoom image:</div>
   <div class="grid-item2">Tap left/right</div>
-  <div class="grid-item">Stretch Image:</div>
-  <div class="grid-item2">Tap image and then pinch</div>
-  <div class="grid-item">Thumbnail:</div>
+  <div class="grid-item">Stretch image:</div>
+  <div class="grid-item2">Tap image hen pinch</div>
+  <div class="grid-item">Show thumbnail:</div>
   <div class="grid-item2">Long press</div>
   <div class="grid-item">Resize thumbnail:</div>
-  <div class="grid-item2">Tap thumbnail and then pinch</div>
-  <div class="grid-item">Rotate Image:</div>
+  <div class="grid-item2">Tap thumbnail then pinch</div>
+  <div class="grid-item">Rotate image:</div>
   <div class="grid-item2">Pan or swipe</div>
   <div class="grid-item">Load image:</div>
   <div class="grid-item2">Drop from desktop</div>
@@ -198,12 +198,14 @@ Galleries<p>
   <div class="grid-item2">Thumb position (0-8)</div>
   <div class="grid-item">g:</div>
   <div class="grid-item2">Thumb mode (0-2)</div>
-  <div class="grid-item">o:</div>
-  <div class="grid-item2">Columns</div>
   <div class="grid-item">y:</div>
   <div class="grid-item2">Page mode (0-1)</div>
   <div class="grid-item">m:</div>
   <div class="grid-item2">Image range</div>
+  <div class="grid-item">c:</div>
+  <div class="grid-item2">Column</div>
+  <div class="grid-item">o:</div>
+  <div class="grid-item2">Columns</div>
 </div><p>
 </section>
 
@@ -238,10 +240,7 @@ function zoomin(a) { pano.postMessage("zoomin", '*'); }
 function zoomout(a) { pano.postMessage("zoomout", '*'); }
 function stretchin(a) { pano.postMessage("stretchin", '*'); }
 function stretchout(a) { pano.postMessage("stretchout", '*'); }
-function thumbnail(a) 
-  { 
-      pano.postMessage("thumbnail", '*'); 
-  }
+function thumbnail(a) { pano.postMessage("thumbnail", '*'); }
 function full(a) { a.postMessage("fullscreen", '*'); }
 function newindow(a) { window.open(addrestr, '_blank').focus(); }
 function fullscreen(a) 
