@@ -4,7 +4,8 @@
 */
 
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-const REFRESHEADER = 500;
+const REFRESHEADER = 1000;
+const SLICEWIDTH = 1; 
 const MAXSLIDER = 720;
 const POSITYSPACE = 50;
 const THUMBLINE = 1;
@@ -43,7 +44,7 @@ const PANNING = 2;
 const ZOOMING = 3;
 const PINCHING = 4;
 const SWIPEING = 5;
-const TIMEMAIN = SAFARI?48:4;
+const TIMEMAIN = SAFARI?36:4;
 const SPEEDRANGE = "1-100";
 const STRECHRANGE =  "0.25-1.1";
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -66,11 +67,8 @@ url.project = filename[1];
 url.extension = filename[2] 
 url.projectrange = url.searchParams.has("m") ? url.searchParams.get("m") : "0000-0010";
 url.thumblines = url.searchParams.has("a") ? Number(url.searchParams.get("a")) : 1;
-url.thumbmode = url.searchParams.has("k") ? Number(url.searchParams.get("k")) : 0;
 url.thumb = url.searchParams.has("h") ? Number(url.searchParams.get("h")) : 50;
-url.slicewidth = url.searchParams.has("t") ? Number(url.searchParams.get("t")) : 1.0;
 url.pan = url.searchParams.has("s") ? Number(url.searchParams.get("s")) : 50;
-url.speed = url.searchParams.has("l") ? Number(url.searchParams.get("l")) : 18;
 url.stretch = url.searchParams.has("b") ? Number(url.searchParams.get("b")) : 50;
 url.row = url.searchParams.has("r") ? Number(url.searchParams.get("r")) : 50;
 url.col = url.searchParams.has("c") ? Number(url.searchParams.get("c")) : 0;
@@ -78,7 +76,6 @@ url.zoom = url.searchParams.has("z") ? Number(url.searchParams.get("z")) : 50;
 url.hidethumb = url.searchParams.has("g") ? Number(url.searchParams.get("g")) : 0;
 url.movepage = url.searchParams.has("y") ? Number(url.searchParams.get("y")) : 0;
 url.cols = url.searchParams.has("o") ? Number(url.searchParams.get("o")) : 13;
-url.auto = url.searchParams.has("n") ? Number(url.searchParams.get("n")) : 0;
 url.fullpath = function() { return url.path + "." + url.project; }
 url.fullproject = function() 
 { 
@@ -103,7 +100,7 @@ url.projects = function()
 //&e=Author=123&e=Copyright=456
 url.properties = url.searchParams.getAll("e");
 url.headindex = 1;
-url.footindex = 1;
+url.footindex = 2;
 
 Math.clamp = function (min, max, val)
 {
@@ -144,11 +141,9 @@ browserobj.iframe = function(){ return window !== window.parent;};
 
 function accutime(context)
 {
-    if (!url.auto)
-        return;
     if (!context.thumbselect)
         return;
-    context.speed = context.panspeed/url.speed;
+    context.speed = 0;//context.panspeed/url.speed;
     context.splitpanels = context.thumbselect.length;
     var init = () => 
     {
@@ -261,7 +256,6 @@ var footcnvctx = footcnv.getContext("2d", opts);
 
 _4cnvctx.describe = 0;
 _4cnvctx.speed = 0; 
-url.ctrlKey = url.searchParams.has("f") ? Number(url.searchParams.get("f")) : 0;
 
 function limitSize(size, maximumPixels) 
 {
@@ -573,19 +567,14 @@ addressobj.body = function (l)
     var context = _4cnvctx;
     var out = 
         "&r="+context.getrow()+
-        "&t="+url.slicewidth+
         "&z="+context.zoomobj.current()+
         "&b="+context.stretchobj.current()+
         "&h="+context.thumbheightobj.current()+
         "&v="+positobj.current()+
         "&o="+url.cols+
-        "&f="+url.ctrlKey+
-        "&l="+url.speed+
         "&g="+url.hidethumb+
         "&y="+url.movepage+
-        "&n="+url.auto+
         "&a="+url.thumblines+
-        "&k="+url.thumbmode+
         "&m="+url.projectrange;
     return out;
 }
@@ -1401,7 +1390,6 @@ function toggledescribe(lst)
 {
     delete _4cnvctx.debug;
     menuhide();
-    url.ctrlKey = 0;
     _4cnvctx.speed = 0;
     _4cnvctx.describe = lst;
     _4cnvctx.time = 0;
@@ -1413,7 +1401,6 @@ function toggledebug()
 {
     var context = _4cnvctx;
     delete context.describe;
-    url.ctrlKey = 0;
     context.speed = 0;
     pageresize();
 
@@ -2655,10 +2642,10 @@ function releaseCanvas(canvas)
     ctx && ctx.clearRect(0, 0, 1, 1);
 }
 
-function resetcanvas(context)
+function resetcanvas()
 {
-    if (!photo.image.height)
-        return;
+    var canvas = _4cnv;
+    var context = _4cnvctx;
 
     window.aspect = window.innerWidth/window.innerHeight;
     var zoomrange = [0];
@@ -2726,11 +2713,11 @@ function resetcanvas(context)
     var y = context.canvas.height*b;
     context.nuby = Math.nub(y, context.canvas.height, context.imageheight, photo.image.height);  
 
+    canvaslst = []
     var size = (SAFARI || FIREFOX) ? 2180 : 5760; 
-    var canvaslen = Math.ceil(context.virtualwidth/size);
+    var canvaslen = Math.max(1,Math.ceil(context.virtualwidth/size));
     for (var n = 0; n < canvaslen; ++n)
         canvaslst[n] = document.createElement("canvas");
-    canvaslst.length = canvaslen;
     var j = Math.berp(context.zoomobj.begin, context.zoomobj.end, context.zoomobj.getcurrent());
 
     var ks = 0;
@@ -2738,7 +2725,7 @@ function resetcanvas(context)
     {
         var k = slicelst[n];
         var fw = context.virtualwidth / k.slices;
-        if (fw < url.slicewidth)
+        if (fw < SLICEWIDTH)
             continue;
         ks = n;
         break;
@@ -2780,7 +2767,6 @@ function resetcanvas(context)
 	}
 
     var data = context.slicesobj.data_;
-
     var rects = gridToRect(url.cols, 1, 0, context.slicesobj.data_.length, 1)
     for (var n = 0; n < rects.length; ++n)
     {
@@ -2789,11 +2775,8 @@ function resetcanvas(context)
             data[e].col = n;
         
         var m = rect.x;
-        data[m].isleft = 1;
-        data[m+rect.width-1].isright = 1;
-        data[m+Math.floor(rect.width/2)].ismiddle = 1;
+        data[m].isleft = 1;//todo: broken on safari
     }
-
     context.refresh();
 }
 
@@ -2998,6 +2981,7 @@ var ContextObj = (function ()
                     this.size = this.width*this.height; 
                     this.extent = this.width + "x" + this.height;
                     document.title = url.fullpath(); 
+                    
                     contextobj.resize(context);
                     resetcanvas(context);
                     context.complete = 1;
@@ -3037,9 +3021,6 @@ var ContextObj = (function ()
                         }
                     }, 100);
 
-                    if (url.auto)
-                        setTimeout(function() { accutime(_4cnvctx); },1000);
-                 
                     var p = Number(url.project);
                     var j = Number(url.projects());
                     var lst = [-1+p,1+p,2+p,3+p,4+p];
@@ -4575,7 +4556,6 @@ var footlst =
 
             if (!context.slider.hitest(x,y))
                 return;
-            url.ctrlKey = 0;
             x = Math.round5(x-context.slider.x);
             var b = Math.berp(0,context.slider.width,x);
             var l = Math.lerp(0,_4cnvctx.zoomobj.length(),b);
@@ -4707,7 +4687,6 @@ var footlst =
            if (!context.slider.hitest(x,y))
                 return;
             delete photo.cached;
-            url.ctrlKey = 0;
             globalobj.status = 0;
 
             x = Math.round5(x-context.slider.x);
