@@ -1,5 +1,3 @@
-for i in *.jpg; do
-     convert $i -quality 80 ${i/.jpg/.webp}
-done
+for i in BUGS*.jpg; do convert $i -quality 80 ${i/.jpg/.webp} done
 
 
