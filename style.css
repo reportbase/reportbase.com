@@ -12,7 +12,7 @@ a:visited { text-decoration: none; color: purple; }
     font-size: 20px; 
   font-family: monospace;
     font-weight: bold; 
-    padding: 8px;
+    padding-right: 6px;
   text-align: right;
   -webkit-text-size-adjust: 150%;
 }
@@ -21,7 +21,7 @@ a:visited { text-decoration: none; color: purple; }
     font-size: 20px; 
   font-family: monospace;
     font-weight: bold; 
-    padding: 8px;
+    padding-left: 6px;
   text-align: left;
   -webkit-text-size-adjust: 150%;
 }
