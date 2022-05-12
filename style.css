@@ -1,3 +1,11 @@
+html {
+	font-family: system-ui, -apple-system, segoe ui, roboto, ubuntu, cantarell, noto sans, sans-serif; /* 1 */
+	font-size: 125%; /* 2 */
+	line-height: 1.6; /* 3 */
+	-webkit-text-size-adjust: 150%; /* 4 */
+	word-break: break-word; /* 5 */
+}
+
 a:link { text-decoration: none; } 
 a:hover { text-decoration: none; background-color:yellow; }
 a:active { text-decoration: none; color: black; }
@@ -10,16 +18,13 @@ a:visited { text-decoration: none; color: purple; }
 
 .grid-item {
     font-size: 20px; 
-  font-family: monospace;
     font-weight: bold; 
     padding-right: 6px;
   text-align: right;
-  -webkit-text-size-adjust: 150%;
 }
 
 .grid-item2 {
     font-size: 20px; 
-  font-family: monospace;
     font-weight: bold; 
     padding-left: 6px;
   text-align: left;
@@ -37,13 +42,10 @@ body
   padding-right: 0px;
   background: #FFF;
   color: #000;
-  font-family: monospace;
-  -webkit-text-size-adjust: 150%;
 }
 
 div 
 {
-    -webkit-text-size-adjust: 150%;
     word-wrap: break-word;
 }
 
@@ -66,15 +68,22 @@ button
     font-size: 20px;
     border:none; 
     cursor: pointer;
-    -webkit-text-size-adjust: 150%;
+}
+
+gallery
+{
+    color: black;
+    font-weight: bold; 
+    font-size: 24px;
+    border:none; 
+   font-family: monospace;
 }
 
 section 
 {
-    -webkit-text-size-adjust: 150%;
     border: 2px solid rgba(000,000,000,0.8);
     border-radius: 10px;
-    font-size: medium; 
+    font-size: 20px; 
     font-weight: bold; 
     margin: 10;
     padding-top: 20px;
@@ -83,16 +92,3 @@ section
     padding-bottom: 20px;
 }
 
-@media (orientation: landscape)
-{
-    iframe
-    {
-    }
-}
-
-@media (orientation: portrait)
-{
-    iframe
-    {
-    }
-}

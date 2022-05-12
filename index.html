@@ -12,26 +12,23 @@
 <button onclick="moveright(pano)"><img src="right.png"/></button>
 <button onclick="moveright(pano)"id="projectstag"></button><p>
 
-<h1>
-  <div id="images"></div><p>
-
-  <a onclick="zoomin(pan); return false;" href="javascript:void(0);">Zoom-in</a>
-  <a onclick="zoomout(pan); return false;" href="javascript:void(0);">Zoom-out</a>
-  <a onclick="stretchin(pan); return false;" href="javascript:void(0);">Stretch-in</a>
-  <a onclick="stretchout(pan); return false;" href="javascript:void(0);">Stretch-out</a>
-  <a onclick="thumbnail(pan); return false;" href="javascript:void(0);">Thumbnail</a>
+  <gallery id="images"></gallery><p>
+  <a onclick="zoomin(pan); return false;" href="javascript:void(0);">Zoom-in</a>, 
+  <a onclick="zoomout(pan); return false;" href="javascript:void(0);">Zoom-out</a>,
+  <a onclick="stretchin(pan); return false;" href="javascript:void(0);">Stretch-in</a>, 
+  <a onclick="stretchout(pan); return false;" href="javascript:void(0);">Stretch-out</a>,
+  <a onclick="thumbnail(pan); return false;" href="javascript:void(0);">Thumbnail</a>, 
   <a onclick="newindow(pan); return false;" href="javascript:void(0);">New-Window</a>
   <p>
 
   High Resolution Image Viewer<br>
 Interactive Panoramas<br>
-repba@pm.me<p>
-</h1>
+repba@pm.me
 </section>
 <section>
 <center>
- <h1>
-Galleries<p>
+  <h2>Galleries</h2><p>
+<gallery>
 <a onclick="pan.src='https://reportbase.com/home.html?p=ASPO.0000.webp&r=50&t=1&z=75&b=41&h=60&v=4&o=1&f=0&l=18&g=0&y=1&n=0&a=0&k=0&m=0000-0013&c=0'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">01</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=BOAT.0000.webp&r=50&c=0&z=60&b=99&h=50&v=7&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0074'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">02</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=MADM.0000.webp&r=50&c=0&z=30&b=60&h=50&v=7&o=1&f=0&l=18&d=0&g=0&y=0&n=0&a=0&k=0&m=0000-0047'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">03</a>
@@ -119,37 +116,13 @@ Galleries<p>
 <a onclick="pan.src='https://reportbase.com/home.html?p=DECS.0000.webp&r=50&c=0&z=40&b=60&h=80&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0011'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">85</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=CRYP.0000.webp&r=50&c=0&z=75&b=60&h=30&v=7&o=6&f=0&l=18&d=0&g=0&y=0&n=0&a=1&k=2&m=0000-0006'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">86</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=TFTC.0000.webp&r=0&t=1&c=0&z=75&b=42&h=40&v=7&o=6&f=0&l=36&d=0&g=0&y=0&n=0&a=1&k=0&m=0000-0007'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">87</a>
-<p>    
-  
-  </h1>
+</gallery> 
 <p>
 
 </section>
 
 <section>
-<h1>Image Metrics</h1><p>
-<div class="grid-container">
-  <div class="grid-item">Stretch:</div>
-  <div class="grid-item2" id="stretch"></div>
-  <div class="grid-item">Zoom:</div>  
-  <div class="grid-item2" id="zoom"></div>
-  <div class="grid-item">Extent:</div>
-  <div class="grid-item2" id="extent"></div>  
-  <div class="grid-item">Aspect:</div>
-  <div class="grid-item2" id="aspect"></div>  
-  <div class="grid-item">Size:</div>
-  <div class="grid-item2" id="size"></div>  
-  <div class="grid-item">Virtual:</div>
-  <div class="grid-item2" id="vsize"></div>  
-  <div class="grid-item">Row:</div>
-  <div class="grid-item2" id="row"></div>
-  <div class="grid-item">Column:</div>  
-  <div class="grid-item2" id="column"></div>  
-</div><p>
-</section>
-
-<section>
-<h1>Touch</h1><p>
+<h2>Touch</h2><p>
 <div class="grid-container">
   <div class="grid-item">Zoom:</div>
   <div class="grid-item2">Tap left/right</div>
@@ -169,7 +142,7 @@ Galleries<p>
 </section>
 
 <section>
-<h1>Keyboard</h1><p>
+<h2>Keyboard</h2><p>
 <div class="grid-container">
   <div class="grid-item">Next column:</div>
   <div class="grid-item2">Tab, Ctrl+Enter</div>
@@ -182,7 +155,7 @@ Galleries<p>
   <div class="grid-item">Thumbnail:</div>
   <div class="grid-item2">Space</div>
   <div class="grid-item">Rotate:</div>
-  <div class="grid-item2">Pan up/down/left/right</div>
+  <div class="grid-item2">Up/Down/Left/Right</div>
   <div class="grid-item">Rotate:</div>
   <div class="grid-item2">HJKL</div>
   <div class="grid-item">Next Image:</div>
@@ -191,8 +164,8 @@ Galleries<p>
 </section>
 
 <section>
-<h1>URL<p>
-  <div id="address"></div></h1><p>
+  <h2>URL<p></h2>
+  <div id="address"></div><p>
 <div class="grid-container">
   <div class="grid-item">p:</div>
   <div class="grid-item2">Image</div>
@@ -220,13 +193,13 @@ Galleries<p>
 </section>
 
 <section>
-  <h1>Videos<p>
+  <h2>Videos<p>
   <iframe width="100%" height="315" src="https://www.youtube.com/embed/oVTAFQG3e0I" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><p>
-  </h1>
+  </h2>
 </section>
 
 <section>
-  <h1>Codepens<p>
+  <h2>Codepens<p>
 <p class="codepen" data-height="400" data-default-tab="html,result" data-slug-hash="LYQYxoJ" 
   data-user="reportbase" style="height: 400px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid; margin: 1em 0; padding: 1em;">
   <span>See the Pen <a href="https://codepen.io/reportbase/pen/LYQYxoJ">
@@ -234,7 +207,7 @@ Galleries<p>
   on <a href="https://codepen.io">CodePen</a>.</span>
 </p>
 <p>
-  </h1>
+  </h2>
 <script async src="https://cpwebassets.codepen.io/assets/embed/ei.js"></script>
 </section>
 
@@ -321,15 +294,7 @@ window.addEventListener("message", (event) =>
             var k = data.fullproject.split("-");
             projectag.innerHTML = k[0];
             projectstag.innerHTML = k[1];
-            stretch.innerHTML = data.stretch;
-            zoom.innerHTML = data.zoom;
-            row.innerHTML = Number(data.row).toFixed(0);
-            column.innerHTML = data.col+1;
-            aspect.innerHTML = data.aspect;
-            size.innerHTML = data.size;
-            vsize.innerHTML = data.vsize;
-            extent.innerHTML = data.extent;
-        }
+         }
     }
 }, false);
 
