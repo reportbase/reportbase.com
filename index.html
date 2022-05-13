@@ -15,8 +15,8 @@
   <gallery id="images"></gallery><p>
   <a onclick="zoomin(pan); return false;" href="javascript:void(0);">Zoom-in</a>, 
   <a onclick="zoomout(pan); return false;" href="javascript:void(0);">Zoom-out</a>,
-  <a onclick="stretchin(pan); return false;" href="javascript:void(0);">Stretch-in</a>, 
-  <a onclick="stretchout(pan); return false;" href="javascript:void(0);">Stretch-out</a>,
+  <a onclick="pinchin(pan); return false;" href="javascript:void(0);">Pinch-in</a>, 
+  <a onclick="pinchout(pan); return false;" href="javascript:void(0);">Pinch-out</a>,
   <a onclick="thumbnail(pan); return false;" href="javascript:void(0);">Thumbnail</a>, 
   <a onclick="newindow(pan); return false;" href="javascript:void(0);">New-Window</a>
   <p>
@@ -127,7 +127,7 @@ repba@pm.me
   <div class="grid-item">Zoom:</div>
   <div class="grid-item2">Tap left/right</div>
   <div class="grid-item">Stretch:</div>
-  <div class="grid-item2">Tap image then pinch</div>
+  <div class="grid-item2">Two-finter pinch</div>
   <div class="grid-item">Thumbnail:</div>
   <div class="grid-item2">Long press</div>
   <div class="grid-item">Resize:</div>
@@ -148,7 +148,7 @@ repba@pm.me
   <div class="grid-item2">Tab, Ctrl+Enter</div>
   <div class="grid-item">Next Row:</div>
   <div class="grid-item2">Enter</div>
-  <div class="grid-item">Stretch:</div>
+  <div class="grid-item">Pinch:</div>
   <div class="grid-item2">Q</div>
   <div class="grid-item">Zoom:</div>
   <div class="grid-item2">+/-</div>
@@ -174,7 +174,7 @@ repba@pm.me
   <div class="grid-item">z:</div>
   <div class="grid-item2">Zoom (0-100)</div>
   <div class="grid-item">b:</div>
-  <div class="grid-item2">Stretch</div>
+  <div class="grid-item2">Pinch</div>
   <div class="grid-item">h:</div>
   <div class="grid-item2">Thumb height (0-100)</div>
   <div class="grid-item">v:</div>
@@ -221,8 +221,8 @@ function moveleft(a) { pano.postMessage("moveprev", '*'); }
 function moveright(a) { pano.postMessage("movenext", '*'); }
 function zoomin(a) { pano.postMessage("zoomin", '*'); }
 function zoomout(a) { pano.postMessage("zoomout", '*'); }
-function stretchin(a) { pano.postMessage("stretchin", '*'); }
-function stretchout(a) { pano.postMessage("stretchout", '*'); }
+function pinchin(a) { pano.postMessage("pinchin", '*'); }
+function pinchout(a) { pano.postMessage("pinchout", '*'); }
 function thumbnail(a) { pano.postMessage("thumbnail", '*'); }
 function full(a) { a.postMessage("fullscreen", '*'); }
 function newindow(a) { window.open(addrestr, '_blank').focus(); }

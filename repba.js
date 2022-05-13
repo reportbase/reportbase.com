@@ -4,6 +4,8 @@
 */
 
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+const IFRAME = window !== window.parent;
 const REFRESHEADER = 500;
 const SLICEWIDTH = 1; 
 const MAXSLIDER = 720;
@@ -11,8 +13,7 @@ const POSITYSPACE = 50;
 const THUMBLINE = 1;
 const THUMBLINEIN = 2.5;
 const THUMBLINEOUT = 4.0;
-const INFOWIDTH = 960;
-const ROWHEIGHT = 30;
+const ROWHEIGHT = 35;
 const JULIETIME = 50;
 const GUIDEHEIGHT = 54; 
 const BUTTONHEIGHT = 38; 
@@ -34,17 +35,15 @@ const DELAYCENTER = 3.926;
 const VIRTCONST = 0.8;
 const FONTHEIGHT = 18;
 const QUALITY = 0.65;
-const STRETCHMIN = 0.25;
-const STRETCHMAX = 1.50;
+const PINCHMIN = 0.25;
+const PINCHMAX = 1.50;
 const THUMBMAX = 1.00;
 const THUMBMIN = 0.00;
 const ZOOMADJ = 0.05;
 const LOADING = 1;
 const ZOOMING = 3;
-const TIMEMAIN = 8;//SAFARI?36:8;
-const SPEEDRANGE = "1-100";
-const STRECHRANGE =  "0.25-1.1";
-const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+const TIMEMAIN = 8;
+const PINCHRANGE =  "0.25-1.1";
 const CANVASMAX = 30;
 const MAXCANVASWIDTH = 32767;
 const MAXTOTALCANVASIZE = 384000000;//384mb
@@ -69,7 +68,7 @@ url.projectrange = url.searchParams.has("m") ? url.searchParams.get("m") : "0000
 url.thumblines = url.searchParams.has("a") ? Number(url.searchParams.get("a")) : 1;
 url.thumb = url.searchParams.has("h") ? Number(url.searchParams.get("h")) : 50;
 url.pan = url.searchParams.has("s") ? Number(url.searchParams.get("s")) : 50;
-url.stretch = url.searchParams.has("b") ? Number(url.searchParams.get("b")) : 50;
+url.pinch = url.searchParams.has("b") ? Number(url.searchParams.get("b")) : 50;
 url.row = url.searchParams.has("r") ? Number(url.searchParams.get("r")) : 50;
 url.zoom = url.searchParams.has("z") ? Number(url.searchParams.get("z")) : 50;
 url.movepage = url.searchParams.has("y") ? Number(url.searchParams.get("y")) : 0;
@@ -127,11 +126,6 @@ globalobj = {};
 globalobj.status = 0;
 
 var canvaslst = document.createElement("canvas");
-
-var browserobj = {};
-browserobj.top = function() { return parseInt(_4cnv.style.top,10); }; 
-browserobj.left = function() { return parseInt(_4cnv.style.left,10); }; 
-browserobj.iframe = function(){ return window !== window.parent;};
 
 var makeoption = function (title, data, mode, key)
 {
@@ -407,11 +401,46 @@ var Describe = function()
                 a.draw(context, rect, user, 0)
             }
         }
-                            
+
+            var str = 
+                "A foot poised over a pool. "+
+                "The surface breaks, a boy falls in, "+
+                "his laughter fills the afternoon. "+
+                "Ritual is the only language we truly believe in: "+
+                "tea steaming a glass mug on a table, "+
+                "smoke from a cigarette filling the room with blue, "+
+                "the way the sun falls across our face as we sleep. "+
+                "These are our things we say. "+
+                "But somewhere a door closes and another day begins. "+
+                "What if the woman we have always loved, "+
+                "the one we desire to wake to is our mother? "+
+                "The holy homeless fill the city like so many weeds. "+
+                "Only Gods children can see them. "+
+                "A blue cross on a wall is a flame. "+
+                "A ball falling from the sky is a meteor. "+
+                "Rust is its own kind of truth: "+
+                "like blood, like cities, like sunlight on a dusty road. "+
+                "We never find it, of course, but its always there, "+ 
+                "between the smoke and the flame.";
+
+        context.font = FONTHEIGHT + "px Archivo Black";
+        rect.width = Math.min(window.innerWidth-ALIEXTENT*2,960)-80
+        var lst = wrap2(context, rect, str);
+        rect.width  +=  40;
+        var j = headcnv.height?ALIEXTENT*2:0;
+        var rows = Math.ceil((rect.height-ALIEXTENT-j)/ROWHEIGHT);
+        var f = (context.rowobj.length()-context.rowobj.getcurrent())/context.rowobj.length();
+        var row = Math.floor(f*rows);
+        if (lst.length > rows)
+            lst = lst.slice(row);
+        var yyy = (rect.height-rows*ROWHEIGHT)/2;
+        var xxx = rect.x-rect.width/2;
+        context.describerect = new rectangle(xxx,yyy,rect.width,rows*ROWHEIGHT);
         context.shadowOffsetX = 1;
         context.shadowOffsetY = 1;
-        var a = new GridA(1, user.length, 1, new panel())
-        a.draw(context, rect, user, time);
+        context.shadowColor = "black"
+        var a = new GridA(1, rows, 1, new panel())
+        a.draw(context, context.describerect, lst, time);
     }
 };
 
@@ -441,11 +470,16 @@ var Debug = function()
                 a.draw(context, rect, [user.title,0,user.value], 0)
             }
         }
-                            
+        
+        const INFOWIDTH = 960;
+        var yyy = (rect.height-context.debug.length*ROWHEIGHT)/2;
+        var xxx = rect.x-INFOWIDTH/2;
+        var r = new rectangle(xxx,yyy,INFOWIDTH,context.debug.length*ROWHEIGHT);
         context.shadowOffsetX = 1;
         context.shadowOffsetY = 1;
-        var a = new GridA(1, user.length, 1, new panel())
-        a.draw(context, rect, user, time);
+        context.shadowColor = "black"
+        var a = new GridA(0, user.length, 1, new panel())
+        a.draw(context, r, user, time);
     }
 };
 
@@ -536,8 +570,6 @@ rectangle.prototype.expand = function (x, y)
 	this.height += y*2;
 };
 
-var thumbrect = new rectangle();
-
 var addressobj = {}
 addressobj.body = function (l)
 {
@@ -545,7 +577,7 @@ addressobj.body = function (l)
     var out = 
         "&r="+context.getrow()+
         "&z="+context.zoomobj.current()+
-        "&b="+context.stretchobj.current()+
+        "&b="+context.pinchobj.current()+
         "&h="+context.thumbheightobj.current()+
         "&v="+positobj.current()+
         "&o="+url.cols+
@@ -626,21 +658,21 @@ CanvasRenderingContext2D.prototype.point2slice = function(x,y)
 	return n;
 }
 
-CanvasRenderingContext2D.prototype.stretchout = function()
+CanvasRenderingContext2D.prototype.pinchout = function()
 {
     var context = this;
-    var k = context.stretchobj.current()+5;
-    k = Math.clamp(0,context.stretchobj.length()-1,k);
-    context.stretchobj.set(k);
+    var k = context.pinchobj.current()+5;
+    k = Math.clamp(0,context.pinchobj.length()-1,k);
+    context.pinchobj.set(k);
     _4cnvctx.refresheaders();
 }
 
-CanvasRenderingContext2D.prototype.stretchin = function()
+CanvasRenderingContext2D.prototype.pinchin = function()
 {
     var context = this;
-    var k = context.stretchobj.current()-5;
-    k = Math.clamp(0,context.stretchobj.length()-1,k);
-    context.stretchobj.set(k);
+    var k = context.pinchobj.current()-5;
+    k = Math.clamp(0,context.pinchobj.length()-1,k);
+    context.pinchobj.set(k);
     _4cnvctx.refresheaders();
 }
 
@@ -867,8 +899,8 @@ var makehammer = function (context, v)
 	context.ham = ham;
     ham.get("pan").set({ direction: Hammer.DIRECTION_ALL });
     ham.get("swipe").set({ direction: Hammer.DIRECTION_ALL });
-    //ham.get('swipe').set({ velocity: v });   
-	ham.get('swipe').set({ threshold: 10 });
+    ham.get('swipe').set({ velocity: 0.6 });   
+	ham.get('swipe').set({ threshold: 20 });
 	ham.get('press').set({ time: 350 });
 	ham.get('pan').set({ threshold: 10 });
 	ham.get('pinch').set({ enable: true });	
@@ -878,8 +910,8 @@ var makehammer = function (context, v)
 		evt.preventDefault();
 		var x = evt.center.x;
 		var y = evt.center.y;
-		if (typeof (ham.panel.stretch) == "function")
-			ham.panel.stretch(context, evt.scale);
+		if (typeof (ham.panel.pinch) == "function")
+			ham.panel.pinch(context, evt.scale);
 
 		context.pinchblock = 1;
 		clearTimeout(globalobj.time_050);
@@ -1169,26 +1201,16 @@ var pinchlst =
 [
 {
     name: "DEFAULT",
-    stretch: function (context, scale) { },
+    pinch: function (context, scale) { },
     pinchend: function (context) { }, 
     pinchstart: function (context, rect, x, y) { },
 },
 {
     name: "BOSS",
-    stretch: function (context, scale)
+    pinch: function (context, scale)
     {
         context.pinching = 1;
-        if (footobj.current() == 1)
-        {
-            var obj = context.stretchobj; 
-            var k = Math.clamp(obj.begin, obj.end,scale*context.stretchsave);
-            var j = Math.berp(obj.begin, obj.end,k);
-            var e = Math.lerp(0,obj.length(),j)/100;
-            var f = Math.floor(obj.length()*e); 
-            obj.set(f);
-        }
-
-        else if (footobj.current() == 2)
+        if (context.isthumbrect)
         {
             var obj = context.thumbheightobj;
             var data = obj.data_; 
@@ -1198,7 +1220,16 @@ var pinchlst =
             var f = Math.floor(obj.length()*e); 
             obj.set(f);
         }
-            
+        else
+        {
+            var obj = context.pinchobj; 
+            var k = Math.clamp(obj.begin, obj.end,scale*context.pinchsave);
+            var j = Math.berp(obj.begin, obj.end,k);
+            var e = Math.lerp(0,obj.length(),j)/100;
+            var f = Math.floor(obj.length()*e); 
+            obj.set(f);
+        }
+
         context.refresh();
     },
     pinchend: function (context)
@@ -1213,13 +1244,14 @@ var pinchlst =
     }, 
     pinchstart: function (context, rect, x, y) 
     {
+        context.isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         context.thumbheightsave = context.thumbheightobj.getcurrent()
-        context.stretchsave = context.stretchobj.getcurrent()
+        context.pinchsave = context.pinchobj.getcurrent()
     },
 },
 ];
 
-var stretchobj = new makeoption("", pinchlst);
+var pinchobj = new makeoption("", pinchlst);
 
 function promptFile() 
 {
@@ -1310,7 +1342,7 @@ var panlst =
         clearTimeout(context.panningtime);
         context.panningtime = setTimeout(function() { _4cnvctx.panning = 0;  _4cnvctx.refresh()}, 500);
 
-       if (context.isthumbrect)
+        if (context.isthumbrect)
         {
             context.hithumb(x,y);
         }
@@ -1334,7 +1366,7 @@ var panlst =
 	panstart: function (context, rect, x, y)
 	{
         headobj.set(url.cols>1?2:1);
-        context.isthumbrect = thumbobj.hitest(x,y);
+        context.isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         pageresize();
      },
 	panmove: function (context, rect, x, y)
@@ -1356,15 +1388,19 @@ function toggledescribe(lst)
     menuhide();
     _4cnvctx.describe = lst;
     _4cnvctx.time = 0;
-    pageresize();
     _4cnvctx.refresh();
 }
 
 function toggledebug()
 {
     var context = _4cnvctx;
-    delete context.describe;
-    pageresize();
+    if (context.debug || context.describe)
+    {
+        delete context.describe;
+        delete context.debug;
+        context.refresh();
+        return;
+    }
 
     _4cnvctx.debug = 
     [
@@ -1384,15 +1420,6 @@ function toggledebug()
         {title: "Row", value: Number(context.getrow()).toFixed(0)},
     ];
 
-    for (var n = 0; n < url.properties.length; ++n)
-    {
-        var k = url.properties[n].split("=");
-        var a = {}
-        a.title = k[0];
-        a.value = k[1];
-        _4cnvctx.debug.push(a);
-    }
-    
     _4cnvctx.time = 0;
     _4cnvctx.refresh();
 }
@@ -1457,6 +1484,14 @@ var presslst =
 
     press: function (context, rect, x, y)
     {
+        if (context.debug || context.describe)
+        {
+            delete context.describe;
+            delete context.debug;
+            context.refresh();
+            return;
+        }
+
         var n = context.grid? context.grid.hitest(x,y) : 4; 
         positobj.set(n);
         thumbobj.set(thumbobj.current()?0:1); 
@@ -1518,9 +1553,6 @@ var swipelst =
     name: "BOSS",
     swipeleftright: function (context, rect, x, y, type)
     {
-        if (thumbobj.hitest(x,y))
-            return;
-
         clearTimeout(context.timeswipe);
         context.timeswipe = setTimeout(function()
         {
@@ -1539,6 +1571,15 @@ var swipelst =
 
     swipeupdown: function (context, rect, x, y, type)
     {
+        clearTimeout(context.timeswipe);
+        context.timeswipe = setTimeout(function()
+        {
+            if (type == "swipedown")
+                context.rowobj.set(window.innerHeight-1);
+            else
+                context.rowobj.set(0);
+            contextobj.reset();
+        }, JULIETIME);
     },
 },
 ];
@@ -1586,6 +1627,47 @@ var keylst =
             _4cnvctx.movepage(0);
             addressobj.refresh();
             evt.preventDefault();
+            return false;
+        }
+        else if (evt.key == "a")
+        {
+            toggledebug();
+        }
+         else if (evt.key == "d")
+        {
+            if (context.about || context.describe)
+            {
+                delete context.describe;
+                delete context.debug;
+                context.refresh();
+                return;
+            }
+
+            var str = 
+                "A foot poised over a pool. "+
+                "The surface breaks, a boy falls in, "+
+                "his laughter fills the afternoon. "+
+                "Ritual is the only language we truly believe in: "+
+                "tea steaming a glass mug on a table, "+
+                "smoke from a cigarette filling the room with blue, "+
+                "the way the sun falls across our face as we sleep. "+
+                "These are our things we say. "+
+                "But somewhere a door closes and another day begins. "+
+                "What if the woman we have always loved, "+
+                "the one we desire to wake to is our mother? "+
+                "The holy homeless fill the city like so many weeds. "+
+                "Only Gods children can see them. "+
+                "A blue cross on a wall is a flame. "+
+                "A ball falling from the sky is a meteor. "+
+                "Rust is its own kind of truth: "+
+                "like blood, like cities, like sunlight on a dusty road. "+
+                "We never find it, of course, but its always there, "+ 
+                "between the smoke and the flame.";
+
+            _4cnvctx.font = FONTHEIGHT + "px Archivo Black";
+            var r = _4cnvctx.rect();
+            r.width = Math.min(r.width-ALIEXTENT*2,960)-40
+            toggledescribe(wrap2(_4cnvctx, r, str));
             return false;
         }
         else if (evt.key == " ")
@@ -1641,9 +1723,9 @@ var keylst =
         }
         else if (evt.key == "q" || evt.key == "Q")
         {
-            var k = context.stretchobj.current()+(evt.key == "Q"?5:-5);
-            k = Math.clamp(0,context.stretchobj.length()-1,k);
-            context.stretchobj.set(k);
+            var k = context.pinchobj.current()+(evt.key == "Q"?5:-5);
+            k = Math.clamp(0,context.pinchobj.length()-1,k);
+            context.pinchobj.set(k);
            addressobj.refresh();
             _4cnvctx.refresheaders();
             evt.preventDefault();
@@ -1823,7 +1905,8 @@ var keylst =
 
 CanvasRenderingContext2D.prototype.hithumb = function(x,y)
 {
-    var rect = thumbrect;
+    console.assert(this.thumbrect);
+    var rect = this.thumbrect;
     var b = (x-rect.x)/rect.width;
     var e = this.slicesobj.data_.length;
     var m = (1-b)*e;
@@ -1853,11 +1936,16 @@ var taplst =
             return;
         }
 
-        var isthumbrect = thumbobj.hitest(x,y);
+        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         footobj.set(isthumbrect ? 2 : 1);
 
-        delete context.describe;
-        delete context.debug;
+        if (context.debug || context.describe)
+        {
+            delete context.describe;
+            delete context.debug;
+            context.refresh();
+            return;
+        }
 
         photo.image.completedPercentage = 0
         headobj.getcurrent().draw(headcnvctx, headcnvctx.rect(), 0);
@@ -1869,7 +1957,6 @@ var taplst =
             addressobj.refresh();
             _4cnvctx.refresh();
             _4cnvctx.refresheaders(); 
-            pageresize();
         }
         else if (context.bottom && context.bottom.hitest(x,y))
         {
@@ -1877,7 +1964,6 @@ var taplst =
             addressobj.refresh();
             _4cnvctx.refresh();
             _4cnvctx.refresheaders(); 
-            pageresize();
         }
         else if (context.left && context.left.hitest(x,y))
         {
@@ -1885,7 +1971,6 @@ var taplst =
             addressobj.refresh();
             _4cnvctx.refresh();
             _4cnvctx.refresheaders(); 
-            pageresize();
         }
         else if (context.right && context.right.hitest(x,y))
         {
@@ -1893,17 +1978,16 @@ var taplst =
             addressobj.refresh();
             _4cnvctx.refresh();
             _4cnvctx.refresheaders(); 
-            pageresize();
         }
         else if (context.fullscreen && context.fullscreen.hitest(x,y))
         {
             if (SAFARI)
                 window.open("https://reportbase.com"+addressobj.full(), '_blank').focus();
             else
-                screenfull.toggle(browserobj.iframe() ? _4cnv : 0);
+                screenfull.toggle(IFRAME ? _4cnv : 0);
             _4cnvctx.refresh();
         }
-        else if (thumbobj.hitest(x,y))
+        else if (isthumbrect)
         {
             context.panning = 0;
             context.pinching = 0;
@@ -1939,25 +2023,49 @@ var taplst =
             delete hit.tap; 
             if (hit.path == "DESCRIBE")
             {
-                var str = "Lorem ipsum dolor sit amet, consectetur adipiscing "+
-                          "elit, sed do eiusmod tempor incididunt ut labore et "+ 
-                          "dolore magna aliqua. Ut enim ad minim veniam, quis "+ 
-                          "nostrud exercitation ullamco laboris nisi ut aliquip "+ 
-                          "ex ea commodo consequat. Duis aute irure dolor in reprehenderit "+ 
-                          "in voluptate velit esse cillum dolore eu fugiat nulla pariatur."+ 
-                          "Excepteur sint occaecat cupidatat non proident, sunt in culpa "+ 
-                          "qui officia deserunt mollit anim id est laborum.";
+                var str = 
+                    "A foot poised over a pool. "+
+                    "The surface breaks, a boy falls in, "+
+                    "his laughter fills the afternoon. "+
+                    "Ritual is the only language we truly believe in: "+
+                    "tea steaming a glass mug on a table, "+
+                    "smoke from a cigarette filling the room with blue, "+
+                    "the way the sun falls across our face as we sleep. "+
+                    "These are our things we say. "+
+                    "But somewhere a door closes and another day begins. "+
+                    "What if the woman we have always loved, "+
+                    "the one we desire to wake to is our mother? "+
+                    "The holy homeless fill the city like so many weeds. "+
+                    "Only Gods children can see them. "+
+                    "A blue cross on a wall is a flame. "+
+                    "A ball falling from the sky is a meteor. "+
+                    "Rust is its own kind of truth: "+
+                    "like blood, like cities, like sunlight on a dusty road. "+
+                    "We never find it, of course, but its always there, "+ 
+                    "between the smoke and the flame.";
+
                 _4cnvctx.font = FONTHEIGHT + "px Archivo Black";
                 var r = _4cnvctx.rect();
-                r.width = Math.min(640,r.width-40);
+                r.width = Math.min(r.width-ALIEXTENT*2,960)-40;
                 toggledescribe(wrap2(_4cnvctx, r, str));
             }
             else if (hit.path == "ABOUT")
             {
-                about();
+                var lst = [
+                    "Reportbase.com",
+                    "High Resolution Image Viewer",
+                    "Interacive Panoramas",
+                    "",
+                    "Developer - Tom Brinman",
+                    "Contact - repba@pm.me",
+                    "",
+                    "Contact developer ",
+                    "for more information."]; 
+                toggledescribe(lst);
             }
-            else if (hit.path == "THUMB")
+            else if (hit.path == "THUMBNAIL")
             {
+                thumbobj.toggle();
             }
              else if (hit.path == "PROJECT")
             {
@@ -1996,19 +2104,7 @@ var taplst =
             } 
             else if (hit.path == "FULLSCREEN")
             {
-                screenfull.toggle(browserobj.iframe() ? _4cnv : 0);
-            }
-            else if (hit.path == "THUMBGO")
-            {
-                _4cnvctx.thumbheightobj.set(hit.index);
-                contextobj.reset();
-                addressobj.refresh();
-            }
-            else if (hit.path == "STRETCHGO")
-            {
-                _4cnvctx.stretchobj.set(hit.index);
-                contextobj.reset();
-                addressobj.refresh();
+                screenfull.toggle(IFRAME ? _4cnv : 0);
             }
             else if (hit.path == "ORIGINAL")
             {
@@ -2151,6 +2247,7 @@ var slicesobj = function (title, data, image, hit)
             this.data_.push({title:"About", path: "ABOUT"})
             this.data_.push({title:"Metrics", path: "DEBUG"})
             this.data_.push({title:"Load", path: "LOAD"})
+            this.data_.push({title:"Thumbnail", path: "THUMBNAIL"})
             this.data_.push({title:"Original", path: "ORIGINAL"})
             if (!SAFARI)
                 this.data_.push({title:"Fullscreen", path: "FULLSCREEN"})
@@ -2190,14 +2287,14 @@ var thumblst =
         context.shadowOffsetY = 0;
         var col = context.point2col()
         var th = context.thumbheightobj.getcurrent();
-        var headers = browserobj.iframe()?0:ALIEXTENT*2; 
+        var headers = IFRAME?0:ALIEXTENT*2; 
         var thumbord = THUMBORDER;
         var width = (rect.width-thumbord*2);
         var height = rect.height-headers-thumbord*2;
         var r = calculateAspectRatioFit(photo.image.width, photo.image.height, width, height*th); 
-        var h = r.height;
-        var w = r.width; 
-        var a = browserobj.iframe()?0:ALIEXTENT;
+        var h = Math.max(100,r.height);
+        var w = (r.width/r.height)*h;
+        var a = IFRAME?0:ALIEXTENT;
         var pos = positobj.current();
         if (pos == 0)
         {
@@ -2245,10 +2342,7 @@ var thumblst =
             var y = (context.canvas.height-h)/2;
         }
 
-        thumbrect.x = x;
-        thumbrect.y = y;
-        thumbrect.width = w;
-        thumbrect.height = h;
+        context.thumbrect = new rectangle(x,y,w,h);
      
         if ( context.hideimage_ || context.panning || context.pinching)
         {
@@ -2283,7 +2377,7 @@ var thumblst =
         context.lineWidth = THUMBLINEOUT;
         var whiterect = new StrokeRect(THUMBSTROKE);
         var blackrect = new Fill(THUMBFILL);
-        whiterect.draw(context, thumbrect, 0, 0);
+        whiterect.draw(context, context.thumbrect, 0, 0);
 
         if (url.thumblines)
         {
@@ -2307,8 +2401,8 @@ var thumblst =
         context.thumbselect[0] = new rectangle(xxxxx,y,wwwww,hh);
         context.thumbselectwidth = wwwww;
        
-        var kx = context.thumbselect[0].x - thumbrect.x;
-        var k = kx/thumbrect.width;
+        var kx = context.thumbselect[0].x - context.thumbrect.x;
+        var k = kx/context.thumbrect.width;
         var ki = Math.floor(k*context.slicesobj.length());
         context.slicesobj.set(ki);
 
@@ -2326,14 +2420,21 @@ var thumblst =
             context.thumbselectwidth += wwwww;
         }
 
-        context.thumbselwidthrat = context.thumbselectwidth/thumbrect.width;
+        context.thumbselwidthrat = context.thumbselectwidth/context.thumbrect.width;
     },
-},{
+},
+{
     name: "GUIDE",
     draw: function (context, rect, user, time)
     {
         context.shadowOffsetX = 1;
         context.shadowOffsetY = 1;
+        context.shadowColor = "black"
+        context.left = new rectangle();
+        context.top = new rectangle();
+        context.right = new rectangle();
+        context.bottom = new rectangle();
+        context.fullscreen = new rectangle();
         var w = GUIDEHEIGHT;
         var w2 = w*3;
         var a = new RowA([ALIEXTENT,0,w2,0,ALIEXTENT],
@@ -2429,10 +2530,6 @@ var thumblst =
 var thumbobj = new makeoption("", thumblst);
 var thumbindex = url.searchParams.has("g") ? Number(url.searchParams.get("g")) : 0;
 thumbobj.set(thumbindex);
-thumbobj.hitest = function(x,y)
-{
-    return thumbobj.current() == 0 && thumbrect.hitest(x,y);
-}
 
 thumbobj.toggle = function()
 {
@@ -2514,25 +2611,7 @@ var drawlst = [
         var cols = url.cols;
         var str = user.title;
         
-        if (user.path == "THUMBGO")
-        {
-            var k = _4cnvctx.thumbheightobj.current();
-            if (k == user.index)
-                clr = select;
-        }
-        else if (user.path == "STRETCHGO")
-        {
-            var k = _4cnvctx.stretchobj.current();
-            if (k == user.index)
-                clr = select;
-        }
-        else if (user.path == "ZOOMGO")
-        {
-            var k = _4cnvctx.zoomobj.current();
-            if (k == user.index)
-                clr = select;
-        }
-        else if (user.path == "PROJECT")
+        if (user.path == "PROJECT")
         {
             var j = Number(url.project)*url.cols+url.col;
             if (url.movepage)
@@ -2625,12 +2704,12 @@ function resetcanvas()
     context.virtualwidth = context.virtualheight * imageaspect;
     context.virtualaspect = context.virtualwidth / context.virtualheight;
 
-    context.stretchobj = splitrange(context.stretchobj, url.stretch, STRECHRANGE, OPTIONSIZE);
+    context.pinchobj = splitrange(context.pinchobj, url.pinch, PINCHRANGE, OPTIONSIZE);
 
     var width = window.innerWidth-40;
     var height = window.innerHeight-ALIEXTENT*3.5;
     var r = calculateAspectRatioFit(photo.image.width, photo.image.height, width, height); 
-    var str = "0.1-"+(r.height/height).toFixed(2); 
+    var str = "0.15-"+(r.height/height); 
     context.thumbheightobj = splitrange(context.thumbheightobj, url.thumb, str, OPTIONSIZE);
 
     if (!context.rowobj)
@@ -2711,15 +2790,15 @@ function resetcanvas()
 
 var contextlst = 
 [ 
-    {context: _1cnvctx, mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "DEFAULT", pan: "DEFAULT", swipe: "DEFAULT", draw: "DEFAULT", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", stretch: "DEFAULT", fillwidth: 0},
-    {context: _2cnvctx, mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "DEFAULT", pan: "DEFAULT", swipe: "DEFAULT", draw: "DEFAULT", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", stretch: "DEFAULT", fillwidth: 0}, 
-    {context: _3cnvctx, mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", stretch: "DEFAULT", fillwidth: 210},
-    {context: _4cnvctx, mouse: "BOSS", guide: "GUIDE", thumb: "BOSS",  tap: "BOSS", pan: "BOSS", swipe: "BOSS", draw: "BOSS", wheel: "BOSS", drop: "BOSS", key: "BOSS", press: "BOSS", stretch: "BOSS", fillwidth: 0}, 
-    {context: _5cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", stretch: "DEFAULT", fillwidth: 210},
-    {context: _6cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", stretch: "DEFAULT", fillwidth: 210}, 
-    {context: _7cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", stretch: "DEFAULT", fillwidth: 210},
-    {context: _8cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", stretch: "DEFAULT", fillwidth: 240}, 
-    {context: _9cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", stretch: "DEFAULT", fillwidth: 360}, 
+    {context: _1cnvctx, mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "DEFAULT", pan: "DEFAULT", swipe: "DEFAULT", draw: "DEFAULT", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 0},
+    {context: _2cnvctx, mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "DEFAULT", pan: "DEFAULT", swipe: "DEFAULT", draw: "DEFAULT", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 0}, 
+    {context: _3cnvctx, mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
+    {context: _4cnvctx, mouse: "BOSS", guide: "GUIDE", thumb: "BOSS",  tap: "BOSS", pan: "BOSS", swipe: "BOSS", draw: "BOSS", wheel: "BOSS", drop: "BOSS", key: "BOSS", press: "BOSS", pinch: "BOSS", fillwidth: 0}, 
+    {context: _5cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
+    {context: _6cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210}, 
+    {context: _7cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
+    {context: _8cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 240}, 
+    {context: _9cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 360}, 
 ];
 
 var ContextObj = (function ()
@@ -2753,9 +2832,9 @@ var ContextObj = (function ()
 			context.lastime = 0;
             context.fillwidth = obj.fillwidth;
 
-            var k = pinchlst.findIndex(function (a) { return a.name == obj.stretch });
+            var k = pinchlst.findIndex(function (a) { return a.name == obj.pinch });
             k = pinchlst[k];
-            context.stretch_ = k.stretch;
+            context.pinch_ = k.pinch;
             context.pinchstart_ = k.pinchstart;
             context.pinchend_ = k.pinchend;
 
@@ -2848,7 +2927,7 @@ var ContextObj = (function ()
             {   
                 w = Math.min(_4cnv.width-ALIEXTENT*2-10,context.fillwidth);
                 l = Math.floor((window.innerWidth-w)/2);
-				context.show(l, browserobj.top(), w, _4cnv.height);
+				context.show(l, 0, w, _4cnv.height);
 			}
         },
 
@@ -2931,7 +3010,7 @@ var ContextObj = (function ()
                     {
                         _4cnvctx.refresh();
                     
-                        if (browserobj.iframe())
+                        if (IFRAME)
                         {  
                             parent.postMessage( 
                             { 
@@ -3411,7 +3490,6 @@ var GridA = function (cols, rows, margin, panel)
     };
 };
 
-
 var Expand = function (panel, extentw, extenth)
 {
     this.draw = function (context, rect, user, time)
@@ -3715,7 +3793,6 @@ function escape()
 {
     globalobj.status = 0;
     _4cnvctx.refresh();
-    pageresize();
     contextobj.reset();
 }
 
@@ -3752,10 +3829,7 @@ var YollPanel = function ()
                     footham.panel.draw(footcnvctx, footcnvctx.rect(), 0);
                 }
                 
-                var stretchobj = context.stretchobj;
-                if (!stretchobj)
-                    continue;
-
+                var pinchobj = context.pinchobj;
                 var rect = context.rect();
                 var first = 0;
                 context.firstx = DELAY;
@@ -3768,7 +3842,7 @@ var YollPanel = function ()
                 let y = rect.height*0.5;
                 var width = context.canvas.width;
                 var height = context.canvas.height;
-                var kv = context.virtualwidth*stretchobj.getcurrent();
+                var kv = context.virtualwidth*pinchobj.getcurrent();
                 var borderleft = (kv-width)/2;
                 context.save();
                 context.translate(xt, 0);
@@ -3779,7 +3853,7 @@ var YollPanel = function ()
                     slice.time = context.time + (m*context.delayinterval);
                     var b = Math.tan(slice.time*VIRTCONST);
                     let x = Math.berp(-1, 1, b) * kv - borderleft;
-                    var stretchwidth = x+context.colwidth-lx; 
+                    var pinchwidth = x+context.colwidth-lx; 
                     lx = x;
                     slice.nx = x;
                     slice.ny = y;
@@ -3818,7 +3892,7 @@ var YollPanel = function ()
                         height)
                     {
                         context.drawImage(canvaslst, slice.x,0,context.colwidth, height,
-                            x+r.x,0,context.colwidth*stretchwidth, height);
+                            x+r.x,0,context.colwidth*pinchwidth, height);
                     }
                 }
 
@@ -3837,8 +3911,16 @@ var YollPanel = function ()
                 var e = _4cnvctx.jlst.length /_4cnvctx.slicesobj.data_.length;
                 context.panspeed = e*0.1
 
-                context.shadowColor = "black"
-                
+                context.thumbselect = [];
+                context.grid = [];
+                delete context.left;
+                delete context.top;
+                delete context.right;
+                delete context.bottom;
+                delete context.fullscreen;
+                delete context.thumbrect;
+                delete context.describerect;
+ 
                 if (context.debug || context.describe)
                 {
                     for (var m = 0; m < slicesobj.length; ++m)
@@ -3846,30 +3928,22 @@ var YollPanel = function ()
                         var hit = slicesobj[m];
                         if (hit.isleft && hit.col == 0)
                         {
+                            context.save();
+                            context.translate(hit.nx+xt, hit.ny+yt);
                             if (context.debug)
                             {
-                                context.save();
-                                context.translate(hit.nx+xt, hit.ny+yt);
                                 var rows = Math.floor((rect.height-ALIEXTENT*4)/ROWHEIGHT);
                                 context.debug.length = Math.min(context.debug.length,rows);
-                                var yyy = (window.innerHeight-context.debug.length*ROWHEIGHT)/2;
-                                var xxx = r.x-INFOWIDTH/2;
                                 var a = new Debug();
-                                a.draw(context, new rectangle(xxx,yyy,INFOWIDTH,context.debug.length*ROWHEIGHT), context.debug);
-                                context.restore();
+                                a.draw(context, r, context.debug, 0);
                             }
                             else if (context.describe)
                             {
-                                context.save();
-                                context.translate(hit.nx+xt, hit.ny+yt);
-                                var rows = Math.floor((rect.height-ALIEXTENT*4)/ROWHEIGHT);
-                                context.describe.length = Math.min(context.describe.length,rows);
-                                var yyy = (window.innerHeight-context.describe.length*ROWHEIGHT)/2;
-                                var xxx = r.x-INFOWIDTH/2;
                                 var a = new Describe();
-                                a.draw(context, new rectangle(xxx,yyy,INFOWIDTH,context.describe.length*ROWHEIGHT), context.describe);
-                                context.restore();
+                                a.draw(context, r, context.describe, 0);
                             }
+                                
+                            context.restore();
                         }
                     }
                 } 
@@ -3882,20 +3956,12 @@ var YollPanel = function ()
 
                 if (!context.describe && !context.debug)
                 {
-                    context.thumbselect = [];
-                    context.grid = [];
-                    context.left = new rectangle();
-                    context.top = new rectangle();
-                    context.right = new rectangle();
-                    context.bottom = new rectangle();
-                    context.fullscreen = new rectangle();
-
                     var a =  new Grid(3,3,0,new Rects(context.grid));
                     a.draw(context, rect, 0, 0);
 
                     thumbobj.getcurrent().draw(context, rect, 0, 0);
               
-                    if (browserobj.iframe())
+                    if (IFRAME)
                     {
                         parent.postMessage( 
                         { 
@@ -3903,7 +3969,7 @@ var YollPanel = function ()
                             aspect: photo.image.aspect.toFixed(2),
                             col: context.slicemiddle.col,
                             row: ((1-(context.rowobj.getcurrent()/context.rowobj.length()))*window.innerHeight),
-                            stretch: context.stretchobj.getcurrent(),
+                            pinch: context.pinchobj.getcurrent(),
                             size: (photo.image.size/1000000).toFixed(1) + "MP",
                             vsize: ((context.virtualheight*context.virtualwidth)/1000000).toFixed(1) + "MP",
                             zoom: context.zoomobj.getcurrent(),
@@ -4117,10 +4183,10 @@ var YollPanel = function ()
         	context.swipeupdown_(context, rect, x, y, type);
 	};
 
-    this.stretch = function (context, scale)
+    this.pinch = function (context, scale)
     {
-   		if (context.stretch_)
-        	context.stretch_(context, scale);
+   		if (context.pinch_)
+        	context.pinch_(context, scale);
 	};
 
     this.pinchend = function(context)
@@ -4354,7 +4420,6 @@ var headlst =
             if (globalobj.status == LOADING)
                 return;
             clearTimeout(_4cnvctx.headtime);
-            pageresize();
             _4cnvctx.refresh();
             addressobj.refresh();
             var n = context.rects.hitest(x,y); 
@@ -4858,13 +4923,13 @@ window.addEventListener("keydown", function (evt)
 window.addEventListener('message', function(evt)
 {
     if (evt.data == "fullscreen")
-        screenfull.toggle(browserobj.iframe() ? _4cnv : 0);
+        screenfull.toggle(IFRAME ? _4cnv : 0);
     else if (evt.data == "moveprev")
         _4cnvctx.moveleft();
-    else if (evt.data == "stretchout")
-        _4cnvctx.stretchout();
-    else if (evt.data == "stretchin")
-        _4cnvctx.stretchin();
+    else if (evt.data == "pinchout")
+        _4cnvctx.pinchout();
+    else if (evt.data == "pinchin")
+        _4cnvctx.pinchin();
     else if (evt.data == "movenext")
         _4cnvctx.moveright();
     else if (evt.data == "zoomout")
@@ -4877,21 +4942,6 @@ window.addEventListener('message', function(evt)
     return true;
 });
 
-function about()
-{
-    var lst = [
-        "Reportbase.com",
-        "High Resolution Image Viewer",
-        "Interacive Panoramas",
-        "",
-        "Developer - Tom Brinman",
-        "Contact - repba@pm.me",
-        "",
-        "Contact developer ",
-        "for more information."]; 
-    toggledescribe(lst);
-}
-
 document.addEventListener('touchmove', function (event) 
 { 
     event.preventDefault(); 
@@ -4899,10 +4949,10 @@ document.addEventListener('touchmove', function (event)
 
 function pageresize()
 {
-    var h = (thumbobj.current()==1||browserobj.iframe())?0:headobj.getcurrent().height;
+    var h = (thumbobj.current()==1||IFRAME)?0:headobj.getcurrent().height;
     headcnvctx.show(0,0,window.innerWidth, h);
     headham.panel = headobj.getcurrent();
-    var h = (thumbobj.current()==1||browserobj.iframe())?0:footobj.getcurrent().height;
+    var h = (thumbobj.current()==1||IFRAME)?0:footobj.getcurrent().height;
     footcnvctx.show(0,window.innerHeight-ALIEXTENT, window.innerWidth, h);
     footham.panel = footobj.getcurrent();
 }
