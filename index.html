@@ -6,19 +6,22 @@
 <iframe id=pano src=https://reportbase.com/home.html?p=BOND.0072.webp&r=40&c=0&z=40&b=40&h=50&v=4&o=1&f=0&l=36&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0076></iframe>
 <p>
 <section>
-<button onclick="moveleft(pano)" id="projectag"></button>
-<button onclick="moveleft(pano)"><img src="left.png"/></button>
-<button onclick="fullscreen(pano)"><img src="full.png"/></button> 
-<button onclick="moveright(pano)"><img src="right.png"/></button>
-<button onclick="moveright(pano)"id="projectstag"></button><p>
+<button onclick="moveleft()" id="projectag"></button>
+<button onclick="moveleft()"><img src="left.png"/></button>
+<button onclick="fullscreen()"><img src="full.png"/></button> 
+<button onclick="moveright()"><img src="right.png"/></button>
+<button onclick="moveright()"id="projectstag"></button><p>
 
   <gallery id="images"></gallery><p>
-  <a onclick="zoomin(pan); return false;" href="javascript:void(0);">Zoom-in</a>, 
-  <a onclick="zoomout(pan); return false;" href="javascript:void(0);">Zoom-out</a>,
-  <a onclick="pinchin(pan); return false;" href="javascript:void(0);">Pinch-in</a>, 
-  <a onclick="pinchout(pan); return false;" href="javascript:void(0);">Pinch-out</a>,
-  <a onclick="thumbnail(pan); return false;" href="javascript:void(0);">Thumbnail</a>, 
-  <a onclick="newindow(pan); return false;" href="javascript:void(0);">New-Window</a>
+  <a onclick="zoomin(); return false;" href="javascript:void(0);">Zoom-in</a>, 
+  <a onclick="zoomout(); return false;" href="javascript:void(0);">Zoom-out</a>,
+  <a onclick="pinchin(); return false;" href="javascript:void(0);">Pinch-in</a>, 
+  <a onclick="pinchout(); return false;" href="javascript:void(0);">Pinch-out</a>,
+  <a onclick="thumbnail(); return false;" href="javascript:void(0);">Thumbnail</a>, 
+  <a onclick="newindow(); return false;" href="javascript:void(0);">New-Window</a>, 
+  <a onclick="about(); return false;" href="javascript:void(0);">About</a>, 
+  <a onclick="describe(); return false;" href="javascript:void(0);">Describe</a>
+  
   <p>
 
   High Resolution Image Viewer<br>
@@ -36,7 +39,7 @@ repba@pm.me
 <a onclick="pan.src='https://reportbase.com/home.html?p=HOPE.0000.webp&r=50&c=0&z=75&b=50&h=50&v=7&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0076'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">05</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=GOAT.0001.webp&r=50&c=0&z=75&b=77&h=50&v=7&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0097'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">06</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=HOOD.0000.webp&r=50&c=0&z=60&b=41&h=50&v=8&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0036'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">07</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=BOAT.0000.webp&r=50&c=0&z=60&b=99&h=50&v=7&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0074'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">08</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BOAT.0000.webp&r=50&c=0&z=60&b=99&h=50&v=7&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0073'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">08</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=BALL.0000.webp&r=50&c=0&z=60&b=41&h=50&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0009'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">09</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=BELL.0000.webp&r=48&c=0&z=60&b=41&h=50&v=7&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0013'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">10</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=ASPO.0000.webp&r=50&t=1&z=75&b=41&h=50&v=4&o=1&f=0&l=18&g=0&y=1&n=0&a=0&k=0&m=0000-0013&c=0'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">11</a>
@@ -61,7 +64,7 @@ repba@pm.me
 <a onclick="pan.src='https://reportbase.com/home.html?p=DOCS.0000.webp&r=30&c=0&z=75&b=41&h=5&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=1&m=0000-0008'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">30</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=GIRL.0000.webp&r=30&c=0&z=60&b=41&h=50&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0031'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">31</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=PENO.0000.webp&r=50&c=0&z=40&b=60&h=40&v=7&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=00&m=0000-0074'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">32</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=PUNO.0000.webp&r=50&c=0&z=40&b=60&h=40&v=7&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0089'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">33</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=PUNO.0000.webp&r=50&c=0&z=40&b=60&h=40&v=7&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0087'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">33</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=PANO.0000.webp&r=50&c=0&z=40&b=60&h=40&v=7&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=00&m=0000-0039'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">34</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=GIMP.0000.webp&r=30&c=0&z=60&b=41&h=50&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0077'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">35</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=PORT.0000.webp&r=30&c=0&z=60&b=41&h=50&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0049'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">36</a>
@@ -217,21 +220,23 @@ var pano = pan.contentWindow;
 var path = document.getElementById('path');
 var address = document.getElementById('address');
 
-function moveleft(a) { pano.postMessage("moveprev", '*'); }
-function moveright(a) { pano.postMessage("movenext", '*'); }
-function zoomin(a) { pano.postMessage("zoomin", '*'); }
-function zoomout(a) { pano.postMessage("zoomout", '*'); }
-function pinchin(a) { pano.postMessage("pinchin", '*'); }
-function pinchout(a) { pano.postMessage("pinchout", '*'); }
-function thumbnail(a) { pano.postMessage("thumbnail", '*'); }
-function full(a) { a.postMessage("fullscreen", '*'); }
+function moveleft() { pano.postMessage("moveprev", '*'); }
+function moveright() { pano.postMessage("movenext", '*'); }
+function zoomin() { pano.postMessage("zoomin", '*'); }
+function zoomout() { pano.postMessage("zoomout", '*'); }
+function pinchin() { pano.postMessage("pinchin", '*'); }
+function pinchout() { pano.postMessage("pinchout", '*'); }
+function thumbnail() { pano.postMessage("thumbnail", '*'); }
+function full() { pano.postMessage("fullscreen", '*'); }
+function describe() { pano.postMessage("describe", '*'); }
+function about() { pano.postMessage("about", '*'); }
 function newindow(a) { window.open(addrestr, '_blank').focus(); }
-function fullscreen(a) 
+function fullscreen() 
 {
     if (SAFARI)
       window.open(addrestr, '_blank').focus();
     else
-      a.postMessage("fullscreen", '*'); 
+      pano.postMessage("fullscreen", '*'); 
 }
 
 window.addEventListener("message", (event) => 
@@ -292,8 +297,8 @@ window.addEventListener("message", (event) =>
         else if (data.fullproject)
         {
             var k = data.fullproject.split("-");
-            projectag.innerHTML = k[0];
-            projectstag.innerHTML = k[1];
+            projectag.innerHTML = k.length?k[0]:"";
+            projectstag.innerHTML = k.length?k[1]:"";
          }
     }
 }, false);

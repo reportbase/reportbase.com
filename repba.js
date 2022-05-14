@@ -6,7 +6,9 @@
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
-const REFRESHEADER = 400;
+const MAXVIRTUALWIDTH = (SAFARI || FIREFOX) ? 5760 : 11520; 
+const CANVASCOUNT = 20;
+const REFRESHEADER = 1000;
 const SLICEWIDTH = 1; 
 const HIDEIMAGE = 800;
 const MAXSLIDER = 720;
@@ -49,8 +51,9 @@ const CANVASMAX = 30;
 const MAXCANVASWIDTH = 32767;
 const MAXTOTALCANVASIZE = 384000000;//384mb
 const MAXCANVASIZE = SAFARI?16777216:32777216;
-const MAXVIRTUALSIZE = SAFARI?6000000:12000000
+const MAXVIRTUALSIZE = SAFARI?12000000:12000000
 const HEADCOLOR = "rgba(0,0,0,0.25)";
+const DARKHEADCOLOR = "rgba(0,0,0,0.5)";
 const ARROWSELECT = "rgba(255,125,0,0.5)";
 const ARROWBACK = "rgba(0,0,0,0.0)"
 const THUMBFILL = "rgba(0,0,0,0.25)"
@@ -82,8 +85,6 @@ url.fullproject = function()
 { 
     if (url.movepage == 0)
     {
-        if (!_4cnvctx.setcolumncomplete)
-            return " - ";
         var j = url.projects() * url.cols;
         var col = _4cnvctx.slicemiddle ? _4cnvctx.slicemiddle.col : 0;
         var k = col+(url.project * url.cols)
@@ -108,13 +109,6 @@ Math.clamp = function (min, max, val)
     return (val < min) ? min : (val > max) ? max : val;
 };
 
-console.assert	= function(cond, text)
-{
-	if ( cond )	return;
-	if ( console.assert.useDebugger )	debugger;
-	throw new Error(text || "Assertion failed!");
-};
-
 var photo = {}
 photo.image = 0;
 
@@ -129,7 +123,9 @@ for (var n = 0; n < 1000; n++)
 globalobj = {};
 globalobj.status = 0;
 
-var canvaslst = document.createElement("canvas");
+var canvaslst = [];
+for (var n = 0; n < CANVASCOUNT; ++n)
+    canvaslst[n] = document.createElement("canvas");
 
 var makeoption = function (title, data, mode, key)
 {
@@ -219,8 +215,6 @@ var headcnv = document.getElementById("head");
 var headcnvctx = headcnv.getContext("2d", opts);
 var footcnv = document.getElementById("foot");
 var footcnvctx = footcnv.getContext("2d", opts);
-
-_4cnvctx.describe = 0;
 
 function limitSize(size, maximumPixels) 
 {
@@ -394,7 +388,7 @@ var Describe = function()
             {
                 var a = new Layer(
                     [
-                        new Fill(HEADCOLOR),
+                        new Fill(DARKHEADCOLOR),
                         new Shrink(new Text("white", "center", "middle",0,1),10,10)
                     ]);
                 
@@ -402,37 +396,15 @@ var Describe = function()
             }
         }
 
-            var str = 
-                "A foot poised over a pool. "+
-                "The surface breaks, a boy falls in, "+
-                "his laughter fills the afternoon. "+
-                "Ritual is the only language we truly believe in: "+
-                "tea steaming a glass mug on a table, "+
-                "smoke from a cigarette filling the room with blue, "+
-                "the way the sun falls across our face as we sleep. "+
-                "These are our things we say. "+
-                "But somewhere a door closes and another day begins. "+
-                "What if the woman we have always loved, "+
-                "the one we desire to wake to is our mother? "+
-                "The holy homeless fill the city like so many weeds. "+
-                "Only Gods children can see them. "+
-                "A blue cross on a wall is a flame. "+
-                "A ball falling from the sky is a meteor. "+
-                "Rust is its own kind of truth: "+
-                "like blood, like cities, like sunlight on a dusty road. "+
-                "We never find it, of course, but its always there, "+ 
-                "between the smoke and the flame.";
-
         context.font = FONTHEIGHT + "px Archivo Black";
         rect.width = Math.min(window.innerWidth-ALIEXTENT*2,960)-80
-        var lst = wrap2(context, rect, str);
-        rect.width  +=  40;
+        var lst = context.describe;
+        if (!Array.isArray(lst))
+            lst = wrap2(context, rect, context.describe);
+        rect.width += 40;
         var j = headcnv.height?ALIEXTENT*2:0;
         var rows = Math.ceil((rect.height-ALIEXTENT-j)/ROWHEIGHT);
-        var f = (context.rowobj.length()-context.rowobj.getcurrent())/context.rowobj.length();
-        var row = Math.floor(f*rows);
-        if (lst.length > rows)
-            lst = lst.slice(row);
+        context.describeobj.data_ = lst.length;
         var yyy = (rect.height-rows*ROWHEIGHT)/2;
         var xxx = rect.x-rect.width/2;
         var r = new rectangle(xxx,yyy,rect.width,rows*ROWHEIGHT);
@@ -440,46 +412,7 @@ var Describe = function()
         context.shadowOffsetY = 1;
         context.shadowColor = "black"
         var a = new GridA(1, rows, 1, new panel())
-        a.draw(context, r, lst, time);
-    }
-};
-
-var Debug = function()
-{
-    this.draw = function (context, rect, user, time)
-    {
-        var panel = function ()
-        {
-            this.draw = function (context, rect, user, time)
-            {
-                var a = new ColA([0,5,0],
-                [
-                    new Layer(
-                    [
-                        new Fill(HEADCOLOR),
-                        new Shrink(new Text("white", "right", "middle",0,1),10,10)
-                    ]),
-                    0,
-                    new Layer(
-                    [
-                        new Fill(HEADCOLOR),
-                        new Shrink(new Text("white", "left", "middle",0,1),10,10)
-                    ])
-                ]);
-                
-                a.draw(context, rect, [user.title,0,user.value], 0)
-            }
-        }
-        
-        const INFOWIDTH = 960;
-        var yyy = (rect.height-context.debug.length*ROWHEIGHT)/2;
-        var xxx = rect.x-INFOWIDTH/2;
-        var r = new rectangle(xxx,yyy,INFOWIDTH,context.debug.length*ROWHEIGHT);
-        context.shadowOffsetX = 1;
-        context.shadowOffsetY = 1;
-        context.shadowColor = "black"
-        var a = new GridA(0, user.length, 1, new panel())
-        a.draw(context, r, user, time);
+        a.draw(context, r, lst.slice(context.describeobj.current()), time);
     }
 };
 
@@ -749,14 +682,13 @@ CanvasRenderingContext2D.prototype.moveleft = function()
     this.hitmode = 0
     this.pantype = "panright";
     this.refresh();
-    this.refresheaders();
     this.timeback = 0;
 }
 
 CanvasRenderingContext2D.prototype.moveright = function()
 {
     var col = this.slicemiddle ? this.slicemiddle.col : 0;
-    if (url.movepage || this == url.cols-1)
+    if (url.movepage || col == url.cols-1)
         this.movepage(1)
     else
         this.nextcolumn();
@@ -764,7 +696,6 @@ CanvasRenderingContext2D.prototype.moveright = function()
     this.hitmode = 1
     this.pantype = "panleft";
     this.refresh();
-    this.refresheaders();
     this.timeback = 1;
 }
 
@@ -1204,19 +1135,15 @@ var pinchlst =
     },
     pinchend: function (context)
     {
-        setTimeout(function()
-            {
                 _4cnvctx.pinching = 0; 
                 _4cnvctx.refresh();
-             },100);
-
         addressobj.refresh();
     }, 
     pinchstart: function (context, rect, x, y) 
     {
-        var cell = context.grid? context.grid.hitest(x,y) : -1; 
+        var cell = (context.grid? context.grid.hitest(x,y) : -1); 
         var thumb = context.thumbrect && context.thumbrect.hitest(x,y);
-        context.isthumbrect = thumb || context.positobj.getcurrent() == cell;
+        context.isthumbrect = thumbobj.current()==0 && (thumb || context.positobj.getcurrent() == cell);
         context.thumbheightsave = context.thumbheightobj.getcurrent()
         context.pinchsave = context.pinchobj.getcurrent()
     },
@@ -1311,18 +1238,24 @@ var panlst =
              return;
 
         context.panning = 1;
-        var width = (Math.min(window.innerWidth-ALIEXTENT*2,960))/2;
 
-        if (context.isthumbrect)
+        if (context.describe)
+        {
+            if (type == "panup" || type == "pandown")
+            {
+                var yy = (y/window.innerHeight)*100;
+                var k = panvert(context.describeobj, 100-yy);
+                if (k == context.rowobj.anchor())
+                    return;
+                if (k == -1)
+                    return;
+                context.describeobj.set(k);
+                context.refresh();
+            }
+        }
+        else if (context.isthumbrect)
         {
             context.hithumb(x,y);
-        }
-        else if (context.describe && 
-            (type == "panup" || type == "pandown") &&
-            x > context.lastx-width && 
-            x < context.lastx+width)
-        {
-
         }
         else if (type == "panleft" || type == "panright")
         {
@@ -1352,56 +1285,15 @@ var panlst =
     },	
     panend: function (context, rect, x, y)
 	{
-         _4cnvctx.hideimage();
+        _4cnvctx.hideimage_ = 0; 
          context.panning = 0;  
          context.refresh();
+        delete context.describeobj.offset;
         delete context.zoomobj.offset;
         delete context.rowobj.offset;
    }
 },
 ];
-
-function toggledescribe(lst)
-{
-    delete _4cnvctx.debug;
-    menuhide();
-    _4cnvctx.describe = lst;
-    _4cnvctx.time = 0;
-    _4cnvctx.refresh();
-}
-
-function toggledebug()
-{
-    var context = _4cnvctx;
-    if (context.debug || context.describe)
-    {
-        delete context.describe;
-        delete context.debug;
-        context.refresh();
-        return;
-    }
-
-    _4cnvctx.debug = 
-    [
-        {title: "Zoom Current", value: context.zoomobj.getcurrent()},
-        {title: "Zoom Minimum", value: context.zoomobj.getminimum()},
-        {title: "Zoom Maximum", value: context.zoomobj.getmaximum()},
-        {title: "Window", value: window.innerWidth + "x" + window.innerHeight + " (" + window.aspect.toFixed(2) + ")"},
-        {title: "Image", value: photo.image.extent},
-        {title: "Size", value: (photo.image.size/1000000).toFixed(1) + "MP"},
-        {title: "Virtual Image", value: context.virtualwidth.toFixed(0) + "x" + context.virtualheight.toFixed(0) + " (" + context.virtualaspect.toFixed(2) + ")"},
-        {title: "Virtual Size", value: ((context.virtualwidth * context.virtualheight)/1000000).toFixed(1) + "MP"},
-        {title: "Slices", value: context.slicesobj.data_.length.toFixed(0)},
-        {title: "Visible Slices", value: context.visibles.toFixed(0)+" ("+ 
-            (100*(context.visibles /context.slicesobj.data_.length)).toFixed(1) + "%)"},
-        {title: "Capture Height", value: context.imageheight.toFixed(0)},
-        {title: "Column Width", value: context.colwidth.toFixed(1)},
-        {title: "Row", value: Number(context.getrow()).toFixed(0)},
-    ];
-
-    _4cnvctx.time = 0;
-    _4cnvctx.refresh();
-}
 
 var mouselst =
 [
@@ -1463,10 +1355,9 @@ var presslst =
 
     press: function (context, rect, x, y)
     {
-        if (context.debug || context.describe)
+        if (context.describe)
         {
             delete context.describe;
-            delete context.debug;
             context.refresh();
             return;
         }
@@ -1532,6 +1423,13 @@ var swipelst =
     name: "BOSS",
     swipeleftright: function (context, rect, x, y, type)
     {
+        if (context.describe)
+        {
+            delete context.describe;
+            context.refresh();
+            return;
+        }
+
         clearTimeout(context.timeswipe);
         context.timeswipe = setTimeout(function()
         {
@@ -1550,9 +1448,17 @@ var swipelst =
 
     swipeupdown: function (context, rect, x, y, type)
     {
+        if (context.describe)
+        {
+            delete context.describe;
+            context.refresh();
+            return;
+        }
+        
         clearTimeout(context.timeswipe);
         context.timeswipe = setTimeout(function()
         {
+        //todo
             if (type == "swipedown")
                 context.rowobj.set(window.innerHeight-1);
             else
@@ -1595,58 +1501,29 @@ var keylst =
 
         if (evt.key != " " && isFinite(evt.key))
         {
-            _4cnvctx.setcolumn(evt.key-1);
-            _4cnvctx.refresh();
-           addressobj.refresh();
+            context.setcolumn(evt.key-1);
+            context.refresh();
+            addressobj.refresh();
             evt.preventDefault();
             return false;
         }
         else if (evt.key == "," || evt.key == "<")
         {
-            _4cnvctx.movepage(0);
+            context.movepage(0);
             addressobj.refresh();
             evt.preventDefault();
             return false;
         }
         else if (evt.key == "a")
         {
-            toggledebug();
+            about();
+            evt.preventDefault();
+            return false;
         }
-         else if (evt.key == "d")
+        else if (evt.key == "d")
         {
-            if (context.about || context.describe)
-            {
-                delete context.describe;
-                delete context.debug;
-                context.refresh();
-                return;
-            }
-
-            var str = 
-                "A foot poised over a pool. "+
-                "The surface breaks, a boy falls in, "+
-                "his laughter fills the afternoon. "+
-                "Ritual is the only language we truly believe in: "+
-                "tea steaming a glass mug on a table, "+
-                "smoke from a cigarette filling the room with blue, "+
-                "the way the sun falls across our face as we sleep. "+
-                "These are our things we say. "+
-                "But somewhere a door closes and another day begins. "+
-                "What if the woman we have always loved, "+
-                "the one we desire to wake to is our mother? "+
-                "The holy homeless fill the city like so many weeds. "+
-                "Only Gods children can see them. "+
-                "A blue cross on a wall is a flame. "+
-                "A ball falling from the sky is a meteor. "+
-                "Rust is its own kind of truth: "+
-                "like blood, like cities, like sunlight on a dusty road. "+
-                "We never find it, of course, but its always there, "+ 
-                "between the smoke and the flame.";
-
-            _4cnvctx.font = FONTHEIGHT + "px Archivo Black";
-            var r = _4cnvctx.rect();
-            r.width = Math.min(r.width-ALIEXTENT*2,960)-40
-            toggledescribe(wrap2(_4cnvctx, r, str));
+            describe();
+            evt.preventDefault();
             return false;
         }
         else if (evt.key == " ")
@@ -1658,7 +1535,7 @@ var keylst =
         }
         else if (evt.key == "." || evt.key == ">")
         {
-            _4cnvctx.movepage(1);
+            context.movepage(1);
            addressobj.refresh();
             evt.preventDefault();
             return false;
@@ -1666,8 +1543,8 @@ var keylst =
         else if (evt.key == "-" || evt.key == "[")
         {
             globalobj.status = ZOOMING;
-            _4cnvctx.refresheaders();
-            ico.zoomout.hit(0, _4cnvctx.rect(), 0, 0)
+            context.refresheaders();
+            ico.zoomout.hit(0, context.rect(), 0, 0)
            addressobj.refresh();
             evt.preventDefault();
             return false;
@@ -1675,23 +1552,23 @@ var keylst =
         else if (evt.key == "=" || evt.key == "]" || evt.key == "+")
         {
             globalobj.status = ZOOMING;
-            _4cnvctx.refresheaders();
-            ico.zoomin.hit(0, _4cnvctx.rect(), window.innerWidth, 0)
+            context.refresheaders();
+            ico.zoomin.hit(0, context.rect(), window.innerWidth, 0)
            addressobj.refresh();
             evt.preventDefault();
             return false;
         }
         else if (evt.key == "Home")
         {
-            _4cnvctx.setcolumn(0);
-            _4cnvctx.refresh();
+            context.setcolumn(0);
+            context.refresh();
            addressobj.refresh();
             evt.preventDefault();
         }
         else if (evt.key == "End")
         {
-            _4cnvctx.setcolumn(url.cols-1);
-            _4cnvctx.refresh();
+            context.setcolumn(url.cols-1);
+            context.refresh();
            addressobj.refresh();
             evt.preventDefault();
         }
@@ -1706,29 +1583,29 @@ var keylst =
             k = Math.clamp(0,context.pinchobj.length()-1,k);
             context.pinchobj.set(k);
            addressobj.refresh();
-            _4cnvctx.refresheaders();
+            context.refresheaders();
             evt.preventDefault();
             return false;
         }
         else if (evt.key == "ArrowLeft" || evt.key == "h")
         {
             if (context.ctrlhit)
-                _4cnvctx.moveleft();
+                context.moveleft();
             else
-                _4cnvctx.panimage(1, 1);
+                context.panimage(1, 1);
            addressobj.refresh();
-            _4cnvctx.hideimage();
+            context.hideimage();
             evt.preventDefault();
             return false;
         }
         else if (evt.key == "ArrowRight" || evt.key == "l")
         {
             if (context.ctrlhit)
-                _4cnvctx.moveright();
+                context.moveright();
             else
-                _4cnvctx.panimage(0, 1);
+                context.panimage(0, 1);
            addressobj.refresh();
-            _4cnvctx.hideimage();
+            context.hideimage();
             evt.preventDefault();
             return false;
         }
@@ -1745,7 +1622,7 @@ var keylst =
             }
 
            addressobj.refresh();
-            _4cnvctx.hideimage();
+            context.hideimage();
             evt.preventDefault();
             return false;
         }
@@ -1761,14 +1638,14 @@ var keylst =
                 context.nextrow(1,1);
             }
 
-            _4cnvctx.hideimage();
+            context.hideimage();
            addressobj.refresh();
             evt.preventDefault();
             return false;
         }
         else if (evt.key == "PageUp" || evt.key  == "a")
         {
-            _4cnvctx.hideimage();
+            context.hideimage();
             var col = context.slicemiddle ? context.slicemiddle.col : 0;
             if (col == 0)
                 context.movepage(0)
@@ -1780,7 +1657,7 @@ var keylst =
         }
         else if (evt.key == "PageDown" || evt.key  == "s")
         {
-            _4cnvctx.hideimage();
+            context.hideimage();
             var col = context.slicemiddle ? context.slicemiddle.col : 0;
             if (col == url.cols-1)
                 context.movepage(1)
@@ -1792,7 +1669,7 @@ var keylst =
         }
         else if (evt.key == "Backspace")
         {
-            _4cnvctx.hideimage();
+            context.hideimage();
             if (context.ctrlhit)
             {
                 context.rowobj.set(window.innerHeight-1);
@@ -1815,7 +1692,7 @@ var keylst =
         }
         else if (evt.key == "Enter")
         {
-            _4cnvctx.hideimage();
+            context.hideimage();
             if (context.ctrlhit)
             {
                 context.rowobj.set(window.innerHeight-1);
@@ -1837,7 +1714,7 @@ var keylst =
         }
         else if (evt.key == "Tab")
         {
-            _4cnvctx.hideimage();
+            context.hideimage();
             var col = context.slicemiddle ? context.slicemiddle.col : 0;
             if (evt.shiftKey)
             {
@@ -1927,10 +1804,9 @@ var taplst =
         var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         footobj.set(isthumbrect ? 2 : 1);
 
-        if (context.debug || context.describe)
+        if (context.describe)
         {
             delete context.describe;
-            delete context.debug;
             context.refresh();
             return;
         }
@@ -2011,72 +1887,21 @@ var taplst =
             delete hit.tap; 
             if (hit.path == "DESCRIBE")
             {
-                var str = 
-                    "A foot poised over a pool. "+
-                    "The surface breaks, a boy falls in, "+
-                    "his laughter fills the afternoon. "+
-                    "Ritual is the only language we truly believe in: "+
-                    "tea steaming a glass mug on a table, "+
-                    "smoke from a cigarette filling the room with blue, "+
-                    "the way the sun falls across our face as we sleep. "+
-                    "These are our things we say. "+
-                    "But somewhere a door closes and another day begins. "+
-                    "What if the woman we have always loved, "+
-                    "the one we desire to wake to is our mother? "+
-                    "The holy homeless fill the city like so many weeds. "+
-                    "Only Gods children can see them. "+
-                    "A blue cross on a wall is a flame. "+
-                    "A ball falling from the sky is a meteor. "+
-                    "Rust is its own kind of truth: "+
-                    "like blood, like cities, like sunlight on a dusty road. "+
-                    "We never find it, of course, but its always there, "+ 
-                    "between the smoke and the flame.";
-
-                _4cnvctx.font = FONTHEIGHT + "px Archivo Black";
-                var r = _4cnvctx.rect();
-                r.width = Math.min(r.width-ALIEXTENT*2,960)-40;
-                toggledescribe(wrap2(_4cnvctx, r, str));
+                menuhide();
+                describe();
             }
             else if (hit.path == "ABOUT")
             {
-                var lst = [
-                    "Reportbase.com",
-                    "High Resolution Image Viewer",
-                    "Interacive Panoramas",
-                    "",
-                    "Developer - Tom Brinman",
-                    "Contact - repba@pm.me",
-                    "",
-                    "Contact developer ",
-                    "for more information."]; 
-                toggledescribe(lst);
+                menuhide();
+                about();
             }
-            else if (hit.path == "THUMBNAIL")
-            {
-                thumbobj.toggle();
-            }
-             else if (hit.path == "PROJECT")
+            else if (hit.path == "PROJECT")
             {
                 var j = url.movepage?hit.index:Math.floor(hit.index/url.cols) 
                 url.project = j.pad(4);
                 _4cnvctx.slicemiddle.col = url.movepage?url.col:hit.index%url.cols
                 var s = addressobj.full();
                 window.open(s,"_self");
-            }
-            else if (hit.path == "DEBUG")
-            {
-                menuhide();
-                 if (context.describe ||
-                    context.debug)
-                {
-                    delete context.describe;
-                    delete context.debug;
-                    context.refresh();
-                }
-                else
-                {
-                    toggledebug();
-                }
             }
             else if (hit.path == "LOAD")
             {
@@ -2233,9 +2058,7 @@ var slicesobj = function (title, data, image, hit)
         {
             this.data_.push({title:"Describe", path: "DESCRIBE"})
             this.data_.push({title:"About", path: "ABOUT"})
-            this.data_.push({title:"Metrics", path: "DEBUG"})
             this.data_.push({title:"Load", path: "LOAD"})
-            this.data_.push({title:"Thumbnail", path: "THUMBNAIL"})
             this.data_.push({title:"Original", path: "ORIGINAL"})
             if (!SAFARI)
                 this.data_.push({title:"Fullscreen", path: "FULLSCREEN"})
@@ -2280,8 +2103,8 @@ var thumblst =
         var width = (rect.width-thumbord*2);
         var height = rect.height-headers-thumbord*2;
         var r = calculateAspectRatioFit(photo.image.width, photo.image.height, width, height*th); 
-        var h = Math.max(100,r.height);
-        var w = (r.width/r.height)*h;
+        var h = r.height;
+        var w = r.width;
         var a = IFRAME?0:ALIEXTENT;
         var pos = context.positobj.current();
         if (pos == 0)
@@ -2430,11 +2253,13 @@ var thumblst =
         var w2 = w*3;
         var a = new RowA([ALIEXTENT,0,w2,0,ALIEXTENT],
         [
-            new ColA([ALIEXTENT,0,ALIEXTENT],
+            new ColA([20,ALIEXTENT*2,0,ALIEXTENT*2,20],
             [
-                new Text("white", "center", "middle",0,1),
                 0,
-                new Text("white", "center", "middle",0,1),
+                new Text("white", "left", "middle",0,1),
+                0,
+                new Text("white", "right", "middle",0,1),
+                0,
             ]),
             0,
             new Col([0,w2,0,],
@@ -2447,7 +2272,7 @@ var thumblst =
                         0,
                         new Layer(
                         [
-                            context.pantype=="pandown"?new Fill(ARROWSELECT):0,
+                            //context.pantype=="pandown"?new Fill(ARROWSELECT):0,
                             new Shrink(new Arrow(0),ARROWBORES,ARROWBORES),
                             new Rectangle(context.top),
                         ]),
@@ -2457,7 +2282,7 @@ var thumblst =
                     [
                         new Layer(
                         [
-                            context.pantype=="panright"?new Fill(ARROWSELECT):0,
+                            //context.pantype=="panright"?new Fill(ARROWSELECT):0,
                             new Shrink(new Arrow(270),ARROWBORES,ARROWBORES),
                             new Rectangle(context.left),
                         ]),
@@ -2469,7 +2294,7 @@ var thumblst =
                         ]),
                         new Layer(
                         [
-                            context.pantype=="panleft"?new Fill(ARROWSELECT):0,
+                            //context.pantype=="panleft"?new Fill(ARROWSELECT):0,
                             new Shrink(new Arrow(90),ARROWBORES,ARROWBORES),
                             new Rectangle(context.right),
                         ]),
@@ -2479,7 +2304,7 @@ var thumblst =
                         0,
                         new Layer(
                         [
-                            context.pantype=="panup"?new Fill(ARROWSELECT):0,
+                            //context.pantype=="panup"?new Fill(ARROWSELECT):0,
                             new Shrink(new Arrow(180),ARROWBORES,ARROWBORES),
                             new Rectangle(context.bottom),
                         ]),
@@ -2497,13 +2322,18 @@ var thumblst =
             ]),
          ]);
 
-        var k = url.fullproject().split("-");
+        var vextent = context.virtualwidth.toFixed(0) + "x" + context.virtualheight.toFixed(0) + " (" + context.virtualaspect.toFixed(2) + ")";
+        var vsize = ((context.virtualwidth * context.virtualheight)/1000000).toFixed(1) + "MP";
+
+        var k = _4cnvctx.setcolumncomplete?url.fullproject().split("-"):0;
         a.draw(context, rect, 
             [
                 [
-                    k[0],
                     0,
-                    k[1]
+                   vextent,// k[0],
+                    0,
+                   vsize,// k[1],
+                    0,
                 ],
                 0,
                 0,
@@ -2727,35 +2557,42 @@ function resetcanvas()
         break;
     }
 
+    var canvaslen = Math.ceil(context.virtualwidth/MAXVIRTUALWIDTH);
     var e = slicelst[ks];
     var delay = e.delay;
-    var slices = Math.ceil(e.slices);
+    var slices = Math.ceil(e.slices/canvaslen);
     context.delayinterval = delay/100000;
     context.delay = e;
-    var gwidth = photo.image.width;
-    context.bwidth = context.virtualwidth;
+    var gwidth = photo.image.width/canvaslen;
+    context.bwidth = context.virtualwidth/canvaslen;
     context.colwidth = context.bwidth/slices;
     var slice = 0;
     context.slicesobj.data_ = []
-    if (canvaslst.height != context.canvas.height)
-        canvaslst.height = context.canvas.height;
-    if (canvaslst.width != context.bwidth)
-        canvaslst.width = context.bwidth;
-    var cxx = canvaslst.getContext('2d');
-    cxx.drawImage(photo.image, 
-        0, context.nuby, gwidth, context.imageheight, 
-        0, 0, context.bwidth, context.canvas.height);
-
-    for (var col = 0; col < slices; ++col)
+    
+    for (var n = 0; n < canvaslen; ++n)
     {
-        var k = {};
-        k.x = col*context.colwidth;
-        k.isleft = 0;
-        k.ismiddle = 0;
-        k.isright = 0;
-        k.col = -1;
-        slice++;
-        context.slicesobj.data_.push(k);
+        var cnv = canvaslst[n];
+        if (cnv.height != context.canvas.height)
+            cnv.height = context.canvas.height;
+        if (cnv.width != context.bwidth)
+            cnv.width = context.bwidth;
+        var cxx = cnv.getContext('2d');
+        cxx.drawImage(photo.image, 
+            n*gwidth, context.nuby, gwidth, context.imageheight, 
+            0, 0, context.bwidth, context.canvas.height);
+
+        for (var col = 0; col < slices; ++col)
+        {
+            var k = {};
+            k.x = col*context.colwidth;
+            k.isleft = 0;
+            k.canvas = cnv;
+            k.ismiddle = 0;
+            k.isright = 0;
+            k.col = -1;
+            slice++;
+            context.slicesobj.data_.push(k);
+        }
     }
 
     var slice = context.slicesobj.data_;
@@ -2822,6 +2659,7 @@ var ContextObj = (function ()
 			context.lastime = 0;
             context.fillwidth = obj.fillwidth;
 
+            context.describeobj = new makeoption("", 0);
             context.positobj = new makeoption("", 9);
             context.positobj.set(url.position);
 
@@ -3296,7 +3134,7 @@ var CircleA = function (color, scolor)
 	    context.save();
     	context.beginPath();
         context.arc(rect.x + rect.width / 2, rect.y + rect.height / 2, radius, 0, 2 * Math.PI, false);
-        var col = context.slicemiddle ? context.slicemiddle.col : 0;
+        var col = _4cnvctx.slicemiddle ? _4cnvctx.slicemiddle.col : 0;
         context.fillStyle = col == user ? scolor : color;
         context.fill();
 		context.restore();
@@ -3788,6 +3626,7 @@ window.addEventListener("beforeunload", (evt) =>
 
 function escape() 
 {
+    delete _4cnvctx.describe;
     globalobj.status = 0;
     _4cnvctx.refresh();
     contextobj.reset();
@@ -3803,11 +3642,7 @@ var YollPanel = function ()
             {
 				var context = _4cnvctx;
                 if (globalobj.status == LOADING)
-                {
-                    headobj.getcurrent().draw(headcnvctx, headcnvctx.rect(), 0);
-                    footham.panel.draw(footcnvctx, footcnvctx.rect(), 0);
                     continue;
-                }
                 
                 if ((context.lastime.toFixed(8) == context.time.toFixed(8)))
                 {
@@ -3888,7 +3723,7 @@ var YollPanel = function ()
                         context.complete && 
                         height)
                     {
-                        context.drawImage(canvaslst, slice.x,0,context.colwidth, height,
+                        context.drawImage(slice.canvas, slice.x,0,context.colwidth, height,
                             x+r.x,0,context.colwidth*pinchwidth, height);
                     }
                 }
@@ -3917,7 +3752,7 @@ var YollPanel = function ()
                 delete context.fullscreen;
                 delete context.thumbrect;
  
-                if (context.debug || context.describe)
+                if (context.describe)
                 {
                     for (var m = 0; m < slicesobj.length; ++m)
                     {
@@ -3926,19 +3761,8 @@ var YollPanel = function ()
                         {
                             context.save();
                             context.translate(hit.nx+xt, hit.ny+yt);
-                            if (context.debug)
-                            {
-                                var rows = Math.floor((rect.height-ALIEXTENT*4)/ROWHEIGHT);
-                                context.debug.length = Math.min(context.debug.length,rows);
-                                var a = new Debug();
-                                a.draw(context, r, context.debug, 0);
-                            }
-                            else if (context.describe)
-                            {
-                                var a = new Describe();
-                                a.draw(context, r, context.describe, 0);
-                            }
-                                
+                            var a = new Describe();
+                            a.draw(context, r, context.describe, 0);
                             context.restore();
                         }
                     }
@@ -3950,7 +3774,7 @@ var YollPanel = function ()
                     footham.panel.draw(footcnvctx, footcnvctx.rect(), 0);
                 }
 
-                if (!context.describe && !context.debug)
+                if (!context.describe)
                 {
                     var a =  new Grid(3,3,0,new Rects(context.grid));
                     a.draw(context, rect, 0, 0);
@@ -3969,12 +3793,10 @@ var YollPanel = function ()
                             size: (photo.image.size/1000000).toFixed(1) + "MP",
                             vsize: ((context.virtualheight*context.virtualwidth)/1000000).toFixed(1) + "MP",
                             zoom: context.zoomobj.getcurrent(),
-                            fullproject: url.fullproject(),
+                            fullproject: _4cnvctx.setcolumncomplete?url.fullproject():"",
                         }, "*");
                     }
                 }
-
-                context.restore();
             }
             
             var data = [_3cnvctx,  _5cnvctx, _6cnvctx, _7cnvctx, _8cnvctx, _9cnvctx, ];
@@ -4268,21 +4090,14 @@ var headlst =
 
         this.panstart = function (context, rect, x, y)
 	    {
-            clearTimeout(_4cnvctx.headtime);
-            _4cnvctx.refresh();
         };
 
         this.panend = function (context, rect, x, y)
 	    {
-            addressobj.refresh()
-            _4cnvctx.refresheaders();
         };
        
 		this.pan = function (context, rect, x, y, type)
         {
-            var context = _4cnvctx;
-            var pan = context.panspeed;
-            context.time += (type=="panright")?-pan:pan;
         };
 
 		this.press = function (context, rect, x, y)
@@ -4311,9 +4126,12 @@ var headlst =
                 _4cnvctx.moveright();
             }
             else if (context.option.hitest(x,y))
+            {
                 menushow(_9cnvctx);
+            }
             else if (context.thumbnail.hitest(x,y))
             {
+                about();
             }
 
             pageresize();
@@ -4328,8 +4146,8 @@ var headlst =
             context.shadowOffsetX = 1;
             context.shadowOffsetY = 1;
             context.shadowColor = "black"
-            var str = 0 ?//globalobj.status == LOADING ?
-                (photo.image?photo.image.completedPercentage.toFixed(0)+"%":"") :
+            var str = globalobj.status == LOADING ?
+                "" : //(photo.image?photo.image.completedPercentage.toFixed(0)+"%":"") :
                 url.fullproject();
 
             context.page = new rectangle()
@@ -4393,15 +4211,10 @@ var headlst =
 
         this.panend = function (context, rect, x, y)
 	    {
-            addressobj.refresh()
-            _4cnvctx.refresheaders();
         };
        
 		this.pan = function (context, rect, x, y, type)
         {
-            var context = _4cnvctx;
-            var pan = context.panspeed;
-            context.time += (type=="panright")?-pan:pan;
         };
 
 		this.press = function (context, rect, x, y)
@@ -4449,9 +4262,9 @@ var headlst =
             context.prevpage2 = new rectangle()
             context.nextpage2 = new rectangle()
 
-            var k = url.fullproject().split("-");
-            var project = k[0];
-            var projects = k[1];
+            var k = _4cnvctx.setcolumncomplete?url.fullproject().split("-"):0;
+            var project = k?k[0]:"";
+            var projects = k?k[1]:"";
             var j = Math.max(ALIEXTENT*1.5,23*url.cols);
             var a = new Layer(
             [
@@ -4920,6 +4733,12 @@ window.addEventListener('message', function(evt)
 {
     if (evt.data == "fullscreen")
         screenfull.toggle(IFRAME ? _4cnv : 0);
+    else if (evt.data == "about")
+        about();
+    else if (evt.data == "describe")
+        describe();
+    else if (evt.data == "debug")
+        debug();
     else if (evt.data == "moveprev")
         _4cnvctx.moveleft();
     else if (evt.data == "pinchout")
@@ -5051,3 +4870,177 @@ window.onerror = function(message, source, lineno, colno, error)
 { 
     window.alert( error+","+lineno+","+console.trace());
 };
+
+function debug()
+{
+    var context = _4cnvctx;
+    if (context.describe)
+    {
+        delete context.describe;
+        context.refresh();
+        return;
+    }
+
+    context.describe =
+    [
+        "Reportbase.com",
+        "High Resolution Image Viewer",
+        "Interacive Panoramas",
+        "",
+        "Developer - Tom Brinkman",
+        "Contact - repba@proton.me",
+    ];
+    
+    context.time = 0;
+    context.describeobj.set(0);
+    context.refresh()
+}
+
+function about()
+{
+    var context = _4cnvctx;
+    if (context.describe)
+    {
+        delete context.describe;
+        context.refresh();
+        return;
+    }
+
+    context.describe =
+    [
+        "Reportbase.com",
+        "High Resolution Image Viewer",
+        "Interacive Panoramas",
+        "",
+        "Developer - Tom Brinkman",
+        "Contact - repba@proton.me",
+    ];
+    
+    context.time = 0;
+    context.describeobj.set(0);
+    context.refresh()
+}
+
+function describe()
+{
+    var context = _4cnvctx;
+    if (context.describe)
+    {
+        delete context.describe;
+        context.refresh();
+        return;
+    }
+
+    context.describe = 
+        "A foot poised over a pool. "+
+        "The surface breaks, a boy falls in, "+
+        "his laughter fills the afternoon. "+
+        "Ritual is the only language we truly believe in: "+
+        "tea steaming a glass mug on a table, "+
+        "smoke from a cigarette filling the room with blue, "+
+        "the way the sun falls across our face as we sleep. "+
+        "These are our things we say. "+
+        "But somewhere a door closes and another day begins. "+
+        "What if the woman we have always loved, "+
+        "the one we desire to wake to is our mother? "+
+        "The holy homeless fill the city like so many weeds. "+
+        "Only Gods children can see them. "+
+        "A blue cross on a wall is a flame. "+
+        "A ball falling from the sky is a meteor. "+
+        "Rust is its own kind of truth: "+
+        "like blood, like cities, like sunlight on a dusty road. "+
+        "We never find it, of course, but its always there, "+ 
+        "between the smoke and the flame."+ 
+        "A foot poised over a pool. "+
+        "The surface breaks, a boy falls in, "+
+        "his laughter fills the afternoon. "+
+        "Ritual is the only language we truly believe in: "+
+        "tea steaming a glass mug on a table, "+
+        "smoke from a cigarette filling the room with blue, "+
+        "the way the sun falls across our face as we sleep. "+
+        "These are our things we say. "+
+        "But somewhere a door closes and another day begins. "+
+        "What if the woman we have always loved, "+
+        "the one we desire to wake to is our mother? "+
+        "The holy homeless fill the city like so many weeds. "+
+        "Only Gods children can see them. "+
+        "A blue cross on a wall is a flame. "+
+        "A ball falling from the sky is a meteor. "+
+        "Rust is its own kind of truth: "+
+        "like blood, like cities, like sunlight on a dusty road. "+
+        "We never find it, of course, but its always there, "+ 
+        "between the smoke and the flame."+ 
+        "A foot poised over a pool. "+
+        "The surface breaks, a boy falls in, "+
+        "his laughter fills the afternoon. "+
+        "Ritual is the only language we truly believe in: "+
+        "tea steaming a glass mug on a table, "+
+        "smoke from a cigarette filling the room with blue, "+
+        "the way the sun falls across our face as we sleep. "+
+        "These are our things we say. "+
+        "But somewhere a door closes and another day begins. "+
+        "What if the woman we have always loved, "+
+        "the one we desire to wake to is our mother? "+
+        "The holy homeless fill the city like so many weeds. "+
+        "Only Gods children can see them. "+
+        "A blue cross on a wall is a flame. "+
+        "A ball falling from the sky is a meteor. "+
+        "Rust is its own kind of truth: "+
+        "like blood, like cities, like sunlight on a dusty road. "+
+        "We never find it, of course, but its always there, "+ 
+        "between the smoke and the flame."+ 
+        "A foot poised over a pool. "+
+        "The surface breaks, a boy falls in, "+
+        "his laughter fills the afternoon. "+
+        "Ritual is the only language we truly believe in: "+
+        "tea steaming a glass mug on a table, "+
+        "smoke from a cigarette filling the room with blue, "+
+        "the way the sun falls across our face as we sleep. "+
+        "These are our things we say. "+
+        "But somewhere a door closes and another day begins. "+
+        "What if the woman we have always loved, "+
+        "the one we desire to wake to is our mother? "+
+        "The holy homeless fill the city like so many weeds. "+
+        "Only Gods children can see them. "+
+        "A blue cross on a wall is a flame. "+
+        "A ball falling from the sky is a meteor. "+
+        "Rust is its own kind of truth: "+
+        "like blood, like cities, like sunlight on a dusty road. "+
+        "We never find it, of course, but its always there, "+ 
+        "between the smoke and the flame."
+        ;
+
+    context.time = 0;
+    context.describeobj.set(0);
+    context.refresh()
+
+}
+
+/*
+function toggledebug()
+{
+    var context = _4cnvctx;
+    _4cnvctx.debug = 
+    [
+        {title: "Zoom Current", value: context.zoomobj.getcurrent()},
+        {title: "Zoom Minimum", value: context.zoomobj.getminimum()},
+        {title: "Zoom Maximum", value: context.zoomobj.getmaximum()},
+        {title: "Window", value: window.innerWidth + "x" + window.innerHeight + " (" + window.aspect.toFixed(2) + ")"},
+        {title: "Image", value: photo.image.extent},
+        {title: "Size", value: (photo.image.size/1000000).toFixed(1) + "MP"},
+        {title: "Virtual Image", value: context.virtualwidth.toFixed(0) + "x" + context.virtualheight.toFixed(0) + " (" + context.virtualaspect.toFixed(2) + ")"},
+        {title: "Virtual Size", value: ((context.virtualwidth * context.virtualheight)/1000000).toFixed(1) + "MP"},
+        {title: "Slices", value: context.slicesobj.data_.length.toFixed(0)},
+        {title: "Visible Slices", value: context.visibles.toFixed(0)+" ("+ 
+            (100*(context.visibles /context.slicesobj.data_.length)).toFixed(1) + "%)"},
+        {title: "Capture Height", value: context.imageheight.toFixed(0)},
+        {title: "Column Width", value: context.colwidth.toFixed(1)},
+        {title: "Row", value: Number(context.getrow()).toFixed(0)},
+    ];
+
+    _4cnvctx.time = 0;
+    _4cnvctx.refresh();
+}
+*/
+
+
