@@ -1070,6 +1070,13 @@ var wheelst =
  	right: function (context, ctrl, shift) { },
 },
 {
+    name: "DESCRIBE",
+    up: function (context, ctrl, shift) { },
+ 	down: function (context, ctrl, shift) { },
+    left: function (context, ctrl, shift) { },
+ 	right: function (context, ctrl, shift) { },
+},
+{
     name: "BOSS",
     up: function (context, ctrl, shift)
     {
@@ -1102,6 +1109,12 @@ var pinchlst =
 [
 {
     name: "DEFAULT",
+    pinch: function (context, scale) { },
+    pinchend: function (context) { }, 
+    pinchstart: function (context, rect, x, y) { },
+},
+{
+    name: "DESCRIBE",
     pinch: function (context, scale) { },
     pinchend: function (context) { }, 
     pinchstart: function (context, rect, x, y) { },
@@ -1239,21 +1252,7 @@ var panlst =
 
         context.panning = 1;
 
-        if (context.describe)
-        {
-            if (type == "panup" || type == "pandown")
-            {
-                var yy = (y/window.innerHeight)*100;
-                var k = panvert(context.describeobj, 100-yy);
-                if (k == context.rowobj.anchor())
-                    return;
-                if (k == -1)
-                    return;
-                context.describeobj.set(k);
-                context.refresh();
-            }
-        }
-        else if (context.isthumbrect)
+        if (context.isthumbrect)
         {
             context.hithumb(x,y);
         }
@@ -1288,10 +1287,39 @@ var panlst =
         _4cnvctx.hideimage_ = 0; 
          context.panning = 0;  
          context.refresh();
-        delete context.describeobj.offset;
         delete context.zoomobj.offset;
         delete context.rowobj.offset;
    }
+},
+{
+    name: "DESCRIBE",
+    updown: function (context, rect, x, y, type) { },
+ 	leftright: function (context, rect, x, y, type) { },
+	pan: function (context, rect, x, y, type)
+	{
+        if (type == "panup" || type == "pandown")
+        {
+            var h = context.describeobj.length()*5;
+            var yy = (y/window.innerHeight)*h;
+            var k = panvert(context.describeobj, h-yy);
+            if (k == context.rowobj.anchor())
+                return;
+            if (k == -1)
+                return;
+            context.describeobj.set(k);
+            context.refresh();
+        }
+    },
+	panstart: function (context, rect, x, y)
+	{
+     },
+	panmove: function (context, rect, x, y)
+	{
+    },	
+    panend: function (context, rect, x, y)
+	{
+        delete context.describeobj.offset;
+    }
 },
 ];
 
@@ -1355,13 +1383,6 @@ var presslst =
 
     press: function (context, rect, x, y)
     {
-        if (context.describe)
-        {
-            delete context.describe;
-            context.refresh();
-            return;
-        }
-
         var n = context.grid? context.grid.hitest(x,y) : 4; 
         context.positobj.set(n);
         thumbobj.set(thumbobj.current()?0:1); 
@@ -1423,13 +1444,6 @@ var swipelst =
     name: "BOSS",
     swipeleftright: function (context, rect, x, y, type)
     {
-        if (context.describe)
-        {
-            delete context.describe;
-            context.refresh();
-            return;
-        }
-
         clearTimeout(context.timeswipe);
         context.timeswipe = setTimeout(function()
         {
@@ -1448,13 +1462,6 @@ var swipelst =
 
     swipeupdown: function (context, rect, x, y, type)
     {
-        if (context.describe)
-        {
-            delete context.describe;
-            context.refresh();
-            return;
-        }
-        
         clearTimeout(context.timeswipe);
         context.timeswipe = setTimeout(function()
         {
@@ -1473,6 +1480,15 @@ var keylst =
 [
 {
 	name: "DEFAULT",
+	keyup: function (evt)
+	{
+	},
+	keydown: function (evt)
+	{
+	}
+},
+{
+	name: "DESCRIBE",
 	keyup: function (evt)
 	{
 	},
@@ -1788,6 +1804,13 @@ var taplst =
 	}
 },
 {
+	name: "DESCRIBE",
+	tap: function (context, rect, x, y, shift, ctrl)
+	{
+        describe();
+	}
+},
+{
 	name: "BOSS",
 	tap: function (context, rect, x, y, shift, ctrl)
 	{
@@ -1803,13 +1826,6 @@ var taplst =
 
         var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         footobj.set(isthumbrect ? 2 : 1);
-
-        if (context.describe)
-        {
-            delete context.describe;
-            context.refresh();
-            return;
-        }
 
         photo.image.completedPercentage = 0
         headobj.getcurrent().draw(headcnvctx, headcnvctx.rect(), 0);
@@ -2350,9 +2366,9 @@ var thumblst =
 
 var thumbobj = new makeoption("", thumblst);
 thumbobj.set(url.thumbindex);
-
 thumbobj.toggle = function()
 {
+    hidedescribe(); 
     var k = thumbobj.current()?0:1; 
     thumbobj.set(k);
     pageresize();
@@ -2615,18 +2631,90 @@ function resetcanvas()
     context.refresh();
 }
 
-var contextlst = 
+var eventlst = 
 [ 
-    {context: _1cnvctx, mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "DEFAULT", pan: "DEFAULT", swipe: "DEFAULT", draw: "DEFAULT", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 0},
-    {context: _2cnvctx, mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "DEFAULT", pan: "DEFAULT", swipe: "DEFAULT", draw: "DEFAULT", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 0}, 
-    {context: _3cnvctx, mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
-    {context: _4cnvctx, mouse: "BOSS", guide: "GUIDE", thumb: "BOSS",  tap: "BOSS", pan: "BOSS", swipe: "BOSS", draw: "BOSS", wheel: "BOSS", drop: "BOSS", key: "BOSS", press: "BOSS", pinch: "BOSS", fillwidth: 0}, 
-    {context: _5cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
-    {context: _6cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210}, 
-    {context: _7cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
-    {context: _8cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 240}, 
-    {context: _9cnvctx, mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 360}, 
+    {name: "_1cnvctx", mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "DEFAULT", pan: "DEFAULT", swipe: "DEFAULT", draw: "DEFAULT", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 0},
+    {name: "_2cnvctx", mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "DEFAULT", pan: "DEFAULT", swipe: "DEFAULT", draw: "DEFAULT", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 0}, 
+    {name: "_3cnvctx", mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
+    {name: "_4cnvctx", mouse: "BOSS", guide: "GUIDE", thumb: "BOSS",  tap: "BOSS", pan: "BOSS", swipe: "BOSS", draw: "BOSS", wheel: "BOSS", drop: "BOSS", key: "BOSS", press: "BOSS", pinch: "BOSS", fillwidth: 0}, 
+    {name: "_5cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
+    {name: "_6cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210}, 
+    {name: "_7cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
+    {name: "_8cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 240}, 
+    {name: "_9cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 360}, 
+    {name: "describe", mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "DESCRIBE", pan: "DESCRIBE", swipe: "DEFAULT", draw: "DEFAULT", wheel: "DESCRIBE", drop: "DEFAULT", key: "DESCRIBE", press: "DEFAULT", pinch: "DESCRIBE", fillwidth: 0},
 ];
+
+function seteventspanel(panel)
+{
+    _1ham.panel = panel;
+    _2ham.panel = panel;
+    _3ham.panel = panel;
+    _4ham.panel = panel;
+    _5ham.panel = panel;
+    _6ham.panel = panel;
+    _7ham.panel = panel;
+    _8ham.panel = panel;
+    _9ham.panel = panel;
+}
+
+function setevents(context, obj)
+{
+    var k = pinchlst.findIndex(function (a) { return a.name == obj.pinch });
+    k = pinchlst[k];
+    context.pinch_ = k.pinch;
+    context.pinchstart_ = k.pinchstart;
+    context.pinchend_ = k.pinchend;
+
+    var k = droplst.findIndex(function (a) { return a.name == obj.drop });
+    k = droplst[k];
+    context.drop = k.drop;
+
+    var k = keylst.findIndex(function (a) { return a.name == obj.key });
+    k = keylst[k];
+    context.keyup_ = k.keyup;
+    context.keydown_ = k.keydown;
+
+    var k = wheelst.findIndex(function (a) { return a.name == obj.wheel });
+    k = wheelst[k];
+    context.wheelup_ = k.up;
+    context.wheeldown_ = k.down;
+    context.wheeleft_ = k.left;
+    context.wheelright_ = k.right;
+
+    var k = mouselst.findIndex(function (a) { return a.name == obj.mouse });
+    k = mouselst[k];
+    context.mouse = k;
+
+    var k = presslst.findIndex(function (a) { return a.name == obj.press });
+    k = presslst[k];
+    context.pressup_ = k.pressup;
+    context.press_ = k.press;
+
+    var k = swipelst.findIndex(function (a) { return a.name == obj.swipe });
+    k = swipelst[k];
+    context.swipeleftright_ = k.swipeleftright;
+    context.swipeupdown_ = k.swipeupdown;
+
+    var k = drawlst.findIndex(function (a) { return a.name == obj.draw });
+    k = drawlst[k];
+    context.draw = k.draw;
+    
+    var k = taplst.findIndex(function (a) { return a.name == obj.tap });
+    k = taplst[k];
+    context.tap_ = k.tap;
+
+    var k = panlst.findIndex(function (a) { return a.name == obj.pan });
+    k = panlst[k];
+    context.panstart_ = k.panstart;
+    context.pan_ = k.pan;
+    context.panupdown_ = k.updown;
+    context.panleftright_ = k.leftright;
+    context.panmove_ = k.panmove;
+    context.panend_ = k.panend;
+            
+    context.fillwidth = obj.fillwidth;
+}
 
 var ContextObj = (function ()
 {
@@ -2635,10 +2723,10 @@ var ContextObj = (function ()
         this.ANCHOR = 0;
         this.CURRENT = 0;
 		this.active_ = 0;
-		for (var n = 0; n < contextlst.length; ++n)
+        var lst = [_1cnvctx,_2cnvctx,_3cnvctx,_4cnvctx,_5cnvctx,_6cnvctx,_7cnvctx,_8cnvctx,_9cnvctx];
+		for (var n = 0; n < lst.length; ++n)
 		{
-			var obj = contextlst[n];
-            context = obj.context;
+            context = lst[n];
 			context.index = n;
 			context.id = n == 0 ? "" : "_" + (n+1);
             context.imageSmoothingEnabled = false;
@@ -2657,64 +2745,12 @@ var ContextObj = (function ()
 			context.font = "400 100px Source Code Pro";
 			context.fillText("  ", 0, 0);
 			context.lastime = 0;
-            context.fillwidth = obj.fillwidth;
 
             context.describeobj = new makeoption("", 0);
             context.positobj = new makeoption("", 9);
             context.positobj.set(url.position);
 
-            var k = pinchlst.findIndex(function (a) { return a.name == obj.pinch });
-            k = pinchlst[k];
-            context.pinch_ = k.pinch;
-            context.pinchstart_ = k.pinchstart;
-            context.pinchend_ = k.pinchend;
-
-            var k = droplst.findIndex(function (a) { return a.name == obj.drop });
-            k = droplst[k];
-            context.drop = k.drop;
-
-            var k = keylst.findIndex(function (a) { return a.name == obj.key });
-            k = keylst[k];
-            context.keyup_ = k.keyup;
-            context.keydown_ = k.keydown;
-
-            var k = wheelst.findIndex(function (a) { return a.name == obj.wheel });
-            k = wheelst[k];
-            context.wheelup_ = k.up;
-            context.wheeldown_ = k.down;
-            context.wheeleft_ = k.left;
-            context.wheelright_ = k.right;
-
-            var k = mouselst.findIndex(function (a) { return a.name == obj.mouse });
-            k = mouselst[k];
-            context.mouse = k;
-
-            var k = presslst.findIndex(function (a) { return a.name == obj.press });
-            k = presslst[k];
-            context.pressup_ = k.pressup;
-            context.press_ = k.press;
-
-            var k = swipelst.findIndex(function (a) { return a.name == obj.swipe });
-            k = swipelst[k];
-            context.swipeleftright_ = k.swipeleftright;
-            context.swipeupdown_ = k.swipeupdown;
-
-            var k = drawlst.findIndex(function (a) { return a.name == obj.draw });
-            k = drawlst[k];
-			context.draw = k.draw;
-        	
-            var k = taplst.findIndex(function (a) { return a.name == obj.tap });
-            k = taplst[k];
-            context.tap_ = k.tap;
-
-            var k = panlst.findIndex(function (a) { return a.name == obj.pan });
-            k = panlst[k];
-            context.panstart_ = k.panstart;
-			context.pan_ = k.pan;
-			context.panupdown_ = k.updown;
-			context.panleftright_ = k.leftright;
-			context.panmove_ = k.panmove;
-			context.panend_ = k.panend;
+            setevents(context, eventlst[n]);
 	    }
      }
 
@@ -2797,17 +2833,7 @@ var ContextObj = (function ()
                 else if (globalobj.promptedfile)
                     path = globalobj.promptedfile[0];   
                 
-                var panel = new Empty();
-                _1ham.panel = panel;
-                _2ham.panel = panel;
-                _3ham.panel = panel;
-                _4ham.panel = panel;
-                _5ham.panel = panel;
-                _6ham.panel = panel;
-                _7ham.panel = panel;
-                _8ham.panel = panel;
-                _9ham.panel = panel;
-
+                seteventspanel(new Empty());
                 photo.image = new Image();
                 photo.image.original = path;
                 photo.image.load(path);
@@ -2828,18 +2854,7 @@ var ContextObj = (function ()
                     context.pinching_ = 0;
                     globalobj.status = 0;
                     context.hithead = 0;
-
-                    var panel = new YollPanel();
-                    _1ham.panel = panel;
-                    _2ham.panel = panel;
-                    _3ham.panel = panel;
-                    _4ham.panel = panel;
-                    _5ham.panel = panel;
-                    _6ham.panel = panel;
-                    _7ham.panel = panel;
-                    _8ham.panel = panel;
-                    _9ham.panel = panel;
-                    
+                    seteventspanel(new YollPanel());
                     setTimeout(function()
                     {
                         _4cnvctx.refresh();
@@ -3582,16 +3597,7 @@ function resize()
 
 window.addEventListener("load", function (evt) 
 { 
-    var panel = new YollPanel();
-    _1ham.panel = panel;
-    _2ham.panel = panel;
-    _3ham.panel = panel;
-    _4ham.panel = panel;
-    _5ham.panel = panel;
-    _6ham.panel = panel;
-    _7ham.panel = panel;
-    _8ham.panel = panel;
-    _9ham.panel = panel;
+    seteventspanel(new YollPanel());
     _4cnvctx.enabled = 1;
     _1ham.panel.draw(_1cnvctx, _1cnvctx.rect(), 0);
     pageresize();
@@ -3627,6 +3633,8 @@ window.addEventListener("beforeunload", (evt) =>
 function escape() 
 {
     delete _4cnvctx.describe;
+    var n = eventlst.findIndex(function(a){return a.name == "_4cnvctx";})
+    setevents(_4cnvctx, eventlst[n])
     globalobj.status = 0;
     _4cnvctx.refresh();
     contextobj.reset();
@@ -4737,8 +4745,6 @@ window.addEventListener('message', function(evt)
         about();
     else if (evt.data == "describe")
         describe();
-    else if (evt.data == "debug")
-        debug();
     else if (evt.data == "moveprev")
         _4cnvctx.moveleft();
     else if (evt.data == "pinchout")
@@ -4871,15 +4877,20 @@ window.onerror = function(message, source, lineno, colno, error)
     window.alert( error+","+lineno+","+console.trace());
 };
 
-function debug()
+function about()
 {
     var context = _4cnvctx;
     if (context.describe)
     {
         delete context.describe;
+        var n = eventlst.findIndex(function(a){return a.name == "_4cnvctx";})
+        setevents(context, eventlst[n])
         context.refresh();
         return;
     }
+
+    var n = eventlst.findIndex(function(a){return a.name == "describe";})
+    setevents(context, eventlst[n])
 
     context.describe =
     [
@@ -4896,29 +4907,13 @@ function debug()
     context.refresh()
 }
 
-function about()
+function hidedescribe()
 {
     var context = _4cnvctx;
-    if (context.describe)
-    {
-        delete context.describe;
-        context.refresh();
-        return;
-    }
-
-    context.describe =
-    [
-        "Reportbase.com",
-        "High Resolution Image Viewer",
-        "Interacive Panoramas",
-        "",
-        "Developer - Tom Brinkman",
-        "Contact - repba@proton.me",
-    ];
-    
-    context.time = 0;
-    context.describeobj.set(0);
-    context.refresh()
+    delete context.describe;
+    var n = eventlst.findIndex(function(a){return a.name == "_4cnvctx";})
+    setevents(context, eventlst[n])
+    context.refresh();
 }
 
 function describe()
@@ -4926,10 +4921,12 @@ function describe()
     var context = _4cnvctx;
     if (context.describe)
     {
-        delete context.describe;
-        context.refresh();
+        hidedescribe();
         return;
     }
+
+    var n = eventlst.findIndex(function(a){return a.name == "describe";})
+    setevents(context, eventlst[n])
 
     context.describe = 
         "A foot poised over a pool. "+
@@ -5017,7 +5014,6 @@ function describe()
 }
 
 /*
-function toggledebug()
 {
     var context = _4cnvctx;
     _4cnvctx.debug = 
