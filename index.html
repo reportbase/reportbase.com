@@ -3,7 +3,7 @@
   <title>reportbase.com</title>
 </head>
 <center>
-<iframe id=pano src=https://reportbase.com/home.html?p=BOND.0072.webp&r=40&c=0&z=40&b=40&h=50&v=4&o=1&f=0&l=36&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0076></iframe>
+<iframe id=pano src=https://reportbase.com/home.html?p=MEA4.0002.webp&r=50&z=20&b=60&h=30&v=7&o=4&g=0&y=0&a=1&m=0000-0003&c=0></iframe>
 <p>
 <section>
 <button onclick="moveleft()" id="projectag"></button>
@@ -20,7 +20,8 @@
   <a onclick="thumbnail(); return false;" href="javascript:void(0);">Thumbnail</a>, 
   <a onclick="newindow(); return false;" href="javascript:void(0);">New-Window</a>, 
   <a onclick="about(); return false;" href="javascript:void(0);">About</a>, 
-  <a onclick="describe(); return false;" href="javascript:void(0);">Describe</a>
+  <a onclick="describe(); return false;" href="javascript:void(0);">Describe</a>, 
+  <a onclick="help(); return false;" href="javascript:void(0);">Help</a>
   
   <p>
 
@@ -226,10 +227,11 @@ function zoomin() { pano.postMessage("zoomin", '*'); }
 function zoomout() { pano.postMessage("zoomout", '*'); }
 function pinchin() { pano.postMessage("pinchin", '*'); }
 function pinchout() { pano.postMessage("pinchout", '*'); }
-function thumbnail() { pano.postMessage("thumbnail", '*'); }
+function thumbnail() { pano.postMessage("thumbnail", '*');  pan.scrollIntoView(); pan.focus();}
 function full() { pano.postMessage("fullscreen", '*'); }
-function describe() { pano.postMessage("describe", '*'); }
-function about() { pano.postMessage("about", '*'); }
+function describe() { pano.postMessage("describe", '*');  pan.scrollIntoView(); pan.focus();}
+function help() { pano.postMessage("help", '*');   pan.scrollIntoView(); pan.focus();}
+function about() { pano.postMessage("about", '*');   pan.scrollIntoView(); pan.focus();}
 function newindow(a) { window.open(addrestr, '_blank').focus(); }
 function fullscreen() 
 {
@@ -274,6 +276,7 @@ window.addEventListener("message", (event) =>
                     {
                         this.go = function ()
                         {
+                            //todo function
                           var src="https://reportbase.com/home.html?p="+
                             data.path+"."+
                             i.pad(4)+"."+

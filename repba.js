@@ -6,7 +6,7 @@
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
-const MAXVIRTUALWIDTH = (SAFARI || FIREFOX) ? 5760 : 11520; 
+const MAXVIRTUALWIDTH = (SAFARI || FIREFOX) ? 3840 : 11520; 
 const CANVASCOUNT = 20;
 const REFRESHEADER = 1000;
 const SLICEWIDTH = 1; 
@@ -16,7 +16,6 @@ const POSITYSPACE = 50;
 const THUMBLINE = 1;
 const THUMBLINEIN = 2.5;
 const THUMBLINEOUT = 4.0;
-const ROWHEIGHT = 35;
 const JULIETIME = 50;
 const GUIDEHEIGHT = 54; 
 const BUTTONHEIGHT = 38; 
@@ -36,7 +35,8 @@ const NUBCOLOR = "white";
 const CYLRADIUS = 65.45;
 const DELAYCENTER = 3.926;
 const VIRTCONST = 0.8;
-const FONTHEIGHT = 18;
+const FONTHEIGHT = window.devicePixelRatio>=2?24:18;
+const ROWHEIGHT = FONTHEIGHT*1.8;
 const QUALITY = 0.65;
 const PINCHMIN = 0.25;
 const PINCHMAX = 1.50;
@@ -51,9 +51,10 @@ const CANVASMAX = 30;
 const MAXCANVASWIDTH = 32767;
 const MAXTOTALCANVASIZE = 384000000;//384mb
 const MAXCANVASIZE = SAFARI?16777216:32777216;
-const MAXVIRTUALSIZE = SAFARI?12000000:12000000
+const MAXZOOM = SAFARI?0.925:0.975;
+const MAXVIRTUALSIZE = SAFARI?8000000:12000000;
 const HEADCOLOR = "rgba(0,0,0,0.25)";
-const DARKHEADCOLOR = "rgba(0,0,0,0.5)";
+const DARKHEADCOLOR = "rgba(0,0,0,0.4)";
 const ARROWSELECT = "rgba(255,125,0,0.5)";
 const ARROWBACK = "rgba(0,0,0,0.0)"
 const THUMBFILL = "rgba(0,0,0,0.25)"
@@ -215,6 +216,28 @@ let headcnv = document.getElementById("head");
 let headcnvctx = headcnv.getContext("2d", opts);
 let footcnv = document.getElementById("foot");
 let footcnvctx = footcnv.getContext("2d", opts);
+
+function setPixelDensity(canvas) 
+{
+    let pixelRatio = window.devicePixelRatio;
+    console.log(`Device Pixel Ratio: ${pixelRatio}`);
+    let sizeOnScreen = canvas.getBoundingClientRect();
+    canvas.width = sizeOnScreen.width * pixelRatio;
+    canvas.height = sizeOnScreen.height * pixelRatio;
+    canvas.style.width = (canvas.width / pixelRatio) + 'px';
+    canvas.style.height = (canvas.height / pixelRatio) + 'px';
+    let context = canvas.getContext('2d');
+    context.scale(pixelRatio, pixelRatio);
+    return context;
+}
+
+function releaseCanvas(canvas) 
+{
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    ctx && ctx.clearRect(0, 0, 1, 1);
+}
 
 function limitSize(size, maximumPixels) 
 {
@@ -396,7 +419,7 @@ var Describe = function()
             }
         }
 
-        context.font = FONTHEIGHT + "px Archivo Black";
+        context.font = "400 " + FONTHEIGHT + "px Source Code Pro";
         rect.width = Math.min(window.innerWidth-ALIEXTENT*2,960)-80
         var lst = context.describe;
         if (!Array.isArray(lst))
@@ -407,12 +430,25 @@ var Describe = function()
         context.describeobj.data_ = lst.length;
         var yyy = (rect.height-rows*ROWHEIGHT)/2;
         var xxx = rect.x-rect.width/2;
-        var r = new rectangle(xxx,yyy,rect.width,rows*ROWHEIGHT);
-        context.shadowOffsetX = 1;
-        context.shadowOffsetY = 1;
+        var r = new rectangle(xxx,yyy,rect.width+12,rows*ROWHEIGHT);
+        context.shadowOffsetX = 0;
+        context.shadowOffsetY = 0;
         context.shadowColor = "black"
-        var a = new GridA(1, rows, 1, new panel())
-        a.draw(context, r, lst.slice(context.describeobj.current()), time);
+        var a = new ColA([0,12],
+        [
+            new GridA(1, rows, 0, new panel()),
+            new Layer(
+            [
+                new Fill(DARKHEADCOLOR),
+                new CurrentVPanel(new Fill("white"), ALIEXTENT),
+            ]),
+        ]);
+
+        a.draw(context, r, 
+        [
+            lst.slice(context.describeobj.current()),
+            context.describeobj
+        ], time);
     }
 };
 
@@ -1299,7 +1335,7 @@ var panlst =
 	{
         if (type == "panup" || type == "pandown")
         {
-            var h = context.describeobj.length()*5;
+            var h = context.describeobj.length()*3;
             var yy = (y/window.innerHeight)*h;
             var k = panvert(context.describeobj, h-yy);
             if (k == context.rowobj.anchor())
@@ -1465,7 +1501,6 @@ var swipelst =
         clearTimeout(context.timeswipe);
         context.timeswipe = setTimeout(function()
         {
-        //todo
             if (type == "swipedown")
                 context.rowobj.set(window.innerHeight-1);
             else
@@ -1494,6 +1529,25 @@ var keylst =
 	},
 	keydown: function (evt)
 	{
+        var context = _4cnvctx;
+        if (evt.key == "ArrowUp" || evt.key == "k" )
+        {
+            var k = context.describeobj.current()-1;
+            context.describeobj.set(k);
+            context.refresh();
+            evt.preventDefault();
+            return true;
+        }
+        else if (evt.key == "ArrowDown" || evt.key == "j" )
+        {
+            var k = context.describeobj.current()+1;
+            context.describeobj.set(k);
+            context.refresh();
+            evt.preventDefault();
+            return true;
+        }
+
+        return false;
 	}
 },
 {
@@ -1752,7 +1806,6 @@ var keylst =
             return true;
         }
          
-        context.refresh();
         return true;
 	}
 },
@@ -1905,6 +1958,11 @@ var taplst =
             {
                 menuhide();
                 describe();
+            }
+            else if (hit.path == "HELP")
+            {
+                menuhide();
+                help();
             }
             else if (hit.path == "ABOUT")
             {
@@ -2073,6 +2131,7 @@ var slicesobj = function (title, data, image, hit)
         else if (context.index == 8)//options
         {
             this.data_.push({title:"Describe", path: "DESCRIBE"})
+            this.data_.push({title:"Help", path: "HELP"})
             this.data_.push({title:"About", path: "ABOUT"})
             this.data_.push({title:"Load", path: "LOAD"})
             this.data_.push({title:"Original", path: "ORIGINAL"})
@@ -2114,6 +2173,7 @@ var thumblst =
         context.shadowOffsetY = 0;
         var col = context.slicemiddle ? context.slicemiddle.col : 0;
         var th = context.thumbheightobj.getcurrent();
+        th = window.devicePixelRatio>=2?th*1.25: th;
         var headers = IFRAME?0:ALIEXTENT*2; 
         var thumbord = THUMBORDER;
         var width = (rect.width-thumbord*2);
@@ -2265,7 +2325,7 @@ var thumblst =
         context.right = new rectangle();
         context.bottom = new rectangle();
         context.fullscreen = new rectangle();
-        var w = GUIDEHEIGHT;
+        var w = window.devicePixelRatio>=2?GUIDEHEIGHT*1.25: GUIDEHEIGHT;
         var w2 = w*3;
         var a = new RowA([ALIEXTENT,0,w2,0,ALIEXTENT],
         [
@@ -2342,7 +2402,7 @@ var thumblst =
 
         var vextent = context.virtualwidth.toFixed(0) + "x" + context.virtualheight.toFixed(0) + " (" + context.virtualaspect.toFixed(2) + ")";
         var vsize = ((context.virtualwidth * context.virtualheight)/1000000).toFixed(1) + "MP";
-        //var k = _4cnvctx.setcolumncomplete?url.fullproject().split("-"):0;
+        var scale = window.devicePixelRatio.toFixed(2) + "";
         a.draw(context, rect, 
             [
                 [
@@ -2487,14 +2547,6 @@ var drawlst = [
 },
 ];
 
-function releaseCanvas(canvas) 
-{
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d');
-    ctx && ctx.clearRect(0, 0, 1, 1);
-}
-
 function resetcanvas()
 {
     var canvas = _4cnv;
@@ -2518,7 +2570,7 @@ function resetcanvas()
         break;
     }
 
-    zoomrange[1] = 0.985;
+    zoomrange[1] = MAXZOOM;
     context.zoomobj = splitrange(context.zoomobj, url.zoom, zoomrange.join("-"), OPTIONSIZE);
     for (var n = 0; n < context.zoomobj.length(); ++n)
     {
@@ -2590,7 +2642,7 @@ function resetcanvas()
     context.colwidth = context.bwidth/slices;
     var slice = 0;
     context.slicesobj.data_ = []
-    
+
     for (var n = 0; n < canvaslen; ++n)
     {
         var cnv = canvaslst[n];
@@ -2598,8 +2650,8 @@ function resetcanvas()
             cnv.height = context.canvas.height;
         if (cnv.width != context.bwidth)
             cnv.width = context.bwidth;
-        var cxx = cnv.getContext('2d');
-        cxx.drawImage(photo.image, 
+        var ctx = cnv.getContext('2d');
+        ctx.drawImage(photo.image, 
             n*gwidth, context.nuby, gwidth, context.imageheight, 
             0, 0, context.bwidth, context.canvas.height);
 
@@ -3162,20 +3214,6 @@ var CircleA = function (color, scolor)
     };
 };
 
-function setPixelDensity(canvas) 
-{
-    let pixelRatio = window.devicePixelRatio;
-	console.log(`Device Pixel Ratio: ${pixelRatio}`);
-    let sizeOnScreen = canvas.getBoundingClientRect();
-    canvas.width = sizeOnScreen.width * pixelRatio;
-    canvas.height = sizeOnScreen.height * pixelRatio;
-    canvas.style.width = (canvas.width / pixelRatio) + 'px';
-    canvas.style.height = (canvas.height / pixelRatio) + 'px';
-    let context = canvas.getContext('2d');
-    context.scale(pixelRatio, pixelRatio);
-    return context;
-}
-
 var Text = function (color,  align="center", baseline="middle", reverse=0, noclip=0)
 {
     this.draw = function (context, rect, user, time)
@@ -3451,8 +3489,6 @@ var CurrentHPanel = function (panel, extent)
 {
     this.draw = function (context, rect, user, time)
     {
-        if (!user)
-            return;
 	    var current = typeof (user.current) == "function" ? user.current() : user.current;
         var length = typeof (user.length) == "function" ? user.length() : user.length;
         var nub = Math.nub(current, length, extent, rect.width);
@@ -3465,12 +3501,10 @@ var CurrentVPanel = function (panel, extent)
 {
     this.draw = function (context, rect, user, time)
     {
-        if (!user)
-            return;
         var current = typeof (user.current) == "function" ? user.current() : user.current;
         var length = typeof (user.length) == "function" ? user.length() : user.length;
         var nub = Math.nub(current, length, extent, rect.height);
-        var r = new rectangle(rect.x, rect.height-nub-extent, rect.width, extent);
+        var r = new rectangle(rect.x, rect.y + nub, rect.width, extent);
         panel.draw(context, r, 0, time);
     };
 };
@@ -3771,13 +3805,10 @@ var YollPanel = function ()
                     for (var m = 0; m < slicesobj.length; ++m)
                     {
                         var hit = slicesobj[m];
-                        if (hit.isleft && hit.col == 0)
+                        if (hit.isleft && hit.col == context.slicemiddle.col)
                         {
-                            context.save();
-                            context.translate(hit.nx+xt, hit.ny+yt);
                             var a = new Describe();
                             a.draw(context, r, context.describe, 0);
-                            context.restore();
                         }
                     }
                 } 
@@ -3792,9 +3823,8 @@ var YollPanel = function ()
                 {
                     var a =  new Grid(3,3,0,new Rects(context.grid));
                     a.draw(context, rect, 0, 0);
-
                     thumbobj.getcurrent().draw(context, rect, 0, 0);
-              
+
                     if (IFRAME)
                     {
                         parent.postMessage( 
@@ -4747,6 +4777,8 @@ window.addEventListener('message', function(evt)
 {
     if (evt.data == "fullscreen")
         screenfull.toggle(IFRAME ? _4cnv : 0);
+    else if (evt.data == "help")
+        help();
     else if (evt.data == "about")
         about();
     else if (evt.data == "describe")
@@ -4883,6 +4915,35 @@ window.onerror = function(message, source, lineno, colno, error)
     window.alert( error+","+lineno+","+console.trace());
 };
 
+function help()
+{
+    var context = _4cnvctx;
+    if (context.describe)
+    {
+        delete context.describe;
+        var n = eventlst.findIndex(function(a){return a.name == "_4cnvctx";})
+        setevents(context, eventlst[n])
+        context.refresh();
+        return;
+    }
+
+    var n = eventlst.findIndex(function(a){return a.name == "describe";})
+    setevents(context, eventlst[n])
+
+    context.describe =
+    [
+        "Reportbase.com",
+        "High Resolution Image Viewer",
+        "Interacive Panoramas",
+        "",
+        "Developer - Tom Brinkman",
+        "Contact - repba@proton.me",
+    ];
+    
+    context.time = 0;
+    context.describeobj.set(0);
+    context.refresh()
+}
 function about()
 {
     var context = _4cnvctx;
@@ -5013,7 +5074,6 @@ function describe()
         "between the smoke and the flame."
         ;
 
-    context.time = 0;
     context.describeobj.set(0);
     context.refresh()
 
