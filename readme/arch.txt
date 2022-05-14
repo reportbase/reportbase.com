@@ -1,3 +1,7 @@
+# packages
+libwebp
+ranger
+
 # upgrade
 pacman -Syu                        # upgrade system
 pacman-key --refresh-keys          # upgrade keys

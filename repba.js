@@ -193,28 +193,28 @@ var makeoption = function (title, data, mode, key)
 var imagesobj = new makeoption("", (url.movepage?1:url.cols)*url.projects());
 
 const opts = {synchronized: true, };
-var _1cnv = document.getElementById("_1");
-var _1cnvctx = _1cnv.getContext("2d", opts);
-var _2cnv = document.getElementById("_2");
-var _2cnvctx = _2cnv.getContext("2d", opts);
-var _3cnv = document.getElementById("_3");
-var _3cnvctx = _3cnv.getContext("2d", opts);
-var _4cnv = document.getElementById("_4");
-var _4cnvctx = _4cnv.getContext("2d", opts);
-var _5cnv = document.getElementById("_5");
-var _5cnvctx = _5cnv.getContext("2d", opts);
-var _6cnv = document.getElementById("_6");
-var _6cnvctx = _6cnv.getContext("2d", opts);
-var _7cnv = document.getElementById("_7");
-var _7cnvctx = _7cnv.getContext("2d", opts);
-var _8cnv = document.getElementById("_8");
-var _8cnvctx = _8cnv.getContext("2d", opts);
-var _9cnv = document.getElementById("_9");
-var _9cnvctx = _9cnv.getContext("2d", opts);
-var headcnv = document.getElementById("head");
-var headcnvctx = headcnv.getContext("2d", opts);
-var footcnv = document.getElementById("foot");
-var footcnvctx = footcnv.getContext("2d", opts);
+let _1cnv = document.getElementById("_1");
+let _1cnvctx = _1cnv.getContext("2d", opts);
+let _2cnv = document.getElementById("_2");
+let _2cnvctx = _2cnv.getContext("2d", opts);
+let _3cnv = document.getElementById("_3");
+let _3cnvctx = _3cnv.getContext("2d", opts);
+let _4cnv = document.getElementById("_4");
+let _4cnvctx = _4cnv.getContext("2d", opts);
+let _5cnv = document.getElementById("_5");
+let _5cnvctx = _5cnv.getContext("2d", opts);
+let _6cnv = document.getElementById("_6");
+let _6cnvctx = _6cnv.getContext("2d", opts);
+let _7cnv = document.getElementById("_7");
+let _7cnvctx = _7cnv.getContext("2d", opts);
+let _8cnv = document.getElementById("_8");
+let _8cnvctx = _8cnv.getContext("2d", opts);
+let _9cnv = document.getElementById("_9");
+let _9cnvctx = _9cnv.getContext("2d", opts);
+let headcnv = document.getElementById("head");
+let headcnvctx = headcnv.getContext("2d", opts);
+let footcnv = document.getElementById("foot");
+let footcnvctx = footcnv.getContext("2d", opts);
 
 function limitSize(size, maximumPixels) 
 {
@@ -552,7 +552,7 @@ CanvasRenderingContext2D.prototype.hideimage = function()
         _4cnvctx.hideimage_ = 0; 
         _4cnvctx.refresh();
         addressobj.refresh();
-    }, HIDEIMAGE);
+    }, url.movepage?0:HIDEIMAGE);
 }
 
 CanvasRenderingContext2D.prototype.refresheaders = function()
@@ -1284,7 +1284,7 @@ var panlst =
     },	
     panend: function (context, rect, x, y)
 	{
-        _4cnvctx.hideimage_ = 0; 
+         context.hideimage();
          context.panning = 0;  
          context.refresh();
         delete context.zoomobj.offset;
@@ -2330,36 +2330,42 @@ var thumblst =
                 0,
             ]),
             0,
-            new ColA([ALIEXTENT,0,ALIEXTENT],
+            new ColA([20,ALIEXTENT*2,0,ALIEXTENT*2,20],
             [
-                new ImagePanel(),
                 0,
-                new ImagePanel(),
+                new Text("white", "left", "middle",0,1),
+                0,
+                new Text("white", "right", "middle",0,1),
+                0,
             ]),
          ]);
 
         var vextent = context.virtualwidth.toFixed(0) + "x" + context.virtualheight.toFixed(0) + " (" + context.virtualaspect.toFixed(2) + ")";
         var vsize = ((context.virtualwidth * context.virtualheight)/1000000).toFixed(1) + "MP";
-
-        var k = _4cnvctx.setcolumncomplete?url.fullproject().split("-"):0;
+        //var k = _4cnvctx.setcolumncomplete?url.fullproject().split("-"):0;
         a.draw(context, rect, 
             [
                 [
                     0,
-                   vextent,// k[0],
+                  "",
                     0,
-                   vsize,// k[1],
+                  "",
                     0,
                 ],
                 0,
                 0,
                 0,
                 [
-                    ico.zoomout,
                     0,
-                    ico.zoomin,
+                  "",
+                    0,
+                  "",
+                    0,
                 ]
             ], 0, 0);
+
+        context.shadowOffsetX = 0;
+        context.shadowOffsetY = 0;
     }
 },
 ];
@@ -2512,7 +2518,7 @@ function resetcanvas()
         break;
     }
 
-    zoomrange[1] = 0.925;
+    zoomrange[1] = 0.985;
     context.zoomobj = splitrange(context.zoomobj, url.zoom, zoomrange.join("-"), OPTIONSIZE);
     for (var n = 0; n < context.zoomobj.length(); ++n)
     {
@@ -2560,7 +2566,7 @@ function resetcanvas()
     var y = context.canvas.height*b;
     context.nuby = Math.nub(y, context.canvas.height, context.imageheight, photo.image.height);  
 
-   var j = Math.berp(context.zoomobj.begin, context.zoomobj.end, context.zoomobj.getcurrent());
+    var j = Math.berp(context.zoomobj.begin, context.zoomobj.end, context.zoomobj.getcurrent());
 
     var ks = 0;
     for (var n = 0; n < slicelst.length; ++n)
