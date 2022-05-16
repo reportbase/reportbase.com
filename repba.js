@@ -6,11 +6,11 @@
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
-const MAXVIRTUALWIDTH = (SAFARI || FIREFOX) ? 3840 : 11520; 
+const MAXVIRTUALWIDTH = (SAFARI || FIREFOX) ? 2160 : 11520; 
 const CANVASCOUNT = 20;
-const REFRESHEADER = 1000;
+const PANENDTIME = 750;
+const REFRESHEADER = 300;
 const SLICEWIDTH = 1; 
-const HIDEIMAGE = 800;
 const MAXSLIDER = 720;
 const POSITYSPACE = 50;
 const THUMBLINE = 1;
@@ -18,7 +18,6 @@ const THUMBLINEIN = 2.5;
 const THUMBLINEOUT = 4.0;
 const JULIETIME = 50;
 const GUIDEHEIGHT = 54; 
-const BUTTONHEIGHT = 38; 
 const DELAY = 10000000;
 const THUMBORDER = 16;
 const TABWIDTH = 40;
@@ -28,14 +27,15 @@ const OPTIONSIZE = 100;
 const ALIEXTENT = 60;
 const BEKEXTENT = 20;
 const NUBEXTENT = 8;
-const ARROWBORES = 18;
+const ARROWBORES = 20;
 const NUBHEIGHT = 4;
 const NUBWIDTH = 8;
 const NUBCOLOR = "white";
 const CYLRADIUS = 65.45;
 const DELAYCENTER = 3.926;
 const VIRTCONST = 0.8;
-const FONTHEIGHT = window.devicePixelRatio>=2?24:18;
+const FONTHEIGHT = window.devicePixelRatio>=2?19:16;
+const BUTTONHEIGHT = window.devicePixelRatio>=2?46:32; 
 const ROWHEIGHT = FONTHEIGHT*1.8;
 const QUALITY = 0.65;
 const PINCHMIN = 0.25;
@@ -45,18 +45,18 @@ const THUMBMIN = 0.00;
 const ZOOMADJ = 0.05;
 const LOADING = 1;
 const ZOOMING = 3;
-const TIMEMAIN = 8;
+const TIMEMAIN = 12;
 const PINCHRANGE =  "0.25-1.1";
 const CANVASMAX = 30;
 const MAXCANVASWIDTH = 32767;
 const MAXTOTALCANVASIZE = 384000000;//384mb
 const MAXCANVASIZE = SAFARI?16777216:32777216;
-const MAXZOOM = SAFARI?0.925:0.975;
-const MAXVIRTUALSIZE = SAFARI?8000000:12000000;
+const MAXZOOM = SAFARI?0.95:0.975;
+const MAXVIRTUALSIZE = SAFARI?12000000:24000000;
 const HEADCOLOR = "rgba(0,0,0,0.25)";
-const DARKHEADCOLOR = "rgba(0,0,0,0.4)";
+const DARKHEADCOLOR = "rgba(0,0,0,0.6)";
 const ARROWSELECT = "rgba(255,125,0,0.5)";
-const ARROWBACK = "rgba(0,0,0,0.0)"
+const ARROWBACK = "rgba(0,0,0,0.25)"
 const THUMBFILL = "rgba(0,0,0,0.25)"
 const THUMBSTROKE = "rgb(255,255,235)"
 
@@ -80,7 +80,7 @@ url.movepage = url.searchParams.has("y") ? Number(url.searchParams.get("y")) : 0
 url.col = url.searchParams.has("c") ? Number(url.searchParams.get("c")) : 0;
 url.cols = url.searchParams.has("o") ? Number(url.searchParams.get("o")) : 7;
 url.position = url.searchParams.has("v") ? Number(url.searchParams.get("v")) : 4;
-url.thumbindex = url.searchParams.has("g") ? Number(url.searchParams.get("g")) : 0;
+url.thumbindex = url.searchParams.has("g") ? Number(url.searchParams.get("g")) : 1;
 url.fullpath = function() { return url.path + "." + url.project; }
 url.fullproject = function() 
 { 
@@ -334,6 +334,7 @@ color.name2rgba = function (clr, alpha)
 Math.berp = function (v0, v1, t) { return (t - v0) / (v1 - v0); };
 Math.lerp = function (v0, v1, t) { return (1 - t) * v0 + t * v1; };
 Math.round5 = function (x) { return (x % 5) >= 2.5 ? parseInt(x / 5) * 5 + 5 : parseInt(x / 5) * 5; }
+Math.round2 = function (x) { return (x % 2) >= 1 ? parseInt(x / 2) * 2 + 2 : parseInt(x / 2) * 2; }
 
 Image.prototype.load = function(url)
 {
@@ -361,7 +362,6 @@ Image.prototype.load = function(url)
 };
 
 Image.prototype.completedPercentage = 0;
-
 String.prototype.stripquotes = function() { return this.replace(/(^"|"$)/g, ''); }
 
 String.prototype.clean = function()
@@ -412,13 +412,15 @@ var Describe = function()
                 var a = new Layer(
                     [
                         new Fill(DARKHEADCOLOR),
-                        new Shrink(new Text("white", "center", "middle",0,1),10,10)
+                        new Shrink(new Text("white", "center", "middle",0,1),10,10),
+                        new Rectangle(context.describerect),
                     ]);
                 
                 a.draw(context, rect, user, 0)
             }
         }
 
+        context.describerect = new rectangle();
         context.font = "400 " + FONTHEIGHT + "px Source Code Pro";
         rect.width = Math.min(window.innerWidth-ALIEXTENT*2,960)-80
         var lst = context.describe;
@@ -576,19 +578,6 @@ addressobj.refresh = function()
         window.localStorage.setItem(url.fullpath(), str);
         _4cnvctx.refresh();
     }, 100);
-}
-
-CanvasRenderingContext2D.prototype.hideimage = function()
-{
-    this.hideimage_ = 1; 
-    this.refresh();
-    clearTimeout(this.hideimagetime);
-    this.hideimagetime = setTimeout(function()
-    {
-        _4cnvctx.hideimage_ = 0; 
-        _4cnvctx.refresh();
-        addressobj.refresh();
-    }, url.movepage?0:HIDEIMAGE);
 }
 
 CanvasRenderingContext2D.prototype.refresheaders = function()
@@ -1184,9 +1173,12 @@ var pinchlst =
     },
     pinchend: function (context)
     {
-                _4cnvctx.pinching = 0; 
-                _4cnvctx.refresh();
-        addressobj.refresh();
+        setTimeout(function()
+        {
+            _4cnvctx.pinching = 0; 
+            _4cnvctx.refresh();
+            addressobj.refresh();
+        }, 40);
     }, 
     pinchstart: function (context, rect, x, y) 
     {
@@ -1298,7 +1290,7 @@ var panlst =
         }
         else if (type == "panup" || type == "pandown")
         {
-            var k = panvert(context.rowobj, y);
+             var k = panvert(context.rowobj, y);
             if (k == -1)
                 return;
             if (k == context.rowobj.anchor())
@@ -1311,7 +1303,8 @@ var panlst =
     },
 	panstart: function (context, rect, x, y)
 	{
-        headobj.set(url.cols>1?2:1);
+        clearTimeout(context.panendtime);
+        //headobj.set(url.cols>1?2:1);
         context.isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         pageresize();
      },
@@ -1320,8 +1313,8 @@ var panlst =
     },	
     panend: function (context, rect, x, y)
 	{
-         context.hideimage();
-         context.panning = 0;  
+        context.isthumbrect = 0;
+        context.panning = 0;  
          context.refresh();
         delete context.zoomobj.offset;
         delete context.rowobj.offset;
@@ -1335,7 +1328,7 @@ var panlst =
 	{
         if (type == "panup" || type == "pandown")
         {
-            var h = context.describeobj.length()*3;
+            var h = context.describerect.height;
             var yy = (y/window.innerHeight)*h;
             var k = panvert(context.describeobj, h-yy);
             if (k == context.rowobj.anchor())
@@ -1424,6 +1417,7 @@ var presslst =
         thumbobj.set(thumbobj.current()?0:1); 
         footobj.set(thumbobj.current()?1:2);
         pageresize();
+        context.hideguide = 0; 
         addressobj.refresh();
         context.refresh();
     }
@@ -1480,19 +1474,29 @@ var swipelst =
     name: "BOSS",
     swipeleftright: function (context, rect, x, y, type)
     {
+        context.hideguide = 1; 
         clearTimeout(context.timeswipe);
         context.timeswipe = setTimeout(function()
         {
             context.timeback = (type == "swipeleft") ? 1 : 0;
-            var col = context.slicemiddle ? context.slicemiddle.col : 0;
-            if (type == "swiperight" && col == 0)
-                context.movepage(0)
-            else if (type == "swipeleft" && col == url.cols-1)
-                context.movepage(1)
-            else if (type == "swipeleft")
-                context.nextcolumn();
-            else if (type == "swiperight")
-                context.prevcolumn();
+            var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+            if (!isthumbrect || url.cols == 1)
+            {
+                var col = context.slicemiddle ? context.slicemiddle.col : 0;
+                if (type == "swipeleft" && isthumbrect)
+                    context.movepage(1)
+                else if (type == "swiperight" && isthumbrect)
+                    context.movepage(0)
+                else if (type == "swiperight" && col == 0)
+                    context.movepage(0)
+                else if (type == "swipeleft" && col == url.cols-1)
+                    context.movepage(1)
+                else if (type == "swipeleft")
+                    context.nextcolumn();
+                else if (type == "swiperight")
+                    context.prevcolumn();
+            }
+
         }, JULIETIME);
     },
 
@@ -1546,6 +1550,24 @@ var keylst =
             evt.preventDefault();
             return true;
         }
+        else if (evt.key == "a")
+        {
+            about();
+            evt.preventDefault();
+            return false;
+        }
+        else if (evt.key == "s")
+        {
+            help();
+            evt.preventDefault();
+            return false;
+        }
+        else if (evt.key == "d")
+        {
+            describe();
+            evt.preventDefault();
+            return false;
+        }
 
         return false;
 	}
@@ -1587,6 +1609,12 @@ var keylst =
         else if (evt.key == "a")
         {
             about();
+            evt.preventDefault();
+            return false;
+        }
+        else if (evt.key == "s")
+        {
+            help();
             evt.preventDefault();
             return false;
         }
@@ -1664,7 +1692,6 @@ var keylst =
             else
                 context.panimage(1, 1);
            addressobj.refresh();
-            context.hideimage();
             evt.preventDefault();
             return false;
         }
@@ -1675,7 +1702,6 @@ var keylst =
             else
                 context.panimage(0, 1);
            addressobj.refresh();
-            context.hideimage();
             evt.preventDefault();
             return false;
         }
@@ -1692,7 +1718,6 @@ var keylst =
             }
 
            addressobj.refresh();
-            context.hideimage();
             evt.preventDefault();
             return false;
         }
@@ -1708,14 +1733,12 @@ var keylst =
                 context.nextrow(1,1);
             }
 
-            context.hideimage();
            addressobj.refresh();
             evt.preventDefault();
             return false;
         }
-        else if (evt.key == "PageUp" || evt.key  == "a")
+        else if (evt.key == "PageUp")
         {
-            context.hideimage();
             var col = context.slicemiddle ? context.slicemiddle.col : 0;
             if (col == 0)
                 context.movepage(0)
@@ -1725,9 +1748,8 @@ var keylst =
             evt.preventDefault();
             return false;
         }
-        else if (evt.key == "PageDown" || evt.key  == "s")
+        else if (evt.key == "PageDown")
         {
-            context.hideimage();
             var col = context.slicemiddle ? context.slicemiddle.col : 0;
             if (col == url.cols-1)
                 context.movepage(1)
@@ -1739,7 +1761,6 @@ var keylst =
         }
         else if (evt.key == "Backspace")
         {
-            context.hideimage();
             if (context.ctrlhit)
             {
                 context.rowobj.set(window.innerHeight-1);
@@ -1762,7 +1783,6 @@ var keylst =
         }
         else if (evt.key == "Enter")
         {
-            context.hideimage();
             if (context.ctrlhit)
             {
                 context.rowobj.set(window.innerHeight-1);
@@ -1784,7 +1804,6 @@ var keylst =
         }
         else if (evt.key == "Tab")
         {
-            context.hideimage();
             var col = context.slicemiddle ? context.slicemiddle.col : 0;
             if (evt.shiftKey)
             {
@@ -1860,7 +1879,7 @@ var taplst =
 	name: "DESCRIBE",
 	tap: function (context, rect, x, y, shift, ctrl)
 	{
-        describe();
+        hidedescribe();
 	}
 },
 {
@@ -1868,7 +1887,6 @@ var taplst =
 	tap: function (context, rect, x, y, shift, ctrl)
 	{
         context.panning = 0;  
-        context.hideimage_ = 0;
         context.pinching_ = 0;
 
         if (menuvisible())
@@ -1931,7 +1949,8 @@ var taplst =
         }
         else
         {
-            headobj.set(1);
+            context.hideguide = 0; 
+            //headobj.set(1);
             pageresize();
             context.pantype = 0;
             if (x < rect.width/2)
@@ -2130,10 +2149,10 @@ var slicesobj = function (title, data, image, hit)
 
         else if (context.index == 8)//options
         {
-            this.data_.push({title:"Describe", path: "DESCRIBE"})
+            this.data_.push({title:"Describe", path: "DESCRIBE"})//todo add function here
             this.data_.push({title:"Help", path: "HELP"})
             this.data_.push({title:"About", path: "ABOUT"})
-            this.data_.push({title:"Load", path: "LOAD"})
+            this.data_.push({title:"Open...", path: "LOAD"})
             this.data_.push({title:"Original", path: "ORIGINAL"})
             if (!SAFARI)
                 this.data_.push({title:"Fullscreen", path: "FULLSCREEN"})
@@ -2172,20 +2191,30 @@ var thumblst =
         context.shadowOffsetX = 0;
         context.shadowOffsetY = 0;
         var col = context.slicemiddle ? context.slicemiddle.col : 0;
-        var th = context.thumbheightobj.getcurrent();
-        th = window.devicePixelRatio>=2?th*1.25: th;
+        if (rect.width < rect.height)
+        {
+            var tw = context.thumbheightobj.getcurrent();
+            var th = 1;
+        }
+        else
+        {
+            var th = context.thumbheightobj.getcurrent();
+            var tw = 1;
+        }
+
         var headers = IFRAME?0:ALIEXTENT*2; 
         var thumbord = THUMBORDER;
-        var width = (rect.width-thumbord*2);
+        var b = IFRAME?ALIEXTENT:0;
+        var width = rect.width-thumbord*2-b*2;
         var height = rect.height-headers-thumbord*2;
-        var r = calculateAspectRatioFit(photo.image.width, photo.image.height, width, height*th); 
+        var r = calculateAspectRatioFit(photo.image.width, photo.image.height, width*tw, height*th); 
         var h = r.height;
         var w = r.width;
         var a = IFRAME?0:ALIEXTENT;
         var pos = context.positobj.current();
         if (pos == 0)
         {
-            var x = thumbord;
+            var x = thumbord+b;
             var y = a+thumbord;
         }
         else if (pos == 1)
@@ -2195,22 +2224,22 @@ var thumblst =
         }
         else if (pos == 2)
         {
-            var x = context.canvas.width-w-thumbord;
+            var x = context.canvas.width-w-thumbord-b;
             var y = a+thumbord;
         }
         else if (pos == 3)
         {
-            var x = thumbord;
+            var x = thumbord+b;
             var y = (context.canvas.height-h)/2;
         }
         else if (pos == 5)
         {
-            var x = context.canvas.width-w-thumbord;
+            var x = context.canvas.width-w-thumbord-b;
             var y = (context.canvas.height-h)/2;
         }
         else if (pos == 6)
         {
-            var x = thumbord;
+            var x = thumbord+b;
             var y = context.canvas.height-h-a-thumbord;
         }
         else if (pos == 7)
@@ -2220,7 +2249,7 @@ var thumblst =
         }
         else if (pos == 8)
         {
-            var x = context.canvas.width-w-thumbord;
+            var x = context.canvas.width-w-thumbord-b;
             var y = context.canvas.height-h-a-thumbord;
         }
         else
@@ -2230,8 +2259,13 @@ var thumblst =
         }
 
         context.thumbrect = new rectangle(x,y,w,h);
+        if (IFRAME)
+        {
+            context.left = new rectangle(0,0,ALIEXTENT,rect.height);
+            context.right = new rectangle(rect.width-ALIEXTENT,0,ALIEXTENT,rect.height);
+        }
      
-        if ( context.hideimage_ || context.panning || context.pinching)
+        if (context.isthumbrect && context.panning)
         {
         }
         else
@@ -2265,6 +2299,37 @@ var thumblst =
         var whiterect = new StrokeRect(THUMBSTROKE);
         var blackrect = new Fill(THUMBFILL);
         whiterect.draw(context, context.thumbrect, 0, 0);
+        if (context.left)
+        {
+            var a = new Col([ALIEXTENT,0,ALIEXTENT],
+            [
+                new Layer(
+                [
+                    new Fill(ARROWBACK), 
+                    new Row([0,ALIEXTENT,0],
+                    [
+                        0,
+                        new Shrink(new Arrow(270),ARROWBORES,ARROWBORES),
+                        0,
+                    ]),
+                    new Rectangle(context.left)
+                ]),
+                0,
+                new Layer(
+                [
+                    new Fill(ARROWBACK), 
+                    new Row([0,ALIEXTENT,0],
+                    [
+                        0,
+                        new Shrink(new Arrow(90),ARROWBORES,ARROWBORES),
+                        0,
+                    ]),
+                    new Rectangle(context.right)
+                ])
+            ]);
+            
+            a.draw(context, rect, 0, 0);
+        }
 
         if (url.thumblines)
         {
@@ -2314,102 +2379,130 @@ var thumblst =
     name: "GUIDE",
     draw: function (context, rect, user, time)
     {
-        if (context.hideimage_ || context.panning || context.pinching)
+        if (context.hideguide)
             return;
-
-        context.shadowOffsetX = 1;
-        context.shadowOffsetY = 1;
+        if (rect.height < 320)
+            return;
+        if (context.panning)
+            return;
         context.shadowColor = "black"
         context.left = new rectangle();
         context.top = new rectangle();
         context.right = new rectangle();
         context.bottom = new rectangle();
         context.fullscreen = new rectangle();
-        var w = window.devicePixelRatio>=2?GUIDEHEIGHT*1.25: GUIDEHEIGHT;
+        var w = window.devicePixelRatio>=2?GUIDEHEIGHT*1.15: GUIDEHEIGHT;
         var w2 = w*3;
-        var a = new RowA([ALIEXTENT,0,w2,0,ALIEXTENT],
+
+        var a = 
+        new ColA([ALIEXTENT,0,ALIEXTENT],
         [
-            new ColA([20,ALIEXTENT*2,0,ALIEXTENT*2,20],
+            new Layer(
             [
-                0,
-                new Text("white", "left", "middle",0,1),
-                0,
-                new Text("white", "right", "middle",0,1),
-                0,
-            ]),
-            0,
-            new Col([0,w2,0,],
-            [
-                0,
-                new Row([0,0,0],
+                new Fill(ARROWBACK),
+                new Row([ALIEXTENT,0,ALIEXTENT,0,ALIEXTENT],
                 [
-                    new Col([0,0,0],
-                    [
-                        0,
-                        new Layer(
-                        [
-                            //context.pantype=="pandown"?new Fill(ARROWSELECT):0,
-                            new Shrink(new Arrow(0),ARROWBORES,ARROWBORES),
-                            new Rectangle(context.top),
-                        ]),
-                        0,
-                    ]),
-                    new Col([0,0,0],
-                    [
-                        new Layer(
-                        [
-                            //context.pantype=="panright"?new Fill(ARROWSELECT):0,
-                            new Shrink(new Arrow(270),ARROWBORES,ARROWBORES),
-                            new Rectangle(context.left),
-                        ]),
-                        SAFARI?0:new Layer(
-                        [
-                            screenfull.isFullscreen?new Fill(ARROWSELECT):0,
-                            new Shrink(new Circle("white"),ARROWBORES,ARROWBORES),
-                            new Rectangle(context.fullscreen),
-                        ]),
-                        new Layer(
-                        [
-                            //context.pantype=="panleft"?new Fill(ARROWSELECT):0,
-                            new Shrink(new Arrow(90),ARROWBORES,ARROWBORES),
-                            new Rectangle(context.right),
-                        ]),
-                    ]),
-                    new Col([0,0,0],
-                    [
-                        0,
-                        new Layer(
-                        [
-                            //context.pantype=="panup"?new Fill(ARROWSELECT):0,
-                            new Shrink(new Arrow(180),ARROWBORES,ARROWBORES),
-                            new Rectangle(context.bottom),
-                        ]),
-                        0,
-                    ]),
+                    new Text("white", "center", "middle",0,1),
+                    0,
+                    new Shrink(new Arrow(270),ARROWBORES,ARROWBORES),
+                    0,
+                    0,
+                ]),
+                new Rectangle(context.left),
+            ]),
+            new RowA([ALIEXTENT,0,w2,0,ALIEXTENT],
+            [
+                new ColA([20,ALIEXTENT*2,0,ALIEXTENT*2,20],
+                [
+                    0,
+                    new Text("white", "left", "middle",0,1),
+                    new Text("white", "center", "middle",0,1,1),
+                    new Text("white", "right", "middle",0,1),
+                    0,
                 ]),
                 0,
+                new Col([0,w2,0],
+                [
+                    0,
+                    new Row([0,0,0],
+                    [
+                        new Col([0,0,0],
+                        [
+                            0,
+                            new Layer(
+                            [
+                                new Fill(ARROWBACK),
+                                new Shrink(new Arrow(0),ARROWBORES,ARROWBORES),
+                                new Rectangle(context.top),
+                            ]),
+                            0,
+                        ]),
+                        new Col([0,0,0],
+                        [
+                            0,
+                            SAFARI?0:new Layer(
+                            [
+                                new Fill(screenfull.isFullscreen?ARROWSELECT:ARROWBACK),
+                                new Shrink(new Circle("white"),ARROWBORES,ARROWBORES),
+                                new Rectangle(context.fullscreen),
+                            ]),
+                            0
+                        ]),
+                        new Col([0,0,0],
+                        [
+                            0,
+                            new Layer(
+                            [
+                                new Fill(ARROWBACK),
+                                new Shrink(new Arrow(180),ARROWBORES,ARROWBORES),
+                                new Rectangle(context.bottom),
+                            ]),
+                            0,
+                        ]),
+                    ]),
+                    0,
+                ]),
+                0,
+                new ColA([20,ALIEXTENT*2,0,ALIEXTENT*2,20],
+                [
+                    0,
+                    new Text("white", "left", "middle",0,1),
+                    new Text("white", "center", "middle",0,1),
+                    new Text("white", "right", "middle",0,1),
+                    0,
+                ]),
             ]),
-            0,
-            new ColA([20,ALIEXTENT*2,0,ALIEXTENT*2,20],
+            new Layer(
             [
-                0,
-                new Text("white", "left", "middle",0,1),
-                0,
-                new Text("white", "right", "middle",0,1),
-                0,
+                new Fill(ARROWBACK),
+                new Row([ALIEXTENT,0,ALIEXTENT,0,ALIEXTENT],
+                [
+                    new Text("white", "center", "middle",0,1),
+                    0,
+                    new Shrink(new Arrow(90),ARROWBORES,ARROWBORES),
+                    0,
+                    0,
+                ]),
+                new Rectangle(context.right),
             ]),
-         ]);
-
+        ]);
+        
         var vextent = context.virtualwidth.toFixed(0) + "x" + context.virtualheight.toFixed(0) + " (" + context.virtualaspect.toFixed(2) + ")";
         var vsize = ((context.virtualwidth * context.virtualheight)/1000000).toFixed(1) + "MP";
         var scale = window.devicePixelRatio.toFixed(2) + "";
+        var k = _4cnvctx.setcolumncomplete?url.fullproject().split("-"):0;
+        var project = k?k[0]:"";
+        var projects = k?k[1]:"";
+
         a.draw(context, rect, 
+        [
+            "",//project,
             [
                 [
                     0,
-                  "",
-                    0,
-                  "",
+                    "",//vextent,
+                    url.fullproject(),
+                    "",//vsize, 
                     0,
                 ],
                 0,
@@ -2417,15 +2510,14 @@ var thumblst =
                 0,
                 [
                     0,
-                  "",
+                  "",//photo.image.extent,
+                  "",  
+                  "",//photo.image.size,
                     0,
-                  "",
-                    0,
-                ]
-            ], 0, 0);
-
-        context.shadowOffsetX = 0;
-        context.shadowOffsetY = 0;
+                ],
+            ],
+            "",//projects,
+        ], 0, 0);
     }
 },
 ];
@@ -2643,6 +2735,12 @@ function resetcanvas()
     var slice = 0;
     context.slicesobj.data_ = []
 
+    if (SAFARI)
+    {
+        for (var n = 0; n < canvaslst.length; ++n)
+            releaseCanvas(canvaslst[n]);
+    }
+
     for (var n = 0; n < canvaslen; ++n)
     {
         var cnv = canvaslst[n];
@@ -2650,6 +2748,7 @@ function resetcanvas()
             cnv.height = context.canvas.height;
         if (cnv.width != context.bwidth)
             cnv.width = context.bwidth;
+        
         var ctx = cnv.getContext('2d');
         ctx.drawImage(photo.image, 
             n*gwidth, context.nuby, gwidth, context.imageheight, 
@@ -2900,15 +2999,14 @@ var ContextObj = (function ()
                     var filename = url.path + "." + url.project + "." + url.extension;
                     opened.add(filename);
                     this.aspect = this.width/this.height; 
-                    this.size = this.width*this.height; 
-                    this.extent = this.width + "x" + this.height;
+                    this.size = ((this.width * this.height)/1000000).toFixed(1) + "MP";
+                    this.extent = this.width + "x" + this.height + " (" + this.aspect.toFixed(2) + ")" ;
                     document.title = url.fullpath(); 
                     
                     contextobj.resize(context);
                     resetcanvas(context);
                     context.complete = 1;
                     context.panning = 0;  
-                    context.hideimage_ = 0;
                     context.pinching_ = 0;
                     globalobj.status = 0;
                     context.hithead = 0;
@@ -3214,7 +3312,7 @@ var CircleA = function (color, scolor)
     };
 };
 
-var Text = function (color,  align="center", baseline="middle", reverse=0, noclip=0)
+var Text = function (color,  align="center", baseline="middle", reverse=0, noclip=0, shadow=0)
 {
     this.draw = function (context, rect, user, time)
     {
@@ -3235,7 +3333,10 @@ var Text = function (color,  align="center", baseline="middle", reverse=0, nocli
         context.textAlign = align;
         context.textBaseline = baseline;
         context.fillStyle = color;
-       
+        context.shadowOffsetX = shadow?shadow:0;
+        context.shadowOffsetY = shadow?shadow:0;
+        context.shadowColor = "black"
+ 
         var metrics;
         var str;
        
@@ -3269,6 +3370,8 @@ var Text = function (color,  align="center", baseline="middle", reverse=0, nocli
 			context.strokeText(str, x, y);
 
         context.fillText(str, x, y);
+        context.shadowOffsetX = 0;
+        context.shadowOffsetY = 0;
     };
 };
 
@@ -3664,6 +3767,8 @@ window.addEventListener("screenorientation", (evt) =>
 
 window.addEventListener("unload", (evt) => 
 {
+    for (var n = 0; n < canvaslst.length; ++n)
+        releaseCanvas(canvaslst[n]);
 });
 
 window.addEventListener("beforeunload", (evt) => 
@@ -3799,6 +3904,7 @@ var YollPanel = function ()
                 delete context.bottom;
                 delete context.fullscreen;
                 delete context.thumbrect;
+                delete context.describerect;
  
                 if (context.describe)
                 {
@@ -3823,6 +3929,7 @@ var YollPanel = function ()
                 {
                     var a =  new Grid(3,3,0,new Rects(context.grid));
                     a.draw(context, rect, 0, 0);
+
                     thumbobj.getcurrent().draw(context, rect, 0, 0);
 
                     if (IFRAME)
@@ -4106,25 +4213,6 @@ function getyollplst(k)
 
 var headlst =
 [
-    new function ()
-	{
-        this.height = ALIEXTENT;
-	    this.panstart = function (context, rect, x, y) { };
-        this.panend = function (context, rect, x, y) { };
-        this.pan = function (context, rect, x, y, type) { };
-		this.press = function (context, rect, x, y) { };
-
-        this.tap = function (context, rect, x, y) 
-        { 
-        };
-
-		this.draw = function (context, rect, user, time) 
-        { 
-            context.clear();
-            var a = new Fill(HEADCOLOR);
-            a.draw(context, rect, user, time);
-        };
-	},
 	new function ()
 	{
         this.height = ALIEXTENT;
@@ -4146,7 +4234,7 @@ var headlst =
 
 		this.press = function (context, rect, x, y)
         {
-            headobj.set(headobj.current()==1?2:1);
+            //headobj.set(headobj.current()==1?2:1);
             pageresize();
             _4cnvctx.refresh();
         };
@@ -4175,7 +4263,6 @@ var headlst =
             }
             else if (context.thumbnail.hitest(x,y))
             {
-                about();
             }
 
             pageresize();
@@ -4190,9 +4277,7 @@ var headlst =
             context.shadowOffsetX = 1;
             context.shadowOffsetY = 1;
             context.shadowColor = "black"
-            var str = globalobj.status == LOADING ?
-                "" : //(photo.image?photo.image.completedPercentage.toFixed(0)+"%":"") :
-                url.fullproject();
+            var str = url.fullproject();
 
             context.page = new rectangle()
             context.option = new rectangle()
@@ -4202,35 +4287,42 @@ var headlst =
             context.prevpage2 = new rectangle()
             context.nextpage2 = new rectangle()
 
-            var a = new LayerA(
+            var k = _4cnvctx.setcolumncomplete?url.fullproject().split("-"):0;
+            var project = k?k[0]:"";
+            var projects = k?k[1]:"";
+
+            var a = new Layer(
             [
                 new Fill(HEADCOLOR),
-                new Col([ALIEXTENT,0,ALIEXTENT,100,ALIEXTENT,0,ALIEXTENT],
+                new ColA([ALIEXTENT,0,ALIEXTENT,ALIEXTENT,0,ALIEXTENT],
                 [
                     new Layer(
                     [
                         new PagePanel(_8cnvctx.enabled?0.125:0.1),
                         new Rectangle(context.page),
                     ]),
-                    new Rectangle(context.prevpage2),
                     new Layer(
                     [
-                        (_4cnvctx.hithead&&_4cnvctx.hitmode == 0)?new Fill(ARROWSELECT):0,
+                        new Rectangle(context.prevpage2),
+                        new Text("white", "right", "middle",0,1),
+                    ]),
+                    new Layer(
+                    [
+                        //(_4cnvctx.hithead&&_4cnvctx.hitmode == 0)?new Fill(ARROWSELECT):0,
                         new Shrink(new Arrow(270),ARROWBORES,ARROWBORES),
                         new Rectangle(context.prevpage),
                     ]),
                     new Layer(
                     [
-                        new Text("white", "center", "middle",0,1),
-                        new Rectangle(context.thumbnail),
-                    ]),
-                    new Layer(
-                    [
-                        (_4cnvctx.hithead&&_4cnvctx.hitmode == 1)?new Fill(ARROWSELECT):0,
+                        //(_4cnvctx.hithead&&_4cnvctx.hitmode == 1)?new Fill(ARROWSELECT):0,
                         new Shrink(new Arrow(90),ARROWBORES,ARROWBORES),
                         new Rectangle(context.nextpage),
                     ]),
-                    new Rectangle(context.nextpage2),
+                    new Layer(
+                    [
+                        new Rectangle(context.nextpage2),
+                        new Text("white", "left", "middle",0,1),
+                    ]),
                     new Layer(
                     [
                         new OptionPanel(_9cnvctx.enabled?0.125:0.1),
@@ -4239,7 +4331,7 @@ var headlst =
                 ])
            ]);
 
-           a.draw(context, rect, [0,str], time);
+           a.draw(context, rect, [0,project,0,0,projects,0], time);
 		};
 	},
 	new function ()
@@ -4263,7 +4355,7 @@ var headlst =
 
 		this.press = function (context, rect, x, y)
         {
-            headobj.set(headobj.current()==1?2:1);
+            //headobj.set(headobj.current()==1?2:1);
             pageresize();
             _4cnvctx.refresh();
         };
@@ -4313,9 +4405,8 @@ var headlst =
             var a = new Layer(
             [
                 new Fill(HEADCOLOR),
-                new ColA([0,50,6,60,j,60,6,50,0],
+                new ColA([0,6,60,j,60,6,0],
                 [
-                    0,
                     new Layer(
                     [
                         new Rectangle(context.prevpage2),
@@ -4324,7 +4415,7 @@ var headlst =
                     0,
                     new Layer(
                     [
-                        (_4cnvctx.hithead&&_4cnvctx.hitmode == 0)?new Fill(ARROWSELECT):0,
+                        //(_4cnvctx.hithead&&_4cnvctx.hitmode == 0)?new Fill(ARROWSELECT):0,
                         new Shrink(new Arrow(270),ARROWBORES,ARROWBORES),
                         new Rectangle(context.prevpage),
                     ]),
@@ -4347,7 +4438,7 @@ var headlst =
                     ]),
                     new Layer(
                     [
-                        (_4cnvctx.hithead&&_4cnvctx.hitmode == 1)?new Fill(ARROWSELECT):0,
+                        //(_4cnvctx.hithead&&_4cnvctx.hitmode == 1)?new Fill(ARROWSELECT):0,
                         new Shrink(new Arrow(90),ARROWBORES,ARROWBORES),
                         new Rectangle(context.nextpage),
                     ]),
@@ -4357,17 +4448,15 @@ var headlst =
                         new Rectangle(context.nextpage2),
                         new Text("white", "left", "middle",0,1),
                     ]),
-                    0,
                 ]),
            ]);
 
-           a.draw(context, rect, [0,project,0,0,str,0,0,projects,0], time);
+           a.draw(context, rect, [project,0,0,str,0,0,projects], time);
 		};
 	},
 ];
 
 var headobj = new makeoption("", headlst);
-headobj.set(1);
 
 var footlst =
 [
@@ -4529,7 +4618,6 @@ var footlst =
 
         this.panend = function (context, rect, x, y)
 	    {
-            _4cnvctx.panning = 0; 
             _4cnvctx.refresh();
             delete _4cnvctx.thumbheightobj.offset;
             addressobj.refresh()
@@ -4540,7 +4628,6 @@ var footlst =
            if (!context.slider.hitest(x,y))
                 return;
 
-            _4cnvctx.panning = 1;
             x = Math.round5(x-context.slider.x);
             var b = Math.berp(0,context.slider.width,x);
             var l = Math.lerp(0,_4cnvctx.thumbheightobj.length(),b);
@@ -4918,55 +5005,44 @@ window.onerror = function(message, source, lineno, colno, error)
 function help()
 {
     var context = _4cnvctx;
-    if (context.describe)
-    {
-        delete context.describe;
-        var n = eventlst.findIndex(function(a){return a.name == "_4cnvctx";})
-        setevents(context, eventlst[n])
-        context.refresh();
-        return;
-    }
-
     var n = eventlst.findIndex(function(a){return a.name == "describe";})
     setevents(context, eventlst[n])
 
     context.describe =
     [
-        "Reportbase.com",
-        "High Resolution Image Viewer",
-        "Interacive Panoramas",
+        "Help",
         "",
-        "Developer - Tom Brinkman",
-        "Contact - repba@proton.me",
+        "Show Thumbnail: Long press (space)",
+        "Resize Image: Tap left/right (+/-)",
+        "Resize Thumbnail: Tap then pinch",
+        "Stretch Image: Tap then pinch (Q)",
+        "Pan Image: Tab/enter/up/down/left/right (ctrl)",
+        "Move Image: Swipe left/right (<>)",
+        "Load Image: Drop from desktop",
     ];
     
     context.time = 0;
     context.describeobj.set(0);
     context.refresh()
 }
+
 function about()
 {
     var context = _4cnvctx;
-    if (context.describe)
-    {
-        delete context.describe;
-        var n = eventlst.findIndex(function(a){return a.name == "_4cnvctx";})
-        setevents(context, eventlst[n])
-        context.refresh();
-        return;
-    }
-
     var n = eventlst.findIndex(function(a){return a.name == "describe";})
     setevents(context, eventlst[n])
-
     context.describe =
     [
         "Reportbase.com",
         "High Resolution Image Viewer",
-        "Interacive Panoramas",
+        "Interactive Panoramas",
+        "Slideshows",
         "",
-        "Developer - Tom Brinkman",
-        "Contact - repba@proton.me",
+        "Developer: Tom Brinkman",
+        "Contact: repba@proton.me",
+        "Website: https://reportbase.com",
+        "",
+        "Codepen: https://tiny.one/bondb",
     ];
     
     context.time = 0;
@@ -4986,94 +5062,10 @@ function hidedescribe()
 function describe()
 {
     var context = _4cnvctx;
-    if (context.describe)
-    {
-        hidedescribe();
-        return;
-    }
-
     var n = eventlst.findIndex(function(a){return a.name == "describe";})
     setevents(context, eventlst[n])
-
     context.describe = 
-        "A foot poised over a pool. "+
-        "The surface breaks, a boy falls in, "+
-        "his laughter fills the afternoon. "+
-        "Ritual is the only language we truly believe in: "+
-        "tea steaming a glass mug on a table, "+
-        "smoke from a cigarette filling the room with blue, "+
-        "the way the sun falls across our face as we sleep. "+
-        "These are our things we say. "+
-        "But somewhere a door closes and another day begins. "+
-        "What if the woman we have always loved, "+
-        "the one we desire to wake to is our mother? "+
-        "The holy homeless fill the city like so many weeds. "+
-        "Only Gods children can see them. "+
-        "A blue cross on a wall is a flame. "+
-        "A ball falling from the sky is a meteor. "+
-        "Rust is its own kind of truth: "+
-        "like blood, like cities, like sunlight on a dusty road. "+
-        "We never find it, of course, but its always there, "+ 
-        "between the smoke and the flame."+ 
-        "A foot poised over a pool. "+
-        "The surface breaks, a boy falls in, "+
-        "his laughter fills the afternoon. "+
-        "Ritual is the only language we truly believe in: "+
-        "tea steaming a glass mug on a table, "+
-        "smoke from a cigarette filling the room with blue, "+
-        "the way the sun falls across our face as we sleep. "+
-        "These are our things we say. "+
-        "But somewhere a door closes and another day begins. "+
-        "What if the woman we have always loved, "+
-        "the one we desire to wake to is our mother? "+
-        "The holy homeless fill the city like so many weeds. "+
-        "Only Gods children can see them. "+
-        "A blue cross on a wall is a flame. "+
-        "A ball falling from the sky is a meteor. "+
-        "Rust is its own kind of truth: "+
-        "like blood, like cities, like sunlight on a dusty road. "+
-        "We never find it, of course, but its always there, "+ 
-        "between the smoke and the flame."+ 
-        "A foot poised over a pool. "+
-        "The surface breaks, a boy falls in, "+
-        "his laughter fills the afternoon. "+
-        "Ritual is the only language we truly believe in: "+
-        "tea steaming a glass mug on a table, "+
-        "smoke from a cigarette filling the room with blue, "+
-        "the way the sun falls across our face as we sleep. "+
-        "These are our things we say. "+
-        "But somewhere a door closes and another day begins. "+
-        "What if the woman we have always loved, "+
-        "the one we desire to wake to is our mother? "+
-        "The holy homeless fill the city like so many weeds. "+
-        "Only Gods children can see them. "+
-        "A blue cross on a wall is a flame. "+
-        "A ball falling from the sky is a meteor. "+
-        "Rust is its own kind of truth: "+
-        "like blood, like cities, like sunlight on a dusty road. "+
-        "We never find it, of course, but its always there, "+ 
-        "between the smoke and the flame."+ 
-        "A foot poised over a pool. "+
-        "The surface breaks, a boy falls in, "+
-        "his laughter fills the afternoon. "+
-        "Ritual is the only language we truly believe in: "+
-        "tea steaming a glass mug on a table, "+
-        "smoke from a cigarette filling the room with blue, "+
-        "the way the sun falls across our face as we sleep. "+
-        "These are our things we say. "+
-        "But somewhere a door closes and another day begins. "+
-        "What if the woman we have always loved, "+
-        "the one we desire to wake to is our mother? "+
-        "The holy homeless fill the city like so many weeds. "+
-        "Only Gods children can see them. "+
-        "A blue cross on a wall is a flame. "+
-        "A ball falling from the sky is a meteor. "+
-        "Rust is its own kind of truth: "+
-        "like blood, like cities, like sunlight on a dusty road. "+
-        "We never find it, of course, but its always there, "+ 
-        "between the smoke and the flame."
-        ;
-
+        `Reportbase.com is a high-resolution image viewer. It can be integrated into existing applications or viewed fullscreen as a stand-alone application.  It supports image resolutions of up to 12K.  Larger resolutions can be supported with custom configurations.  Slideshows can be created with either individual images or image montages.  Long press the image to hide the thumbnail.  Swipe left or right to move to the next image.  Tap left or right to zoom the image.  Pinch the image to stretch it horizontally.  Pinch the thumbnail to resize it.  Open images by dragging and dropping them from the desktop. Contact repba@proton.me for more information.`;
     context.describeobj.set(0);
     context.refresh()
 
