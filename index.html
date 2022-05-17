@@ -126,7 +126,10 @@ repba@proton.me<p>
   <a onclick="help(); return false;" href="javascript:void(0);">Help</a> / 
   <a onclick="describe(); return false;" href="javascript:void(0);">Describe</a> / 
   <a onclick="about(); return false;" href="javascript:void(0);">About</a><p>
-
+  <a onclick="panleft(); return false;" href="javascript:void(0);">Pan-left</a> / 
+  <a onclick="panright(); return false;" href="javascript:void(0);">Pan-right</a> / 
+  <a onclick="panup(); return false;" href="javascript:void(0);">Pan-up</a> / 
+  <a onclick="pandown(); return false;" href="javascript:void(0);">Pan-down</a> / 
   <a onclick="moveleft(); return false;" href="javascript:void(0);">Move-previous</a> / 
   <a onclick="moveright(); return false;" href="javascript:void(0);">Move-next</a> / 
   <a onclick="zoomin(); return false;" href="javascript:void(0);">Zoom-in</a> / 
@@ -136,24 +139,25 @@ repba@proton.me<p>
   <a onclick="thumbnail(); return false;" href="javascript:void(0);">Thumbnail</a> / 
   <a onclick="fullscreen(); return false;" href="javascript:void(0);">Full-screen</a> / 
   <a onclick="newindow(); return false;" href="javascript:void(0);">New-Window</a><p>
-    
   <a onclick="moveleft(); return false;" id=projectag href="javascript:void(0);"></a> / 
   <a onclick="moveright(); return false;" id=projectstag href="javascript:void(0);"></a><p>
         
   Reportbase.com is a high-resolution image viewer. It can be integrated into existing applications or 
-  viewed fullscreen as a stand-alone application.  It supports image resolutions of up to 12K. 
-  Larger resolutions can be supported with custom configurations.  
-  Slideshows can be created with either individual images or image montages.<p>
+  viewed fullscreen as a stand-alone application.  
+  Slideshows can be created with individual images or collections of images.<p>
 
-  Long press the image to hide the thumbnail.
-  Swipe left or right to move to the next image.
-  Tap left or right to zoom the image.
-  Pinch the image to stretch it horizontally.
-  Pinch the thumbnail to resize it. 
-  Open an image by dragging and dropping them from the desktop.
-  <p>
+  Reportbase.com is a flexible image browser.  It is suitable for the most 
+  demanding high-resolution applications, including: 
+  topographic maps, drone and satellite photos, 
+  maps, action photography, digital art, panoramas, comics and cartoons, portraits, landscapes, cityscapes, 
+  infographics, real estate, automobiles, and vintage paintings.  
 
-  Contact repba@proton.me for more information.
+  Example galleries and codepens below. <p>
+
+  We are building a community of image enthusiasts.  Contact us if your an artist or photographer and interested
+  in creating a compelling image viewing experience.<p>
+
+  Contact the developers at repba@proton.me to get started.<p>
 </section>
 <section>
 <center>
@@ -185,7 +189,7 @@ repba@proton.me<p>
 <a onclick="pan.src='https://reportbase.com/home.html?p=CRBT.0000.webp&r=30&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0010'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">24</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=JESU.0000.webp&r=30&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0014'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">25</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=DOLL.0000.webp&r=30&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0056'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">26</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=FABL.0000.webp&r=30&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0028'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">27</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=FABL.0000.webp&r=30&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0027'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">27</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=FAIR.0000.webp&r=30&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0014'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">28</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=FASH.0000.webp&r=30&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0007'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">29</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=DOCS.0000.webp&r=0&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=1&m=0000-0008'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">30</a>
@@ -226,8 +230,8 @@ repba@proton.me<p>
 <a onclick="pan.src='https://reportbase.com/home.html?p=MEA4.0000.webp&r=50&c=0&z=20&b=60&h=50&v=7&o=4&f=0&l=18&d=0&g=0&y=0&n=0&a=1&k=2&m=0000-0003'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">65</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=MEA5.0000.webp&r=50&c=0&z=20&b=60&h=100&v=7&o=5&f=0&l=18&d=0&g=0&y=0&n=0&a=1&k=2&m=0000-0002'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">66</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=MEA6.0000.webp&r=50&c=0&z=20&b=60&h=100&v=7&o=6&f=0&l=18&d=0&g=0&y=0&n=0&a=1&k=2&m=0000-0008'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">67</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=MEA8.0000.webp&r=50&c=0&z=15&b=60&h=100&v57&o=8&f=0&l=18&d=0&g=0&y=0&n=0&a=1&k=2&m=0000-0004'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">68</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=ASPS.0000.webp&r=30&c=0&z=50&b=41&h=50&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0023'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">69</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=MEA8.0000.webp&r=50&c=0&z=15&b=60&h=100&v=7&o=8&f=0&l=18&d=0&g=0&y=0&n=0&a=1&k=2&m=0000-0004'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">68</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ASPS.0000.webp&r=30&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0023'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">69</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=GRAL.0000.webp&r=50&c=0&z=75&b=60&h=50&v=7&o=6&f=0&l=18&d=0&g=0&y=0&n=0&a=1&k=2&m=0000-0004'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">70</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=GRAN.0000.webp&r=50&c=0&z=75&b=60&h=50&v=7&o=6&f=0&l=18&d=0&g=0&y=0&n=0&a=1&k=2&m=0000-0007'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">71</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=GRBE.0000.webp&r=50&c=0&z=75&b=60&h=50&v=7&o=6&f=0&l=18&d=0&g=0&y=0&n=0&a=1&k=2&m=0000-0007'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">72</a>
@@ -274,6 +278,10 @@ var pano = pan.contentWindow;
 var path = document.getElementById('path');
 var address = document.getElementById('address');
 
+function panleft() { pano.postMessage("panleft", '*'); pan.scrollIntoView(); pan.focus();}
+function panright() { pano.postMessage("panright", '*'); pan.scrollIntoView(); pan.focus();}
+function panup() { pano.postMessage("panup", '*'); pan.scrollIntoView(); pan.focus();}
+function pandown() { pano.postMessage("pandown", '*'); pan.scrollIntoView(); pan.focus();}
 function moveleft() { pano.postMessage("moveprev", '*'); pan.scrollIntoView(); pan.focus();}
 function moveright() { pano.postMessage("movenext", '*'); pan.scrollIntoView(); pan.focus();}
 function zoomin() { pano.postMessage("zoomin", '*'); pan.scrollIntoView(); pan.focus();}
