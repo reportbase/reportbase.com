@@ -5,7 +5,7 @@
 #for image in *.jpg; do convert $image -sampling-factor 4:2:0 -strip -quality 80 -interlace JPEG -colorspace RGB $image ; done
 
 export MAGICK_TMPDIR=tmp
-for image in PUCK*.webp; do convert $image -resize x3840 $image; done
+for image in OSHI*.webp; do convert $image -resize 3000x $image; done
 #for image in *.jpg; do convert $image -quality 80 -resize $1 $image; done
 #for image in *.webp; do convert $image -quality 80 -resize $1 $image; done
 #for image in *.jpg; do convert $image -quality 85 $image; done
