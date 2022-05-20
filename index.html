@@ -115,7 +115,7 @@ section
   <title>reportbase.com</title>
 </head>
 <center>
-<iframe id=pano src=https://reportbase.com/home.html?p=BOND.0000.webp&r=56&z=50&b=41&h=75&v=4&o=1&g=0&y=1&a=0&m=0000-0075&c=0></iframe>
+<iframe id=pano src=https://reportbase.com/home.html?p=BOND.0000.webp&r=56&z=50&b=41&h=100&v=4&o=1&g=0&y=1&a=0&m=0000-0075&c=0></iframe>
 <section>
   
   
@@ -133,17 +133,22 @@ repba@proton.me<p>
   <a onclick="pandown(); return false;" href="javascript:void(0);">Pan-down</a> / 
   <a onclick="pantop(); return false;" href="javascript:void(0);">Pan-top</a> / 
   <a onclick="panbottom(); return false;" href="javascript:void(0);">Pan-bottom</a> / 
-  <a onclick="moveleft(); return false;" href="javascript:void(0);">Move-previous</a> / 
-  <a onclick="moveright(); return false;" href="javascript:void(0);">Move-next</a> / 
+  <a onclick="moveprev(); return false;" href="javascript:void(0);">Move-previous</a> / 
+  <a onclick="movenext(); return false;" href="javascript:void(0);">Move-next</a> / 
+  <a onclick="movefirst(); return false;" href="javascript:void(0);">Move-first</a> / 
+  <a onclick="movelast(); return false;" href="javascript:void(0);">Move-last</a> / 
   <a onclick="zoomin(); return false;" href="javascript:void(0);">Zoom-in</a> / 
   <a onclick="zoomout(); return false;" href="javascript:void(0);">Zoom-out</a> / 
+  <a onclick="zoommin(); return false;" href="javascript:void(0);">Zoom-min</a> / 
+  <a onclick="zoommax(); return false;" href="javascript:void(0);">Zoom-max</a> / 
   <a onclick="pinchin(); return false;" href="javascript:void(0);">Pinch-in</a> / 
   <a onclick="pinchout(); return false;" href="javascript:void(0);">Pinch-out</a> / 
   <a onclick="thumbnail(); return false;" href="javascript:void(0);">Thumbnail</a> / 
   <a onclick="fullscreen(); return false;" href="javascript:void(0);">Full-screen</a> / 
   <a onclick="newindow(); return false;" href="javascript:void(0);">New-Window</a><p>
-  <a onclick="moveleft(); return false;" id=projectag href="javascript:void(0);"></a> / 
-  <a onclick="moveright(); return false;" id=projectstag href="javascript:void(0);"></a><p>
+  <a onclick="moveprev(); return false;" id=projectag href="javascript:void(0);"></a> / 
+  <a onclick="movenext(); return false;" id=projectstag href="javascript:void(0);"></a>
+  <p>
         
   Reportbase.com is a high-resolution image viewer. It can be integrated into existing applications or 
   viewed fullscreen as a stand-alone application.  
@@ -186,7 +191,7 @@ repba@proton.me<p>
 <a onclick="pan.src='https://reportbase.com/home.html?p=TFTD.0000.webp&r=0&&c=0&z=75&b=68&h=50&v=7&o=6&f=0&l=18&d=0&g=0&y=0.5&n=0&a=1&k=10&m=0000-0007'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">17</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=DISH.0000.webp&r=50&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0016'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">18</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=DAME.0000.webp&r=30&c=0&z=40&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=1&m=0000-0056'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">19</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=BOND.0000.webp&r=30&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0075'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">20</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BOND.0000.webp&r=30&c=0&z=50&b=41&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0075'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">20</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=ANIM.0000.webp&r=30&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0015'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">21</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=WIDE.0000.webp&r=50&c=0&z=50&b=41&h=50&v=7&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0019'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">22</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=CRBE.0000.webp&r=30&c=0&z=50&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0009'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">23</a>
@@ -253,16 +258,24 @@ repba@proton.me<p>
 <a onclick="pan.src='https://reportbase.com/home.html?p=BAKE.0000.webp&r=50&c=0&z=50&b=60&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0017'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">84</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=DECS.0000.webp&r=50&c=0&z=50&b=60&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0011'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">85</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=CRYP.0000.webp&r=50&c=0&z=75&b=60&h=50&v=7&o=6&f=0&l=18&d=0&g=0&y=0&n=0&a=1&k=2&m=0000-0006'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">86</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=TFTC.0000.webp&r=0&t=1&c=0&z=50&b=42&h=50&v=7&o=6&f=0&l=36&d=0&g=0&y=0&n=0&a=1&k=0&m=0000-0007'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">87</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=OSHI.0000.webp&r=0&c=0&z=50&b=60&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0010'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">89</a>
-
-<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM.1000.webp&r=0&c=0&z=40&b=60&h=75&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=1000-1031'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">90</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM.1050.webp&r=0&c=0&z=40&b=60&h=75&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=1050-1080'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">91</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM.1100.webp&r=0&c=0&z=40&b=60&h=75&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=1100-1132'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">92</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM.1150.webp&r=0&c=0&z=40&b=60&h=75&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=1150-1177'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">93</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM.1200.webp&r=0&c=0&z=40&b=60&h=75&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=1200-1228'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">94</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DARK.0000.webp&r=0&c=0&z=40&b=60&h=75&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0022'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">95</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SAGA.0000.webp&r=0&c=0&z=40&b=60&h=75&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0044'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">96</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=TFTC.0000.webp&r=0&z=50&b=42&h=50&v=7&o=6&f=0&l=36&d=0&g=0&y=0&n=0&a=1&k=0&m=0000-0007'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">87</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=OSHI.0000.webp&r=0&c=0&z=50&b=60&h=100&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0010'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">89</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM.1000.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=1000-1031'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">90</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM.1050.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=1050-1080'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">91</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM.1100.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=1100-1132'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">92</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM.1150.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=1150-1177'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">93</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM.1200.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=1200-1228'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">94</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DARK.0000.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0022'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">95</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SAGA.0000.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0044'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">96</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ULTR.0003.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0457'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">97</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=HUSH.0000.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0298'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">98</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GOTH.0001.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0298'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">99</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DBAT.0000.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0360'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">100</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=KNIG.0000.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0197'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">101</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=VIOL.0000.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0151'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">102</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=MADB.0000.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0161'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">103</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=KILL.0000.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0161'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">104</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DETC.0000.webp&r=0&c=0&z=50&b=60&h=100&v=4&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=0&m=0000-0166'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">105</a>
 </gallery> 
 <p>
 <a onclick="pan.src='https://reportbase.com/home.html?p=DAME.0000.webp&r=30&c=0&z=40&b=41&h=50&v=5&o=1&f=0&l=18&d=0&g=0&y=1&n=0&a=0&k=1&m=0000-0056'; pan.scrollIntoView(); pan.focus(); return false;" href="javascript:void(0);">Portraits</a> /
@@ -307,8 +320,12 @@ function panleft() { pano.postMessage("panleft", '*'); pan.scrollIntoView(); pan
 function panright() { pano.postMessage("panright", '*'); pan.scrollIntoView(); pan.focus();}
 function panup() { pano.postMessage("panup", '*'); pan.scrollIntoView(); pan.focus();}
 function pandown() { pano.postMessage("pandown", '*'); pan.scrollIntoView(); pan.focus();}
-function moveleft() { pano.postMessage("moveprev", '*'); pan.scrollIntoView(); pan.focus();}
-function moveright() { pano.postMessage("movenext", '*'); pan.scrollIntoView(); pan.focus();}
+function moveprev() { pano.postMessage("moveprev", '*'); pan.scrollIntoView(); pan.focus();}
+function movenext() { pano.postMessage("movenext", '*'); pan.scrollIntoView(); pan.focus();}
+function movefirst() { pano.postMessage("movefirst", '*'); pan.scrollIntoView(); pan.focus();}
+function movelast() { pano.postMessage("movelast", '*'); pan.scrollIntoView(); pan.focus();}
+function zoommax() { pano.postMessage("zoommax", '*'); pan.scrollIntoView(); pan.focus();}
+function zoommin() { pano.postMessage("zoommin", '*'); pan.scrollIntoView(); pan.focus();}
 function zoomin() { pano.postMessage("zoomin", '*'); pan.scrollIntoView(); pan.focus();}
 function zoomout() { pano.postMessage("zoomout", '*'); pan.scrollIntoView(); pan.focus();}
 function pinchin() { pano.postMessage("pinchin", '*'); pan.scrollIntoView(); pan.focus();}

@@ -8,7 +8,7 @@ const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
 const MAXVIRTUALWIDTH = (SAFARI || FIREFOX) ? 5760 : 11520; 
 const PANFACTOR = 60;
-const PANADJUST = 0.05;
+const PANADJUST = 0.03;
 const CANVASCOUNT = 20;
 const PANENDTIME = 750;
 const REFRESHEADER = 300;
@@ -37,7 +37,7 @@ const CYLRADIUS = 65.45;
 const DELAYCENTER = 3.926;
 const TIMEOBJ = 3926;
 const VIRTCONST = 0.8;
-const FONTHEIGHT = window.devicePixelRatio>=2?19:16;
+const FONTHEIGHT = 16;
 const BUTTONHEIGHT = 38; 
 const ROWHEIGHT = FONTHEIGHT*2;
 const QUALITY = 0.65;
@@ -132,24 +132,18 @@ var canvaslst = [];
 for (var n = 0; n < CANVASCOUNT; ++n)
     canvaslst[n] = document.createElement("canvas");
 
-var makeoption = function (title, data, mode, key)
+var makeoption = function (title, data)
 {
     this.title = title.toLowerCase().replace(/\./g, "");
     this.fulltitle = title;
     this.ANCHOR = 0;
     this.CURRENT = 0;
     this.data_ = data;
-    this.key = key;
-	this.mode = mode?mode:0;
-    this.string = function () { return (this.current()+1)+"."+this.length(); } 
     this.length = function () { return Array.isArray(this.data()) ? this.data().length : Number(this.data()); };
     this.getanchor = function () { return (this.ANCHOR < this.length() &&
 		Array.isArray(this.data())) ? this.data()[this.ANCHOR] : this.anchor(); };
     this.getcurrent = function () { return (this.CURRENT < this.length() &&
 		Array.isArray(this.data())) ? this.data()[this.CURRENT] : this.current(); };
-    this.getminimum = function () { return this.data()[0]; };
-    this.getmaximum = function () { return this.data()[this.length()-1]; };
-    this.label = function () { return title; };
     this.data = function () { return this.data_; };
     this.anchor = function () { return this.ANCHOR; };
     this.current = function () { return this.CURRENT; };
@@ -413,6 +407,14 @@ var pattern = function ()
         context.fillStyle = pattern;
         context.fillRect(rect.x, rect.y, rect.width, rect.height);
     };
+};
+
+var Empty = function()
+{
+    this.draw = function (context, rect, user, time)
+    {
+        context.clear();
+    }
 };
 
 var Describe = function()
@@ -702,6 +704,34 @@ CanvasRenderingContext2D.prototype.movedown = function(h)
     this.pantype = "panup";
     this.nextrow(1,3);
     this.refresheaders();
+}
+
+CanvasRenderingContext2D.prototype.zoommin = function()
+{
+    this.zoomobj.set(0);
+    contextobj.reset();
+    addressobj.refresh();
+}
+
+CanvasRenderingContext2D.prototype.zoommax = function()
+{
+    var index = this.zoomobj.length()-1;
+    this.zoomobj.set(index);
+    contextobj.reset();
+    addressobj.refresh();
+}
+
+CanvasRenderingContext2D.prototype.movefirst = function()
+{
+    var slice = _8cnvctx.slicesobj.data()[0];
+    slice.func(); 
+}
+
+CanvasRenderingContext2D.prototype.movelast = function()
+{
+    var index = _8cnvctx.slicesobj.length()-1;
+    var slice = _8cnvctx.slicesobj.data()[index];
+    slice.func(); 
 }
 
 CanvasRenderingContext2D.prototype.moveprev = function()
@@ -1138,8 +1168,18 @@ var wheelst =
 },
 {
     name: "DESCRIBE",
-    up: function (context, ctrl, shift) { },//todo
- 	down: function (context, ctrl, shift) { },
+    up: function (context, ctrl, shift) 
+    { 
+        var k = context.describeobj.current()-1;
+        context.describeobj.set(k);
+        context.refresh();
+    },
+ 	down: function (context, ctrl, shift) 
+    { 
+        var k = context.describeobj.current() + 1;
+        context.describeobj.set(k);
+        context.refresh();
+    },
 },
 {
     name: "BOSS",
@@ -1399,8 +1439,6 @@ var panlst =
             var h = context.describerect.height;
             var yy = (y/window.innerHeight)*h;
             var k = panvert(context.describeobj, h-yy);
-            if (k == context.rowobj.anchor())
-                return;
             if (k == -1)
                 return;
             context.describeobj.set(k);
@@ -2028,16 +2066,13 @@ var taplst =
 		if (k == -1)
             return;
 
-		var hit = context.slicesobj.data()[k];
-		hit.tap = 1;
+		var slice = context.slicesobj.data()[k];
+		slice.tap = 1;
+        context.refresh();
         setTimeout(function () 
         { 
-            delete hit.tap; 
-            if (hit.func)
-            {
-                menuhide();
-                hit.func(); 
-            }
+            menuhide();
+            slice.func(); 
         }, JULIETIME*5);
     },
 },
@@ -2079,26 +2114,6 @@ ico.zoomout.hit = function(index, rect, x, y)
     var k = Math.floor(context.zoomobj.length()*ZOOMADJ);
     k = Math.clamp(0,100,context.zoomobj.current()-k)
     context.zoomobj.set(k);
-    contextobj.reset();
-    addressobj.refresh();
-}
-
-ico.zoommin = new Image();
-ico.zoommin.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAAfCAYAAAAfrhY5AAAC5klEQVRIS7WWW4hNYRTHbfdcyiVJIaV4oimEEikphpKIaHJPeZAmGQmlSLkUDx4QphAeRpM4yYtb8kAjXqQYSi4JCRkS2++vc07HPuv7vr3H2av+nbO/dfmvb+9vrW9FXTwSx3EP1L3BODAZjCw+f+T3MbgF3oPvURT99sWydJG1CKnWJ4KlYDUY4Al8H90xcJkE3mRJoIocYhFtAevBoAzB7mG7mwQupfX5hxzi4TieArPSBkjYfeF5BwkcTuNfJod4MA7n/4O4km8NCZwMJfCXHOJu/OwBTSGHDPo6Enjosy+RT8XoGuiXIXjItA3yCV7yYjkdwWhdKFpGfYcOLQmcdvlFkA9E+Q50zxg8jXkL5It85HNRXkkTqRM2+uYLSaDd8tXOd6HY6QisV3cDvABWQ1JXmwbGO/xfs74ccsWoEpGrrlcaul+s7cNxW2jHxLiLzRTD7jNrK4jR6iI/i2KZodSuN+Go1ukVyI9jsNYw+qqNEaPFRa5utNERXS1T9f8KuF67drwX9Ddi6NJpgPyqi1wl5tpdjO4b0CewRPpeQDefJU9ZXAJ5m4t8NAoZ5SE3CTofcvX8KtGBU9a3ga7QWore1gGIt7qCirwrygbQXEtmYumczID8mZNcChIYws8FMLOGCZyBWJtySuWVKuJzYGiNElCN687Y7hqxksPEKoxVelbZdDYnnSfFbScJVUdZrDFKF8F+MCojm1qtgms2SIoa1gbQSgKfSsrkztHpDMYqv82gHoxIkcQdbApgAZjksVebVctWOza7VtmXJOp4UAebDjQ+DwMap9U2nwN1wOvgAQFfYj+b/xdBX08CmnA1550wR+dKx+IY3Yc19QPd+fJRDf8EHQT5kbA/yHNj4G19QF8fJA8EMdUk/ATFmIBvU17kYyF+BHp6EjiUC7kI2b1Ot+rcJY15kuucNIPFBrta77zcyIu7V5keBXMqEtAdr+mmkCt5iZBPoNrXrfkWFEoV8gcT4uXun/9mzwAAAABJRU5ErkJggg==";
-ico.zoommin.hit = function(index, rect, x, y)
-{
-    var context = _4cnvctx;
-    context.zoomobj.set(0);
-    contextobj.reset();
-    addressobj.refresh();
-}
-
-ico.zoommax = new Image();
-ico.zoommax.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAAfCAYAAAAfrhY5AAAC5klEQVRIS7WWW4hNYRTHbfdcyiVJIaV4oimEEikphpKIaHJPeZAmGQmlSLkUDx4QphAeRpM4yYtb8kAjXqQYSi4JCRkS2++vc07HPuv7vr3H2av+nbO/dfmvb+9vrW9FXTwSx3EP1L3BODAZjCw+f+T3MbgF3oPvURT99sWydJG1CKnWJ4KlYDUY4Al8H90xcJkE3mRJoIocYhFtAevBoAzB7mG7mwQupfX5hxzi4TieArPSBkjYfeF5BwkcTuNfJod4MA7n/4O4km8NCZwMJfCXHOJu/OwBTSGHDPo6Enjosy+RT8XoGuiXIXjItA3yCV7yYjkdwWhdKFpGfYcOLQmcdvlFkA9E+Q50zxg8jXkL5It85HNRXkkTqRM2+uYLSaDd8tXOd6HY6QisV3cDvABWQ1JXmwbGO/xfs74ccsWoEpGrrlcaul+s7cNxW2jHxLiLzRTD7jNrK4jR6iI/i2KZodSuN+Go1ukVyI9jsNYw+qqNEaPFRa5utNERXS1T9f8KuF67drwX9Ddi6NJpgPyqi1wl5tpdjO4b0CewRPpeQDefJU9ZXAJ5m4t8NAoZ5SE3CTofcvX8KtGBU9a3ga7QWore1gGIt7qCirwrygbQXEtmYumczID8mZNcChIYws8FMLOGCZyBWJtySuWVKuJzYGiNElCN687Y7hqxksPEKoxVelbZdDYnnSfFbScJVUdZrDFKF8F+MCojm1qtgms2SIoa1gbQSgKfSsrkztHpDMYqv82gHoxIkcQdbApgAZjksVebVctWOza7VtmXJOp4UAebDjQ+DwMap9U2nwN1wOvgAQFfYj+b/xdBX08CmnA1550wR+dKx+IY3Yc19QPd+fJRDf8EHQT5kbA/yHNj4G19QF8fJA8EMdUk/ATFmIBvU17kYyF+BHp6EjiUC7kI2b1Ot+rcJY15kuucNIPFBrta77zcyIu7V5keBXMqEtAdr+mmkCt5iZBPoNrXrfkWFEoV8gcT4uXun/9mzwAAAABJRU5ErkJggg==";
-ico.zoommax.hit = function(index, rect, x, y)
-{
-    var context = _4cnvctx;
-    context.zoomobj.set(context.zoomobj.length()-1);
     contextobj.reset();
     addressobj.refresh();
 }
@@ -2150,28 +2165,6 @@ var slicesobj = function (title, data, image, hit)
 
 	this.setdata = function (context)
 	{
-         if (context.index == 7)//pages
-        {
-            this.data_ = [];
-            for (var n = 0; n < imagesobj.length(); ++n)
-            {
-                this.data_.push({index:n, title:(n+1)+"", path: "PROJECT", func: project})
-            }
-        }
-
-        else if (context.index == 8)//options
-        {
-            this.data_.push({title:"Describe", path: "DESCRIBE", func: describe});
-            this.data_.push({title:"Help", path: "HELP", func: help})
-            this.data_.push({title:"About", path: "ABOUT", func: about})
-            this.data_.push({title:"Open...", path: "LOAD", func: load})
-            this.data_.push({title:"Original", path: "ORIGINAL", func: original})
-            if (!SAFARI)
-                this.data_.push({title:"Fullscreen", path: "FULLSCREEN", func: fullscreen})
-        }
-
-        context.delayintervaly = 5.23296 / this.data_.length;
-        context.virtualheight = this.data_.length*BUTTONHEIGHT;
 	}
 };
     
@@ -2188,11 +2181,6 @@ Number.prototype.pad = function(size)
     while (s.length < (size || 2)) {s = "0" + s;}
 	    return s;
 }
-
-var Empty = function()
-{
-    this.draw = function (context, rect, user, time){}
-};
 
 var thumblst =
 [
@@ -2663,25 +2651,30 @@ var drawlst = [
         var tap = "rgba(0,0,255,0.75)";
         var select = "rgba(0,0,150,0.75)";
         var select2 = "rgba(139,0,139,0.75)";
-        if (user.tap) 
-            clr = tap;
         var cols = url.cols;
         var str = user.title;
         
-        if (user.path == "PROJECT")
+        if (user.tap) 
         {
-            var j = Number(url.project)*url.cols+url.col;
-            if (url.movepage)
-                j = url.project;
-            if (user.index == j)
-                clr = select;
+            clr = tap;
         }
-        else if (user.path == "FULLSCREEN")
+        else
         {
-            if (screenfull.isFullscreen)
-                clr = select;
+            if (user.path == "PROJECT")
+            {
+                var j = Number(url.project)*url.cols+url.col;
+                if (url.movepage)
+                    j = url.project;
+                if (user.index == j)
+                    clr = select;
+            }
+            else if (user.path == "FULLSCREEN")
+            {
+                if (screenfull.isFullscreen)
+                    clr = select;
+            }
         }
- 
+
         var h = FONTHEIGHT+8;
         var j = rect.width-20;
         var f = 1;
@@ -2965,7 +2958,32 @@ var ContextObj = (function ()
 
             setevents(context, eventlst[n]);
 	    }
-     }
+
+        var slices = _8cnvctx.slicesobj;
+        slices.data_= [];
+        for (var n = 0; n < imagesobj.length(); ++n)
+            slices.data_.push({index:n, title:(n+1)+"", path: "PROJECT", func: project})
+        
+        _8cnvctx.delayintervaly = 5.23296 / slices.data_.length;
+        _8cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
+        var k = (BUTTONHEIGHT*slices.data_.length)/ _8cnvctx.virtualheight;
+        _8cnvctx.panspeed = k*PANADJUST;
+
+        var slices = _9cnvctx.slicesobj;
+        slices.data_= [];
+        slices.data_.push({title:"Describe", path: "DESCRIBE", func: describe});
+        slices.data_.push({title:"Help", path: "HELP", func: help})
+        slices.data_.push({title:"About", path: "ABOUT", func: about})
+        slices.data_.push({title:"Open...", path: "LOAD", func: load})
+        slices.data_.push({title:"Original", path: "ORIGINAL", func: original})
+        if (!SAFARI)
+            slices.data_.push({title:"Fullscreen", path: "FULLSCREEN", func: fullscreen})
+
+        _9cnvctx.delayintervaly = 5.23296 / slices.data_.length;
+        _9cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
+        var k = (BUTTONHEIGHT*slices.data_.length)/ _9cnvctx.virtualheight;
+        _9cnvctx.panspeed = k*PANADJUST;
+    }
 
     init.prototype =
 	{
@@ -3118,11 +3136,6 @@ var ContextObj = (function ()
 		resetcontext: function (context)
        	{
 			contextobj.resize(context);
-			if (!context.canvas.height)
-				return;
-			var slicesobj = context.slicesobj;
-			if (!context.complete)
-                slicesobj.setdata(context);
             return 1;
     	},
 	};
@@ -3929,6 +3942,7 @@ var YollPanel = function ()
                     {
                         context.setcolumn(url.col);
                     }
+
                     continue;
                 }
 
@@ -3958,10 +3972,15 @@ var YollPanel = function ()
                     }
                 } 
                
-                if (headcnv.height)
+                if (!context.panning && headcnv.height)
                 {
                     headobj.getcurrent().draw(headcnvctx, headcnvctx.rect(), 0);
-                    footham.panel.draw(footcnvctx, footcnvctx.rect(), 0);
+                    footobj.getcurrent().draw(footcnvctx, footcnvctx.rect(), 0);
+                }
+                else
+                {
+                    headcnvctx.clear();
+                    footcnvctx.clear();
                 }
 
                 if (!context.describe)
@@ -4004,7 +4023,7 @@ var YollPanel = function ()
 				}
                 else if ((context.lastime.toFixed(8) == context.time.toFixed(8)))
                 {
-                    //todo continue;
+                    continue;
                 }
                 else
                 {
@@ -4013,60 +4032,47 @@ var YollPanel = function ()
                 }
 
 			    var slicesobj = context.slicesobj;
-				var hitlst = slicesobj.data();
+				var slices = slicesobj.data();
 				var delayinterval = context.delayinterval;
 				var delayintervaly = context.delayintervaly;
-				var virtualwidth = context.virtualwidth;
-				var hit = slicesobj.data()[0] ? slicesobj.data()[0][0] : 0;
-				if (hit && hit.canvas)
-					virtualwidth = hit.canvas.virtualwidth;
                 context.visibles = 0 
 				var r = context.rect();
-				var borderleft = 0;
-				var borderight = 0;
-				var bordertop = 0;
-				var borderbottom = 0;
-				var w = r.width-borderleft-borderight;
-				var h = r.height-bordertop-borderbottom;
+				var w = r.width;
+				var h = r.height;
 				var first = 0;
 				var firstx = DELAY;
                 context.clear();
                 context.fillStyle = HEADCOLOR;
                 context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+			    var time = context.time;
 
-				var len = Array.isArray(hitlst[0]) ? hitlst[0].length : hitlst.length;
-				for (var m = 0; m < len; ++m)
+				for (var m = 0; m < slices.length; ++m)
 				{
-					var time = context.time;
-					var hit = hitlst[m];
-                    hit.index = m;
-
-					var ktime = time + (m*context.delayinterval);
+					var slice = slices[m];
+                    slice.index = m;
 					var jtime = time + (m*context.delayintervaly);
 					var virtualheight = context.virtualheight;
 
-                    function foo(context, rect, m, n, virtualwidth, virtualheight, width, height, borderleft, bordertop, time, ktime, jtime)//24
+                    function foo(context, rect, m, n, virtualheight, width, 
+                        height, jtime)
                     {
                         var stime = jtime;
-                        bordertop -= (virtualheight-rect.height)/2;
+                        var e = (virtualheight-rect.height)/2;
                         var bos = {y: Math.tan(stime * 0.6)};
                         let x = Math.berp(-1, 1, Math.sin(0)) * width;
                         let y = Math.berp(-1, 1, bos.y) * virtualheight;
                         var j = { x: x, y: y };
-                        j.x += borderleft;
-                        j.y += bordertop;
+                        j.y -= e;
                         return {stime: stime, j: j, bos: bos};
                     }
 
-					var vals = foo(context, r, m, n, virtualwidth, virtualheight,
-						w, h, borderleft, bordertop, time, ktime, jtime);
-
+					var vals = foo(context, r, m, n, virtualheight, w, h, jtime);
 					var stime = vals.stime;
 					var j = vals.j;
-					hit.center = j;
-					hit.fitscale = 0;
-					hit.fitwidth = 0;
-					hit.fitheight = 0;
+					slice.center = j;
+					slice.fitscale = 0;
+					slice.fitwidth = 0;
+					slice.fitheight = 0;
 
                     context.save();
 					context.translate(j.x, j.y);
@@ -4081,12 +4087,9 @@ var YollPanel = function ()
                         context.visibles++;
 
 					var ktime = stime * context.delay;
-					context.draw(context, context.rect(), hit, ktime);
+					context.draw(context, context.rect(), slice, ktime);
 					context.restore();
 				}
-    
-                var k = context.visibles/len;
-                context.panspeed = k*PANADJUST;
             }
         }
 
@@ -4247,18 +4250,6 @@ var headlst =
         {
         };
 
-        this.panstart = function (context, rect, x, y)
-	    {
-        };
-
-        this.panend = function (context, rect, x, y)
-	    {
-        };
-       
-		this.pan = function (context, rect, x, y, type)
-        {
-        };
-
 		this.press = function (context, rect, x, y)
         {
             headobj.set(headobj.current()==0?1:0);
@@ -4301,6 +4292,7 @@ var headlst =
 		this.draw = function (context, rect, user, time)
 		{
             context.clear()
+            context.save()
             context.shadowOffsetX = 1;
             context.shadowOffsetY = 1;
             context.shadowColor = "black"
@@ -4357,24 +4349,13 @@ var headlst =
            ]);
 
            a.draw(context, rect, [0,project,0,0,projects,0], time);
+           context.restore()
 		};
 	},
 	new function ()
 	{
         this.height = ALIEXTENT;
         this.swipeleftright = function (context, rect, x, y, type)
-        {
-        };
-
-        this.panstart = function (context, rect, x, y)
-	    {
-        };
-
-        this.panend = function (context, rect, x, y)
-	    {
-        };
-       
-		this.pan = function (context, rect, x, y, type)
         {
         };
 
@@ -4774,6 +4755,10 @@ var PagePanel = function (size)
 {
     this.draw = function (context, rect, user, time)
     {
+        context.save()
+        context.shadowOffsetX = 1;
+        context.shadowOffsetY = 1;
+        context.shadowColor = "black"
         var j = rect.width*size;
         var k = j/2;
         var a = new Layer(
@@ -4797,6 +4782,7 @@ var PagePanel = function (size)
         ])
 
         a.draw(context, rect, user, time);
+        context.restore()
     }
 };
 
@@ -4804,6 +4790,10 @@ var OptionPanel = function (size)
 {
     this.draw = function (context, rect, user, time)
     {
+        context.save()
+        context.shadowOffsetX = 1;
+        context.shadowOffsetY = 1;
+        context.shadowColor = "black"
         var j = rect.width*size;
         var k = j/2;
         var a = new Layer(
@@ -4827,6 +4817,7 @@ var OptionPanel = function (size)
         ]);
 
         a.draw(context, rect, user, time);
+        context.restore()
     }
 };
 
@@ -4879,8 +4870,16 @@ window.addEventListener('message', function(evt)
         _4cnvctx.pinchout();
     else if (evt.data == "pinchin")
         _4cnvctx.pinchin();
+    else if (evt.data == "zoommin")
+        _4cnvctx.zoommin();
+    else if (evt.data == "zoommax")
+        _4cnvctx.zoommax();
+    else if (evt.data == "movefirst")
+        _4cnvctx.movefirst();
     else if (evt.data == "movenext")
         _4cnvctx.movenext();
+    else if (evt.data == "movelast")
+        _4cnvctx.movelast();
     else if (evt.data == "zoomout")
         ico.zoomout.hit(0, _4cnvctx.rect(), window.innerWidth, 0)
     else if (evt.data == "zoomin")
@@ -5127,10 +5126,10 @@ function fullscreen()
 
 function project()
 {
-    var hit = this; 
-    var j = url.movepage?hit.index:Math.floor(hit.index/url.cols) 
+    var slice = this; 
+    var j = url.movepage?slice.index:Math.floor(slice.index/url.cols) 
     url.project = j.pad(4);
-    _4cnvctx.slicemiddle.col = url.movepage?url.col:hit.index%url.cols
+    _4cnvctx.slicemiddle.col = url.movepage?url.col:slice.index%url.cols
     var s = addressobj.full();
     window.open(s,"_self");
 }
