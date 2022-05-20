@@ -1,6 +1,7 @@
 # packages
 libwebp
 ranger
+unrar
 
 # upgrade
 pacman -Syu                        # upgrade system

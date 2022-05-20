@@ -7,7 +7,7 @@ const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
 const MAXVIRTUALWIDTH = (SAFARI || FIREFOX) ? 5760 : 11520; 
-const PANFACTOR = 50;
+const PANFACTOR = 60;
 const PANADJUST = 0.05;
 const CANVASCOUNT = 20;
 const PANENDTIME = 750;
@@ -53,11 +53,10 @@ const PINCHRANGE =  "0.25-1.1";
 const HEIGHTRANGE =  "0.10-1.0";
 const CANVASMAX = 30;
 const MAXCANVASWIDTH = 32767;
-const MAXTOTALCANVASIZE = 384000000;//384mb
 const MAXCANVASIZE = SAFARI?16777216:32777216;
-const MAXZOOM = SAFARI?0.95:0.975;
+const MAXZOOM = 0.95;
 const MAXVIRTUALSIZE = SAFARI?12000000:24000000;
-const HEADCOLOR = "rgba(0,0,0,0.25)";
+const HEADCOLOR = "rgba(0,0,0,0.15)";
 const DARKHEADCOLOR = "rgba(0,0,0,0.6)";
 const ARROWSELECT = "rgba(255,125,0,0.5)";
 const ARROWBACK = "rgba(0,0,0,0.25)"
@@ -73,7 +72,7 @@ var filename = url.filename.split(".");
 url.path = filename[0];
 url.project = filename[1]; 
 url.extension = filename[2] 
-url.verbose = url.searchParams.get("verbose");
+url.verbose = url.searchParams.has("verbose") ? url.searchParams.get("verbose") : 0;
 url.projectrange = url.searchParams.has("m") ? url.searchParams.get("m") : "0000-0000";
 url.thumblines = url.searchParams.has("a") ? Number(url.searchParams.get("a")) : 1;
 url.thumb = url.searchParams.has("h") ? Number(url.searchParams.get("h")) : 50;
@@ -426,7 +425,6 @@ var Describe = function()
             {
                 var a = new Layer(
                     [
-                        //Ynew Fill(DARKHEADCOLOR),
                         new Shrink(new Text("white", "center", "middle",0,1),10,10),
                         new Rectangle(context.describerect),
                     ]);
@@ -792,7 +790,6 @@ CanvasRenderingContext2D.prototype.hide = function ()
 
 CanvasRenderingContext2D.prototype.refresh = function ()
 {
-    //todo
     this.lastime = -0.0101010101;
 };
 
@@ -821,7 +818,6 @@ CanvasRenderingContext2D.prototype.panright = function()
     this.refresh();
 }
 
-//todo
 CanvasRenderingContext2D.prototype.panimage2 = function (less)
 {
     var context = this;
@@ -1343,8 +1339,7 @@ var panlst =
 
         context.panning = 1;
 
-        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
-        if (isthumbrect)
+        if (context.isthumbrect)
         {
             context.hithumb(x,y);
         }
@@ -1368,6 +1363,7 @@ var panlst =
     },
 	panstart: function (context, rect, x, y)
 	{
+        context.isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         clearTimeout(context.panendtime);
     },
 	panmove: function (context, rect, x, y)
@@ -1567,9 +1563,9 @@ var swipelst =
         context.timeswipe = setTimeout(function()
         {
             if (type == "swipedown")
-                this.pantop();
+                context.pantop();
             else
-                this.panbottom();
+                context.panbottom();
         }, JULIETIME);
     },
 },
@@ -1666,6 +1662,13 @@ var keylst =
             evt.preventDefault();
             return false;
         }
+        else if (evt.key == "`")
+        {
+            url.verbose = url.verbose ? 0 : 1;
+            context.refresh();
+            evt.preventDefault();
+            return false;
+        }
         else if (evt.key == "a")
         {
             about();
@@ -1740,7 +1743,7 @@ var keylst =
             var k = context.pinchobj.current()+(evt.key == "Q"?5:-5);
             k = Math.clamp(0,context.pinchobj.length()-1,k);
             context.pinchobj.set(k);
-           addressobj.refresh();
+            addressobj.refresh();
             context.refresheaders();
             evt.preventDefault();
             return false;
@@ -1768,14 +1771,9 @@ var keylst =
         else if (evt.key == "ArrowUp" || evt.key == "k")
         {
             if (context.ctrlhit)
-            {
-                context.rowobj.set(window.innerHeight-1);
-                contextobj.reset();
-            }
+                context.pantop();
             else
-            {
                 context.nextrow(0,1);
-            }
 
            addressobj.refresh();
             evt.preventDefault();
@@ -1784,15 +1782,9 @@ var keylst =
         else if (evt.key == "ArrowDown" || evt.key == "j" )
         {
             if (context.ctrlhit)
-            {
-                context.rowobj.set(0);
-                contextobj.reset();
-            }
+                context.panbottom();
             else
-            {
                 context.nextrow(1,1);
-            }
-
            addressobj.refresh();
             evt.preventDefault();
             return false;
@@ -2558,7 +2550,7 @@ var thumblst =
                         0,
                     ],
                 ],
-                context.zoomobj.getcurrent().toFixed(2),
+                Number(context.zoomobj.getcurrent()).toFixed(2),
             ], 0, 0);
         }
         else
@@ -3843,13 +3835,9 @@ var YollPanel = function ()
                 
                 var time = context.timeobj.getcurrent()/1000;
                 if (context.lastime == context.timeobj.current())
-                {
                     continue;
-                }
                 else
-                {
                     context.lastime = context.timeobj.current();
-                }
 
                 if (photo.image.completedPercentage == 100)
                 {
