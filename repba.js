@@ -8,10 +8,11 @@ const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
 const MAXVIRTUALWIDTH = 5760; 
 const THUMBALPHA = 0.5;
-const PANFACTOR = 60;
+const PANXFACTOR = 120;
+const PANYFACTOR = 2;
 const CANVASCOUNT = 20;
 const PANENDTIME = 750;
-const REFRESHEADER = 300;
+const REFRESHEADER = 1000;
 const SLICEWIDTH = 1; 
 const MAXSLIDER = 720;
 const POSITYSPACE = 50;
@@ -73,17 +74,17 @@ url.extension = filename[2]
 url.verbose = url.searchParams.has("verbose") ? url.searchParams.get("verbose") : 0;
 url.projectrange = url.searchParams.has("m") ? url.searchParams.get("m") : "0000-0000";
 url.thumblines = url.searchParams.has("a") ? Number(url.searchParams.get("a")) : 1;
-url.thumb = url.searchParams.has("h") ? Number(url.searchParams.get("h")) : 50;
-url.pan = url.searchParams.has("s") ? Number(url.searchParams.get("s")) : 50;
+url.thumbheight = url.searchParams.has("h") ? Number(url.searchParams.get("h")) : 50;
+url.thumbwidth = url.searchParams.has("w") ? Number(url.searchParams.get("w")) : 75;
+url.thumbindex = url.searchParams.has("g") ? Number(url.searchParams.get("g")) : 1;
 url.pinch = url.searchParams.has("b") ? Number(url.searchParams.get("b")) : 50;
 url.row = url.searchParams.has("r") ? Number(url.searchParams.get("r")) : 50;
 url.zoom = url.searchParams.has("z") ? Number(url.searchParams.get("z")) : 50;
-url.movepage = url.searchParams.has("y") ? Number(url.searchParams.get("y")) : 0;
-url.col = url.searchParams.has("c") ? Number(url.searchParams.get("c")) : 0;
+url.movepage = url.searchParams.has("e") ? Number(url.searchParams.get("e")) : url.thumblines?0:1;
+url.col = url.searchParams.has("c") ? Number(url.searchParams.get("c")) : (url.movepage?TIMEOBJ/2:0);
 url.cols = url.searchParams.has("o") ? Number(url.searchParams.get("o")) : 7;
 url.position = url.searchParams.has("v") ? Number(url.searchParams.get("v")) : 4;
-url.thumbindex = url.searchParams.has("g") ? Number(url.searchParams.get("g")) : 1;
-url.fullpath = function() { return url.path + "." + url.project; }
+url.fullpath = function() { return url.path + "." + url.project + "." + url.extension; }
 url.fullproject = function() 
 { 
     if (url.movepage == 0)
@@ -378,6 +379,11 @@ String.prototype.clean = function()
 	return this.replace(_trimLeft, '').replace(_trimRight, '').replace(_multiple, ' ');
 };
 
+Array.prototype.sum = function() 
+{
+    return this.reduce(function(a,b){return a+b;});
+};
+
 Array.prototype.move = function (from, to)
 {
     this.splice(to, 0, this.splice(from, 1)[0]);
@@ -438,8 +444,20 @@ var Describe = function()
             this.draw = function (context, rect, user, time)
             {
                 var lst = user;
+                var lst2 = [];
                 if (!Array.isArray(lst))
-                    lst = wrap2(context, rect, lst);
+                {
+                    var j = lst.split("\n");
+                    for (var n = 0; n < j.length; ++n)
+                    {
+                        var k = wrap2(context, rect, j[n]);
+                        lst2.push(...k);
+                        lst2.push("");
+                    }
+
+                    lst = [...lst2];
+                }
+
                 context.describeobj.data_ = lst.length;
                 var rows = Math.ceil(rect.height/ROWHEIGHT);
                 lst = lst.slice(context.describeobj.current());
@@ -576,9 +594,10 @@ addressobj.body = function (l)
         "&b="+context.pinchobj.current()+
         "&h="+context.thumbheightobj.current()+
         "&v="+context.positobj.current()+
+        "&w="+url.thumbwidth+
         "&o="+url.cols+
         "&g="+thumbobj.current()+
-        "&y="+url.movepage+
+        "&e="+url.movepage+
         "&a="+url.thumblines+
         "&m="+url.projectrange;
     return out;
@@ -589,7 +608,7 @@ addressobj.body = function (l)
     var col = _4cnvctx.slicemiddle ? _4cnvctx.slicemiddle.col : 0;
     var out ="https://reportbase.com/home.html?p="+url.path+"."+url.project+"."+url.extension;
     out += addressobj.body(col);
-    out += "&c="+col;
+    out += "&c="+(url.movepage?_4cnvctx.timeobj.current().toFixed(2):col);
     return out;
 };
 
@@ -611,6 +630,7 @@ CanvasRenderingContext2D.prototype.refresheaders = function()
     clearTimeout(this.headtime);
     this.headtime = setTimeout(function()
     {
+        _4cnvctx.panning = 0;
         _4cnvctx.pantype = 0;
         _4cnvctx.refresh();
         addressobj.refresh();
@@ -666,7 +686,8 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
     }
 
     url.project = project;
-    url.col = col;
+    url.col = url.movepage?TIMEOBJ/2:col;
+    _4cnvctx.refresh();
     _4cnvctx.setcolumncomplete = 0;
     contextobj.reset();
 }
@@ -844,14 +865,14 @@ CanvasRenderingContext2D.prototype.panbottom = function()
 
 CanvasRenderingContext2D.prototype.panleft = function()
 {
-    this.timeobj.rotate(PANFACTOR*3);
+    this.timeobj.rotate(PANXFACTOR*3);
     this.refresh();
 
 }
 
 CanvasRenderingContext2D.prototype.panright = function()
 {
-    this.timeobj.rotate(-PANFACTOR*3);
+    this.timeobj.rotate(-PANXFACTOR*3);
     this.refresh();
 }
 
@@ -866,7 +887,7 @@ CanvasRenderingContext2D.prototype.panimage2 = function (less)
 CanvasRenderingContext2D.prototype.panimage = function (less)
 {
     var e = this.visibles / this.slicesobj.data_.length;
-    var k = e*this.colwidth*PANFACTOR;
+    var k = e*this.colwidth*PANXFACTOR;
     this.timeobj.rotate(less ? k : -k);
 }
 
@@ -902,10 +923,10 @@ var makehammer = function (context, v)
 	context.ham = ham;
     ham.get("pan").set({ direction: Hammer.DIRECTION_ALL });
     ham.get("swipe").set({ direction: Hammer.DIRECTION_ALL });
-    ham.get('swipe').set({ velocity: 0.45});   
+    //ham.get('swipe').set({ velocity: 0.45});   
 	//ham.get('swipe').set({ threshold: 15 });
 	ham.get('press').set({ time: 350 });
-	ham.get('pan').set({ threshold: 10 });
+	//ham.get('pan').set({ threshold: 10 });
 	ham.get('pinch').set({ enable: true });	
 
 	ham.on("pinch", function (evt)
@@ -1395,9 +1416,9 @@ var panlst =
         }
         else if (type == "panup" || type == "pandown")
         {
-            var h = window.innerHeight*(1-context.zoomobj.getcurrent());
-            var yy = (1-(y/window.innerHeight))*h;
-            var k = panvert(context.rowobj, h-yy);
+            var h = rect.height*(1-context.zoomobj.getcurrent())*PANYFACTOR;
+            y = (1-(y/rect.height))*h;
+            var k = panvert(context.rowobj, h-y);
             if (k == -1)
                 return;
             if (k == context.rowobj.anchor())
@@ -1420,6 +1441,7 @@ var panlst =
     panend: function (context, rect, x, y)
 	{
         context.refresh();
+        addressobj.refresh();
         if (thumbobj.current() == 0)
         {
             clearTimeout(context.panendtime);
@@ -1428,7 +1450,7 @@ var panlst =
                 context.isthumbrect = 0;
                 context.panning = 0;  
                 context.refresh();
-            }, 1000);
+            }, 2000);
        }
 
         delete context.zoomobj.offset;
@@ -1525,9 +1547,12 @@ var presslst =
 
     press: function (context, rect, x, y)
     {
+        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         var n = context.grid? context.grid.hitest(x,y) : 4; 
+        if (isthumbrect || thumbobj.current() == 1 || n == context.positobj.current())
+            thumbobj.toggle();
         context.positobj.set(n);
-        thumbobj.toggle();
+        context.refresh();
     }
 },
 ];
@@ -1663,12 +1688,6 @@ var keylst =
             evt.preventDefault();
             return false;
         }
-        else if (evt.key == "d")
-        {
-            describe();
-            evt.preventDefault();
-            return false;
-        }
 
         return false;
 	}
@@ -1726,12 +1745,6 @@ var keylst =
             evt.preventDefault();
             return false;
         }
-        else if (evt.key == "d")
-        {
-            describe();
-            evt.preventDefault();
-            return false;
-        }
         else if (evt.key == " ")
         {
             thumbobj.toggle();
@@ -1762,20 +1775,6 @@ var keylst =
             evt.preventDefault();
             return false;
         }
-        else if (evt.key == "Home")
-        {
-            context.setcolumn(0);
-            context.refresh();
-           addressobj.refresh();
-            evt.preventDefault();
-        }
-        else if (evt.key == "End")
-        {
-            context.setcolumn(url.cols-1);
-            context.refresh();
-           addressobj.refresh();
-            evt.preventDefault();
-        }
         else if (evt.key == "o")
         {
             promptFile().then(function(files) { dropfiles(files); });
@@ -1793,68 +1792,56 @@ var keylst =
         }
         else if (evt.key == "ArrowLeft" || evt.key == "h")
         {
-            
+            context.panning = 1;
             if (context.ctrlhit)
                 context.moveprev();
             else
                 context.panimage(1);
+            context.refresheaders();
+            addressobj.refresh();
             evt.preventDefault();
             return false;
         }
         else if (evt.key == "ArrowRight" || evt.key == "l")
         {
+            context.panning = 1;
             if (context.ctrlhit)
                 context.movenext();
             else
                 context.panimage(0);
-           addressobj.refresh();
+            context.refresheaders();
+            addressobj.refresh();
             evt.preventDefault();
             return false;
         }
         else if (evt.key == "ArrowUp" || evt.key == "k")
         {
+            context.panning = 1;
             if (context.ctrlhit)
                 context.pantop();
             else
                 context.nextrow(0,0.05);
 
-           addressobj.refresh();
+            context.refresheaders();
+            addressobj.refresh();
             evt.preventDefault();
             return false;
         }
         else if (evt.key == "ArrowDown" || evt.key == "j" )
         {
+            context.panning = 1;
             if (context.ctrlhit)
                 context.panbottom();
             else
                 context.nextrow(1,0.05);
-           addressobj.refresh();
-            evt.preventDefault();
-            return false;
-        }
-        else if (evt.key == "PageUp")
-        {
-            var col = context.slicemiddle ? context.slicemiddle.col : 0;
-            if (col == 0)
-                context.movepage(0)
-            else
-                context.prevcolumn();
-            evt.preventDefault();
-            return false;
-        }
-        else if (evt.key == "PageDown")
-        {
-            var col = context.slicemiddle ? context.slicemiddle.col : 0;
-            if (col == url.cols-1)
-                context.movepage(1)
-            else
-                context.nextcolumn();
-           addressobj.refresh();
+            context.refresheaders();
+            addressobj.refresh();
             evt.preventDefault();
             return false;
         }
         else if (evt.key == "Backspace")
         {
+            context.panning = 1;
             if (context.ctrlhit)
             {
                 context.rowobj.set(window.innerHeight-1);
@@ -1871,12 +1858,14 @@ var keylst =
                 context.nextrow(0,0.05);
             }
             
-           addressobj.refresh();
+            context.refresheaders();
+            addressobj.refresh();
             evt.preventDefault();
             return false;
         }
         else if (evt.key == "Enter")
         {
+            context.panning = 1;
             if (context.ctrlhit)
             {
                 context.rowobj.set(window.innerHeight-1);
@@ -1892,13 +1881,18 @@ var keylst =
                 context.nextrow(1,0.05);
             }
             
+            context.refresheaders();
+            addressobj.refresh();
            evt.preventDefault();
            return false;
         }
-        else if (evt.key == "Tab")
+        else if (evt.key == "Tab" || 
+            evt.key == "PageUp" ||
+            evt.key == "PageDown" )
         {
+            context.panning = 1;
             var col = context.slicemiddle ? context.slicemiddle.col : 0;
-            if (evt.shiftKey)
+            if (evt.shiftKey || evt.key == "PageUp")
             {
                 if (col == 0)
                     context.movepage(0)
@@ -1913,6 +1907,8 @@ var keylst =
                     context.nextcolumn();
             }
 
+            context.refresheaders();
+            addressobj.refresh();
             evt.preventDefault();
             return true;
         }
@@ -1946,19 +1942,18 @@ var keylst =
 
 CanvasRenderingContext2D.prototype.hithumb = function(x,y)
 {
-    console.assert(this.thumbrect);
     var rect = this.thumbrect;
     var c = (x-rect.x) % rect.width; 
     var b = c/rect.width;
     var e = this.slicesobj.data_.length;
     var m = (1-b)*e;
-    var j = DELAYCENTER/e;//todo
+    var j = DELAYCENTER/e;
     var time = j*m;
     var k = time % DELAYCENTER;
     var e = this.timeobj.length()*(k/DELAYCENTER);
     this.timeobj.set(e);
     var b = 1-((y-rect.y)/rect.height);
-    var e = Math.floor(b*this.rowobj.length());
+    var e = b*this.rowobj.length();
     this.rowobj.set(e);
     contextobj.reset();
 }
@@ -2076,6 +2071,7 @@ var taplst =
         { 
             menuhide();
             slice.func(); 
+            slice.tap = 0;
         }, JULIETIME*5);
     },
 },
@@ -2196,12 +2192,12 @@ var thumblst =
         if (photo.image.width > photo.image.height)
         {
             var tw = context.thumbheightobj.getcurrent();
-            var th = 1;
+            var th = url.thumbwidth/100;
         }
         else
         {
             var th = context.thumbheightobj.getcurrent();
-            var tw = 1;
+            var tw = url.thumbwidth/100;
         }
 
         var headers = IFRAME?0:ALIEXTENT*2; 
@@ -2276,7 +2272,10 @@ var thumblst =
             a.draw(context, rect, url.fullproject(), 0);
         }
      
-        if (context.panning)
+        if (context.pinching)
+        {
+        }
+        else if (context.panning)
         {
             context.globalAlpha  =  THUMBALPHA;
             context.drawImage(photo.image, 0, 0, photo.image.width, photo.image.height, x, y, w, h);
@@ -2517,6 +2516,7 @@ var thumblst =
         var vextent = context.virtualwidth.toFixed(0) + "x" + context.virtualheight.toFixed(0) + " (" + context.virtualaspect.toFixed(2) + ")";
         var vsize = ((context.virtualwidth * context.virtualheight)/1000000).toFixed(1) + "MP";
         var scale = window.devicePixelRatio.toFixed(2) + "";
+        var scale = window.visualViewport.scale.toFixed(2) + "";
         var k = _4cnvctx.setcolumncomplete?url.fullproject().split("-"):0;
         var project = k?k[0]:"";
         var projects = k?k[1]:"";
@@ -2753,11 +2753,10 @@ function resetcanvas()
     context.virtualwidth = context.virtualheight * imageaspect;
     context.virtualaspect = context.virtualwidth / context.virtualheight;
 
-    context.pinchobj = splitrange(context.pinchobj, url.pinch, PINCHRANGE, OPTIONSIZE);
-    context.thumbheightobj = splitrange(context.thumbheightobj, url.thumb, HEIGHTRANGE, OPTIONSIZE);
-
     if (!context.rowobj)
     {
+        context.pinchobj = splitrange(context.pinchobj, url.pinch, PINCHRANGE, OPTIONSIZE);
+        context.thumbheightobj = splitrange(context.thumbheightobj, url.thumbheight, HEIGHTRANGE, OPTIONSIZE);
         var f = window.innerHeight; 
         var j = Math.floor((url.row/100)*window.innerHeight) 
         context.rowobj = new makeoption("", window.innerHeight);
@@ -2767,7 +2766,6 @@ function resetcanvas()
     var b = (1-(context.rowobj.getcurrent()/context.rowobj.length()));
     var y = context.canvas.height*b;
     context.nuby = Math.nub(y, context.canvas.height, context.imageheight, photo.image.height);  
-    //var j = Math.berp(context.zoomobj.begin, context.zoomobj.end, context.zoomobj.getcurrent());
 
     var ks = 0;
     for (var n = 0; n < slicelst.length; ++n)
@@ -2941,6 +2939,8 @@ var ContextObj = (function ()
             context.imageSmoothingEnabled = false;
             context.imageSmoothingQuality = "low";
 			context.slicesobj = new slicesobj("", []);
+		    context.xlst = [];
+		    context.ylst = [];
 		    context.enabled = 0;
 			context.canvas.width = 1;
 			context.canvas.height = 1;
@@ -2967,12 +2967,10 @@ var ContextObj = (function ()
         
         _8cnvctx.delayintervaly = 5.23296 / slices.data_.length;
         _8cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
-        var k = (BUTTONHEIGHT*_8cnvctx.visibles)/ _8cnvctx.virtualheight;
-        _8cnvctx.panspeed = k*0.03;
+        _8cnvctx.panspeed = (window.innerHeight/_8cnvctx.virtualheight)*0.05;
 
         var slices = _9cnvctx.slicesobj;
         slices.data_= [];
-        slices.data_.push({title:"Describe", path: "DESCRIBE", func: describe});
         slices.data_.push({title:"Help", path: "HELP", func: help})
         slices.data_.push({title:"About", path: "ABOUT", func: about})
         slices.data_.push({title:"Open...", path: "LOAD", func: load})
@@ -2982,8 +2980,7 @@ var ContextObj = (function ()
 
         _9cnvctx.delayintervaly = 5.23296 / slices.data_.length;
         _9cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
-        var k = (BUTTONHEIGHT*slices.data_.length)/ _9cnvctx.virtualheight;
-        _9cnvctx.panspeed = k*0.03;
+        _9cnvctx.panspeed = 0.04;
     }
 
     init.prototype =
@@ -3076,7 +3073,8 @@ var ContextObj = (function ()
                     this.aspect = this.width/this.height; 
                     this.size = ((this.width * this.height)/1000000).toFixed(1) + "MP";
                     this.extent = this.width + "x" + this.height + " (" + this.aspect.toFixed(2) + ")" ;
-                    document.title = url.fullpath(); 
+                    this.extentonly = this.width + "x" + this.height;
+                    document.title = url.fullpath()+" ("+this.extentonly+")" 
                     
                     contextobj.resize(context);
                     resetcanvas(context);
@@ -3086,8 +3084,10 @@ var ContextObj = (function ()
                         _4cnvctx.refresh();
                         parent.postMessage( 
                         { 
+                            title: document.title,
                             extent: photo.image.extent,
                             aspect: photo.image.aspect,
+                            originalpath: photo.image.original,
                             project: url.project,
                             extension: url.extension,
                             movepage: url.movepage,
@@ -3932,17 +3932,9 @@ var YollPanel = function ()
                 {
                     context.setcolumncomplete = 1;
                     if (url.movepage)
-                    {
-                        time = DELAYCENTER/2;
-                        var k = time % DELAYCENTER;
-                        var e = context.timeobj.length()*(k/DELAYCENTER);
-                        context.timeobj.set(e);
-                    }    
+                        context.timeobj.set(url.col);
                     else
-                    {
                         context.setcolumn(url.col);
-                    }
-
                     continue;
                 }
 
@@ -3994,6 +3986,7 @@ var YollPanel = function ()
                     {
                         parent.postMessage( 
                         { 
+                            title: document.title,
                             fullproject: _4cnvctx.setcolumncomplete?url.fullproject():"",
                             address: addressobj.full(),
                         }, "*");
@@ -4847,8 +4840,6 @@ window.addEventListener('message', function(evt)
         _4cnvctx.panbottom();
     else if (evt.data == "about")
         about();
-    else if (evt.data == "describe")
-        describe();
     else if (evt.data == "moveprev")
         _4cnvctx.moveprev();
     else if (evt.data == "pinchout")
@@ -5008,28 +4999,10 @@ function help()
     setevents(context, eventlst[n])
 
     context.describe =
-    [
-            "Press",
-            " Hide Thumbnail (space)",
-            "",
-            "Tap",
-            "Zoom Image (+/-)", 
-            "",
-            "Pinch",
-            "Stretch Image (Q)",
-            "Resize thumbnail",
-            "",
-            "Pan",
-            "Tab/enter/back/",
-            "Left/right/up/down (ctrl)",
-            "",
-            "Swipe",
-            "Next Image (<>)",
-            "",
-            "Drag/drop",
-            "Load image"
-    ];
-    
+  `Reportbase.com is a high-resolution image viewer for full-screen panoramas. It can be integrated into existing applications or viewed stand-alone. 
+  Reportbase.com is a flexible image browsing platform.  It is suitable for the most demanding high-resolution tasks, including: topographic maps, drone and satellite photos, maps, action photography, digital art, panoramas, comics and cartoons, portraits, landscapes, cityscapes, infographics, real estate, automobiles, and vintage paintings.  We are building a community of image enthusiasts.  Contact us if your an artist or photographer and interested in creating compelling image viewing experiences.  
+  Contact the developers at repba@proton.me. 
+        Press or pinch the thumbnail to move or resize it. Pan or tap the thumbnail to rotate the underlying image. Long press anywhere to show/hide the thumbnail (space).  Tap off the thumbnail to zoom in or out.  Pan the image to rotate it any direction. Swipe left or right to move to the next image. Load images from the local computer with drag and drop.`
     context.time = 0;
     context.describeobj.set(0);
     context.refresh()
@@ -5074,18 +5047,6 @@ function hidedescribe()
     context.refresh();
 }
 
-function describe()
-{
-    var context = _4cnvctx;
-    var n = eventlst.findIndex(function(a){return a.name == "describe";})
-    setevents(context, eventlst[n])
-    context.describe = 
-        `Reportbase.com is a high-resolution image viewer. It can be integrated into existing applications or viewed fullscreen as a stand-alone application. Slideshows can be created with individual images or collections of images.  Reportbase.com is a powerful image viewer. It is suitable for the most most demanding high-resolution applications, including: topographic maps, drone and satellite photos, maps, action photography, digital art, panoramas, comics and cartoons, portraits, landscapes, cityscapes, infographics, real estate, automobiles, and vintage paintings. We are building a community of image enthusiasts. Contact us if your an artist or photographer and interested in creating compelling image viewing experiences.  Contact the developers at repba@proton.me to get started.`;
-
-    context.describeobj.set(0);
-    context.refresh()
-}
-
 function load()
 {
     promptFile().then(function(files) { dropfiles(files); });
@@ -5094,8 +5055,6 @@ function load()
 function original()
 {
     var path = photo.image.original;
-    if (context.time)
-        localStorage.setItem(url.path+context.id+".time", context.time.toFixed(2));
     window.open(path, '_blank');
 }
 
@@ -5123,3 +5082,7 @@ function project()
     window.open(s,"_self");
 }
 
+var scale = 'scale(1)';
+document.body.style.webkitTransform =  scale;    // Chrome, Opera, Safari
+ document.body.style.msTransform =   scale;       // IE 9
+ document.body.style.transform = scale;     // General
