@@ -35,8 +35,10 @@ a:visited { text-decoration: none; color: purple; }
   -webkit-text-size-adjust: 150%;
 }
 
+*{ box-sizing:border-box }
 body 
 {
+  #touch-action: pan-x pan-y;
   margin: 0; 
   padding: 0;
   padding-top: 0px;
@@ -108,7 +110,7 @@ section
   <title>reportbase.com</title>
 </head>
 <center>
-<iframe id=pano></iframe>
+<iframe seamless id=pano></iframe>
 <section>
   
   
@@ -119,8 +121,8 @@ repba@proton.me<p>
 
   <a onclick="help(); return false;" href="javascript:void(0);">Help</a> / 
   <a onclick="about(); return false;" href="javascript:void(0);">About</a><p>
-  <a onclick="panleft(); return false;" href="javascript:void(0);">Pan-left</a> / 
-  <a onclick="panright(); return false;" href="javascript:void(0);">Pan-right</a> / 
+  <a onclick="swipeleft(); return false;" href="javascript:void(0);">Swipe-left</a> / 
+  <a onclick="swiperight(); return false;" href="javascript:void(0);">Swipe-right</a> / 
   <a onclick="panup(); return false;" href="javascript:void(0);">Pan-up</a> / 
   <a onclick="pandown(); return false;" href="javascript:void(0);">Pan-down</a> / 
   <a onclick="pantop(); return false;" href="javascript:void(0);">Pan-top</a> / 
@@ -147,7 +149,7 @@ repba@proton.me<p>
   It can be integrated into existing applications or used stand-alone.<p> 
 
   Tap
-  <a onclick="pan.src='https://reportbase.com/home.html?p=BELL.0000.webp&r=79&z=50&b=41&h=99&v=4&w=50&o=1&g=0&a=0&m=0000-0013&c=1109.70'; finish(); return false;" href="javascript:void(0);">&lt;here&gt;</a>
+  <a onclick="pan.src='https://reportbase.com/home.html?p=BELL.0000.webp&r=79&z=50&b=41&h=99&v=4&w=50&o=3&g=0&a=0&m=0000-0015&c=1109.70'; finish(); return false;" href="javascript:void(0);">&lt;here&gt;</a>
   to load a high-resolution image at a specified x-y coordinate and zoom level. 
   Tap the left side of the image to zoom-out, right side to zoom-in.  
   Long press the image to hide the thumbnail or pinch to resize it. Swipe to load the next image.
@@ -160,159 +162,140 @@ repba@proton.me<p>
   cartoons, portraits, landscapes, cityscapes, 
   infographics, real estate, automobiles, and vintage paintings.<p>
   
- Contact the deveopers at repba@proton.me for more information.<p>
+  Contact the developers at repba@proton.me for more information.<p>
 </section>
 <section>
 <center>
   <h2>Images</h2><p>
 <gallery>
-<a onclick="pan.src='https://reportbase.com/home.html?p=BIRD.0000.webp&r=50&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0041'; finish(); return false;" href="javascript:void(0);">01</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=CITY.0000.webp&r=50&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0014'; finish(); return false;" href="javascript:void(0);">02</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=MADM.0000.webp&r=0&c=0&z=70&b=60&h=100&w=50&v=7&o=1&g=0&a=0&k=0&m=0000-0047'; finish(); return false;" href="javascript:void(0);">03</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DEAD.0000.webp&r=0&c=0&z=70&b=60&h=1000&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0025'; finish(); return false;" href="javascript:void(0);">04</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=HOPE.0000.webp&r=50&c=0&z=50&b=50&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0076'; finish(); return false;" href="javascript:void(0);">05</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GOAT.0001.webp&r=50&c=0&z=50&b=77&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0097'; finish(); return false;" href="javascript:void(0);">06</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=HOOD.0000.webp&r=50&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0036'; finish(); return false;" href="javascript:void(0);">07</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=BOAT.0000.webp&r=50&c=0&z=50&b=99&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0073'; finish(); return false;" href="javascript:void(0);">08</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=BALL.0000.webp&r=50&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0009'; finish(); return false;" href="javascript:void(0);">09</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=BELL.0000.webp&r=48&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0013'; finish(); return false;" href="javascript:void(0);">10</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=ASPO.0000.webp&r=50&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0013&c=0'; finish(); return false;" href="javascript:void(0);">11</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GOLF.0000.webp&r=50&c=0&z=50&b=62&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0007'; finish(); return false;" href="javascript:void(0);">12</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=PUCK.0000.webp&r=35&c=0&z=50&b=23&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0058'; finish(); return false;" href="javascript:void(0);">13</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=PUMP.0000.webp&r=50&c=0&z=50&b=23&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0029'; finish(); return false;" href="javascript:void(0);">14</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=NATB.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0026'; finish(); return false;" href="javascript:void(0);">15</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=RAIN.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=00&m=0000-0016'; finish(); return false;" href="javascript:void(0);">16</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=TFTD.0000.webp&r=0&&c=0&z=50&b=68&h=100&w=50&v=7&o=6&g=0&a=0&k=10&m=0000-0007'; finish(); return false;" href="javascript:void(0);">17</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DISH.0000.webp&r=50&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0016'; finish(); return false;" href="javascript:void(0);">18</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DAME.0000.webp&r=30&c=0&z=40&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=1&m=0000-0056'; finish(); return false;" href="javascript:void(0);">19</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=BOND.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0075'; finish(); return false;" href="javascript:void(0);">20</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=ANIM.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0015'; finish(); return false;" href="javascript:void(0);">21</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=WIDE.0000.webp&r=50&c=0&z=50&b=41&h=100&w=50&v=7&o=1&g=0&a=0&k=0&m=0000-0019'; finish(); return false;" href="javascript:void(0);">22</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=CRBE.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0009'; finish(); return false;" href="javascript:void(0);">23</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=CRBT.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0010'; finish(); return false;" href="javascript:void(0);">24</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=JESU.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0014'; finish(); return false;" href="javascript:void(0);">25</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DOLL.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0056'; finish(); return false;" href="javascript:void(0);">26</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=FABL.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0027'; finish(); return false;" href="javascript:void(0);">27</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=FAIR.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0014'; finish(); return false;" href="javascript:void(0);">28</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=FASH.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0007'; finish(); return false;" href="javascript:void(0);">29</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DOCS.0000.webp&r=0&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=1&m=0000-0008'; finish(); return false;" href="javascript:void(0);">30</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GIRL.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0031'; finish(); return false;" href="javascript:void(0);">31</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=PENO.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=7&o=5&g=0&a=0&k=00&m=0000-0074'; finish(); return false;" href="javascript:void(0);">32</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=PUNO.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=7&o=5&g=0&a=0&k=0&m=0000-0087'; finish(); return false;" href="javascript:void(0);">33</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=PANO.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=7&o=5&g=0&a=0&k=00&m=0000-0039'; finish(); return false;" href="javascript:void(0);">34</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GIMP.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0077'; finish(); return false;" href="javascript:void(0);">35</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=PORT.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0049'; finish(); return false;" href="javascript:void(0);">36</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=POST.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0084'; finish(); return false;" href="javascript:void(0);">37</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=RIOT.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0009'; finish(); return false;" href="javascript:void(0);">38</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=STOY.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0020'; finish(); return false;" href="javascript:void(0);">39</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=TALE.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=00&m=0000-0010'; finish(); return false;" href="javascript:void(0);">40</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=ZEUS.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0025'; finish(); return false;" href="javascript:void(0);">41</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=WILL.0000.webp&r=0&&c=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0011'; finish(); return false;" href="javascript:void(0);">42</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SAIL.0000.webp&r=0&t=1&c=0&z=0&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=00&m=0000-0009'; finish(); return false;" href="javascript:void(0);">43</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SAID.0000.webp&r=0&t=1&c=0&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0009'; finish(); return false;" href="javascript:void(0);">44</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SURF.0000.webp&r=0&t=1&c=0&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0010'; finish(); return false;" href="javascript:void(0);">45</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SURD.0000.webp&r=0&t=1&c=0&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0009'; finish(); return false;" href="javascript:void(0);">46</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=FABT.0000.webp&r=0&t=1&c=0&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0021'; finish(); return false;" href="javascript:void(0);">47</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BIRD.0000.webp&r=50&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0041'; finish(); return false;" href="javascript:void(0);">01</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=CITY.0000.webp&r=50&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0014'; finish(); return false;" href="javascript:void(0);">02</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=MADM.0000.webp&r=0&z=70&b=60&h=100&w=50&v=7&o=3&g=0&a=0&k=0&m=0000-0047'; finish(); return false;" href="javascript:void(0);">03</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DEAD.0000.webp&r=0&z=70&b=60&h=1000&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0025'; finish(); return false;" href="javascript:void(0);">04</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=HOPE.0000.webp&r=50&z=50&b=50&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0076'; finish(); return false;" href="javascript:void(0);">05</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GOAT.0001.webp&r=50&z=50&b=77&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0097'; finish(); return false;" href="javascript:void(0);">06</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=HOOD.0000.webp&r=50&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0036'; finish(); return false;" href="javascript:void(0);">07</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BOAT.0000.webp&r=50&z=50&b=99&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0090'; finish(); return false;" href="javascript:void(0);">08</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BALL.0000.webp&r=50&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0009'; finish(); return false;" href="javascript:void(0);">09</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BELL.0000.webp&r=48&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0015'; finish(); return false;" href="javascript:void(0);">10</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ASPO.0000.webp&r=50&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0014'; finish(); return false;" href="javascript:void(0);">11</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GOLF.0000.webp&r=50&z=50&b=62&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0012'; finish(); return false;" href="javascript:void(0);">12</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=PUCK.0000.webp&r=35&z=50&b=23&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0058'; finish(); return false;" href="javascript:void(0);">13</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=PUMP.0000.webp&r=50&z=50&b=23&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0029'; finish(); return false;" href="javascript:void(0);">14</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=NATB.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0026'; finish(); return false;" href="javascript:void(0);">15</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=RAIN.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=00&m=0000-0016'; finish(); return false;" href="javascript:void(0);">16</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=TFTD.0000.webp&r=0&&z=50&b=68&h=100&w=50&v=7&o=6&g=0&a=0&k=10&m=0000-0007'; finish(); return false;" href="javascript:void(0);">17</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DISH.0000.webp&r=50&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0016'; finish(); return false;" href="javascript:void(0);">18</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DAME.0000.webp&r=30&z=40&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=1&m=0000-0056'; finish(); return false;" href="javascript:void(0);">19</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BOND.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0075'; finish(); return false;" href="javascript:void(0);">20</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ANIM.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0015'; finish(); return false;" href="javascript:void(0);">21</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=WIDE.0000.webp&r=50&z=50&b=41&h=100&w=50&v=7&o=3&g=0&a=0&k=0&m=0000-0022'; finish(); return false;" href="javascript:void(0);">22</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=CRBE.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0009'; finish(); return false;" href="javascript:void(0);">23</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=CRBT.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0010'; finish(); return false;" href="javascript:void(0);">24</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=JESU.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0014'; finish(); return false;" href="javascript:void(0);">25</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DOLL.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0056'; finish(); return false;" href="javascript:void(0);">26</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=FABL.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0027'; finish(); return false;" href="javascript:void(0);">27</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=FAIR.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0014'; finish(); return false;" href="javascript:void(0);">28</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=FASH.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0007'; finish(); return false;" href="javascript:void(0);">29</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DOCS.0000.webp&r=0&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=1&m=0000-0008'; finish(); return false;" href="javascript:void(0);">30</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GIRL.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0031'; finish(); return false;" href="javascript:void(0);">31</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=PENO.0000.webp&r=50&z=50&b=60&h=100&w=50&v=7&o=5&g=0&a=0&k=00&m=0000-0074'; finish(); return false;" href="javascript:void(0);">32</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=PUNO.0000.webp&r=50&z=50&b=60&h=100&w=50&v=7&o=5&g=0&a=0&k=0&m=0000-0087'; finish(); return false;" href="javascript:void(0);">33</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=PANO.0000.webp&r=50&z=50&b=60&h=100&w=50&v=7&o=5&g=0&a=0&k=00&m=0000-0045'; finish(); return false;" href="javascript:void(0);">34</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GIMP.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0077'; finish(); return false;" href="javascript:void(0);">35</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=PORT.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0049'; finish(); return false;" href="javascript:void(0);">36</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=POST.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0084'; finish(); return false;" href="javascript:void(0);">37</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=RIOT.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0013'; finish(); return false;" href="javascript:void(0);">38</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=STOY.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0020'; finish(); return false;" href="javascript:void(0);">39</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=TALE.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=00&m=0000-0010'; finish(); return false;" href="javascript:void(0);">40</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ZEUS.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0038'; finish(); return false;" href="javascript:void(0);">41</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=WILL.0000.webp&r=0&&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0011'; finish(); return false;" href="javascript:void(0);">42</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SAIL.0000.webp&r=0&t=1&z=0&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=00&m=0000-0009'; finish(); return false;" href="javascript:void(0);">43</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SAID.0000.webp&r=0&t=1&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0009'; finish(); return false;" href="javascript:void(0);">44</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SURF.0000.webp&r=0&t=1&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0010'; finish(); return false;" href="javascript:void(0);">45</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SURD.0000.webp&r=0&t=1&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0009'; finish(); return false;" href="javascript:void(0);">46</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=FABT.0000.webp&r=0&t=1&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0021'; finish(); return false;" href="javascript:void(0);">47</a>
 
-<a onclick="pan.src='https://reportbase.com/home.html?p=NAVY.0000.webp&r=50&t=1&c=0&z=60&b=42&h=100&w=50&v=4&o=6&g=0&a=0&k=0&m=0000-0031'; finish(); return false;" href="javascript:void(0);">49</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=BLAK.0000.webp&r=0&t=1&c=0&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0010'; finish(); return false;" href="javascript:void(0);">50</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DEAT.0000.webp&r=0&t=1&c=0&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0013'; finish(); return false;" href="javascript:void(0);">51</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=RIO.0000.webp&r=0&t=1&c=0&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0011'; finish(); return false;" href="javascript:void(0);">52</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SILV.0000.webp&r=0&t=1&c=0&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0012'; finish(); return false;" href="javascript:void(0);">53</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SPID.0000.webp&r=0&t=1&c=0&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0014'; finish(); return false;" href="javascript:void(0);">54</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=NAVY.0000.webp&r=50&t=1&z=60&b=42&h=100&w=50&v=4&o=6&g=0&a=0&k=0&m=0000-0031'; finish(); return false;" href="javascript:void(0);">49</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BLAK.0000.webp&r=0&t=1&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0010'; finish(); return false;" href="javascript:void(0);">50</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DEAT.0000.webp&r=0&t=1&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0013'; finish(); return false;" href="javascript:void(0);">51</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=RIO.0000.webp&r=0&t=1&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0011'; finish(); return false;" href="javascript:void(0);">52</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SILV.0000.webp&r=0&t=1&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0012'; finish(); return false;" href="javascript:void(0);">53</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SPID.0000.webp&r=0&t=1&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0014'; finish(); return false;" href="javascript:void(0);">54</a>
 
-<a onclick="pan.src='https://reportbase.com/home.html?p=STRA.0000.webp&r=0&t=1&c=0&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0013'; finish(); return false;" href="javascript:void(0);">56</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=STRA.0000.webp&r=0&t=1&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0013'; finish(); return false;" href="javascript:void(0);">56</a>
 
-<a onclick="pan.src='https://reportbase.com/home.html?p=GUNS.0000.webp&r=0&t=1&c=0&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0010'; finish(); return false;" href="javascript:void(0);">58</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DETH.0000.webp&r=0&t=1&c=0&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0013'; finish(); return false;" href="javascript:void(0);">59</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SUID.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0036'; finish(); return false;" href="javascript:void(0);">60</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SMOT.0000.webp&r=0&c=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0015'; finish(); return false;" href="javascript:void(0);">61</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=WATC.0000.webp&r=0&c=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0020'; finish(); return false;" href="javascript:void(0);">62</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=WOND.0000.webp&r=50&c=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0022'; finish(); return false;" href="javascript:void(0);">63</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=MEA3.0000.webp&r=50&z=20&b=60&h=100&w=100&w=50&v=7&o=3&g=0&a=1&m=0000-0006&c=0'; finish(); return false;" href="javascript:void(0);">64</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=MEB3.0000.webp&r=50&z=20&b=60&h=100&w=100&w=50&v=7&o=3&g=0&a=1&m=0000-0006&c=0'; finish(); return false;" href="javascript:void(0);">65</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=MEA4.0000.webp&r=50&c=0&z=20&b=60&h=100&w=50&v=7&o=4&g=0&a=1&k=2&m=0000-0003'; finish(); return false;" href="javascript:void(0);">66</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=MEA6.0000.webp&r=50&c=0&z=20&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0008'; finish(); return false;" href="javascript:void(0);">67</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=MEA8.0000.webp&r=50&c=0&z=15&b=60&h=100&w=50&v=7&o=8&g=0&a=1&k=2&m=0000-0004'; finish(); return false;" href="javascript:void(0);">68</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=ASPS.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0023'; finish(); return false;" href="javascript:void(0);">69</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GRAL.0000.webp&r=50&c=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0004'; finish(); return false;" href="javascript:void(0);">70</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GRAN.0000.webp&r=50&c=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0007'; finish(); return false;" href="javascript:void(0);">71</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GRBE.0000.webp&r=50&c=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0007'; finish(); return false;" href="javascript:void(0);">72</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GRMA.0000.webp&r=50&c=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0004'; finish(); return false;" href="javascript:void(0);">73</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GRQU.0000.webp&r=50&c=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0004'; finish(); return false;" href="javascript:void(0);">74</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GRRW.0000.webp&r=50&c=0&z=75&b=60&h=1000&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0027'; finish(); return false;" href="javascript:void(0);">75</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=BUGS.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0026'; finish(); return false;" href="javascript:void(0);">76</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=PIPE.0000.webp&r=50&c=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0019'; finish(); return false;" href="javascript:void(0);">77</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=NATU.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0043'; finish(); return false;" href="javascript:void(0);">78</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SKIN.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=5&o=1&g=0&a=0&k=0&m=0000-0021'; finish(); return false;" href="javascript:void(0);">79</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DRES.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0006'; finish(); return false;" href="javascript:void(0);">80</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GREK.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0017'; finish(); return false;" href="javascript:void(0);">81</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=JAPN.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0024'; finish(); return false;" href="javascript:void(0);">82</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=ROME.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0021'; finish(); return false;" href="javascript:void(0);">83</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=BAKE.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0017'; finish(); return false;" href="javascript:void(0);">84</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DECS.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0011'; finish(); return false;" href="javascript:void(0);">85</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=CRYP.0000.webp&r=50&c=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0006'; finish(); return false;" href="javascript:void(0);">86</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GUNS.0000.webp&r=0&t=1&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0010'; finish(); return false;" href="javascript:void(0);">58</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DETH.0000.webp&r=0&t=1&z=75&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0013'; finish(); return false;" href="javascript:void(0);">59</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SUID.0000.webp&r=0&z=50&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0036'; finish(); return false;" href="javascript:void(0);">60</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SMOT.0000.webp&r=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0015'; finish(); return false;" href="javascript:void(0);">61</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=WATC.0000.webp&r=0&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0020'; finish(); return false;" href="javascript:void(0);">62</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=WOND.0000.webp&r=50&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0022'; finish(); return false;" href="javascript:void(0);">63</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=MEA3.0000.webp&r=50&z=20&b=60&h=100&w=100&w=50&v=7&o=3&g=0&a=1&m=0000-0006'; finish(); return false;" href="javascript:void(0);">64</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=MEB3.0000.webp&r=50&z=20&b=60&h=100&w=100&w=50&v=7&o=3&g=0&a=1&m=0000-0006'; finish(); return false;" href="javascript:void(0);">65</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=MEA4.0000.webp&r=50&z=20&b=60&h=100&w=50&v=7&o=4&g=0&a=1&k=2&m=0000-0003'; finish(); return false;" href="javascript:void(0);">66</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=MEA6.0000.webp&r=50&z=20&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0008'; finish(); return false;" href="javascript:void(0);">67</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=MEA8.0000.webp&r=50&z=15&b=60&h=100&w=50&v=7&o=8&g=0&a=1&k=2&m=0000-0004'; finish(); return false;" href="javascript:void(0);">68</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ASPS.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0023'; finish(); return false;" href="javascript:void(0);">69</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRAL.0000.webp&r=50&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0004'; finish(); return false;" href="javascript:void(0);">70</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRAN.0000.webp&r=50&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0007'; finish(); return false;" href="javascript:void(0);">71</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRBE.0000.webp&r=50&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0007'; finish(); return false;" href="javascript:void(0);">72</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRMA.0000.webp&r=50&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0004'; finish(); return false;" href="javascript:void(0);">73</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRQU.0000.webp&r=50&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0004'; finish(); return false;" href="javascript:void(0);">74</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRRW.0000.webp&r=50&z=75&b=60&h=1000&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0027'; finish(); return false;" href="javascript:void(0);">75</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BUGS.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0026'; finish(); return false;" href="javascript:void(0);">76</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=PIPE.0000.webp&r=50&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0019'; finish(); return false;" href="javascript:void(0);">77</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=NATU.0000.webp&r=50&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0043'; finish(); return false;" href="javascript:void(0);">78</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=TALL.0000.webp&r=50&z=50&b=60&h=100&w=50&v=5&o=3&g=0&a=0&k=0&m=0000-0004'; finish(); return false;" href="javascript:void(0);">79</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DRES.0000.webp&r=50&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0006'; finish(); return false;" href="javascript:void(0);">80</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GREK.0000.webp&r=50&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0017'; finish(); return false;" href="javascript:void(0);">81</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=JAPN.0000.webp&r=50&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0024'; finish(); return false;" href="javascript:void(0);">82</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ROME.0000.webp&r=50&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0021'; finish(); return false;" href="javascript:void(0);">83</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BAKE.0000.webp&r=50&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0017'; finish(); return false;" href="javascript:void(0);">84</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DECS.0000.webp&r=50&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0011'; finish(); return false;" href="javascript:void(0);">85</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=CRYP.0000.webp&r=50&z=75&b=60&h=100&w=50&v=7&o=6&g=0&a=1&k=2&m=0000-0006'; finish(); return false;" href="javascript:void(0);">86</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=TFTC.0000.webp&r=0&z=50&b=42&h=1000&w=50&v=7&o=6&g=0&a=1&k=0&m=0000-0007'; finish(); return false;" href="javascript:void(0);">87</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=OSHI.0000.webp&r=50&c=0&z=60&b=60&h=100&w=50&v=5&o=1&g=0&a=0&k=0&m=0000-0010'; finish(); return false;" href="javascript:void(0);">89</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=OSHI.0000.webp&r=50&z=60&b=60&h=100&w=50&v=5&o=3&g=0&a=0&k=0&m=0000-0010'; finish(); return false;" href="javascript:void(0);">89</a>
 
-<a onclick="pan.src='https://reportbase.com/home.html?p=DARK.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0022'; finish(); return false;" href="javascript:void(0);">95</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SAGA.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0044'; finish(); return false;" href="javascript:void(0);">96</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=ULTR.0003.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0457'; finish(); return false;" href="javascript:void(0);">97</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=HUSH.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0298'; finish(); return false;" href="javascript:void(0);">98</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GOTH.0001.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0298'; finish(); return false;" href="javascript:void(0);">99</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DBAT.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0360'; finish(); return false;" href="javascript:void(0);">100</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=KNIG.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0197'; finish(); return false;" href="javascript:void(0);">101</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=VIOL.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0151'; finish(); return false;" href="javascript:void(0);">102</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=MADB.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0161'; finish(); return false;" href="javascript:void(0);">103</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=KILL.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0064'; finish(); return false;" href="javascript:void(0);">104</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DETC.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0166'; finish(); return false;" href="javascript:void(0);">105</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SECH.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0460'; finish(); return false;" href="javascript:void(0);">106</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SECI.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0498'; finish(); return false;" href="javascript:void(0);">107</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=WALK.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0433'; finish(); return false;" href="javascript:void(0);">108</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=WATC.0001.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0410'; finish(); return false;" href="javascript:void(0);">109</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0390'; finish(); return false;" href="javascript:void(0);">110</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=SUIC.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0409'; finish(); return false;" href="javascript:void(0);">111</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DMZ.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0071'; finish(); return false;" href="javascript:void(0);">112</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DARK.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0022'; finish(); return false;" href="javascript:void(0);">95</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SAGA.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0044'; finish(); return false;" href="javascript:void(0);">96</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ULTR.0003.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0457'; finish(); return false;" href="javascript:void(0);">97</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=HUSH.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0298'; finish(); return false;" href="javascript:void(0);">98</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GOTH.0001.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0298'; finish(); return false;" href="javascript:void(0);">99</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DBAT.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0360'; finish(); return false;" href="javascript:void(0);">100</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=KNIG.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0197'; finish(); return false;" href="javascript:void(0);">101</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=VIOL.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0151'; finish(); return false;" href="javascript:void(0);">102</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=MADB.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0161'; finish(); return false;" href="javascript:void(0);">103</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=KILL.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0064'; finish(); return false;" href="javascript:void(0);">104</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DETC.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0166'; finish(); return false;" href="javascript:void(0);">105</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SECH.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0460'; finish(); return false;" href="javascript:void(0);">106</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SECI.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0498'; finish(); return false;" href="javascript:void(0);">107</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=WALK.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0433'; finish(); return false;" href="javascript:void(0);">108</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=WATC.0001.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0410'; finish(); return false;" href="javascript:void(0);">109</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0390'; finish(); return false;" href="javascript:void(0);">110</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SUIC.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0409'; finish(); return false;" href="javascript:void(0);">111</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DMZ.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0071'; finish(); return false;" href="javascript:void(0);">112</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SKIN.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0004'; finish(); return false;" href="javascript:void(0);">113</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=HOME.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0009'; finish(); return false;" href="javascript:void(0);">114</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=MAP.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0000'; finish(); return false;" href="javascript:void(0);">115</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SEAM.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0004'; finish(); return false;" href="javascript:void(0);">116</a>
 </gallery> 
 <p>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DAME.0000.webp&r=30&c=0&z=40&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=1&m=0000-0056'; finish(); return false;" href="javascript:void(0);">Portraits</a> /
-<a onclick="pan.src='https://reportbase.com/home.html?p=MEB3.0001.webp&r=50&z=20&b=60&h=100&w=50&v=7&o=3&g=0&a=1&m=0000-0006&c=0'; finish(); return false;" href="javascript:void(0);">Real Estate</a> / 
-<a onclick="pan.src='https://reportbase.com/home.html?p=PUNO.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=7&o=5&g=0&a=0&k=0&m=0000-0087'; finish(); return false;" href="javascript:void(0);">Landscapes</a> / 
-<a onclick="pan.src='https://reportbase.com/home.html?p=GOAT.0001.webp&r=50&c=0&z=50&b=77&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0097'; finish(); return false;" href="javascript:void(0);">Vintage Paintings</a> /
-<a onclick="pan.src='https://reportbase.com/home.html?p=SAIL.0000.webp&r=0&t=1&c=0&z=0&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=00&m=0000-0009'; finish(); return false;" href="javascript:void(0);">Montage</a> /
-<a onclick="pan.src='https://reportbase.com/home.html?p=MADM.0000.webp&r=0&c=0&z=70&b=60&h=100&w=50&v=7&o=1&g=0&a=0&k=0&m=0000-0047'; finish(); return false;" href="javascript:void(0);">Comics</a> /
-<a onclick="pan.src='https://reportbase.com/home.html?p=JAPN.0000.webp&r=50&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0024'; finish(); return false;" href="javascript:void(0);">Picture Book</a> /
-<a onclick="pan.src='https://reportbase.com/home.html?p=DOCS.0000.webp&r=0&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=1&m=0000-0008'; finish(); return false;" href="javascript:void(0);">Historical Documents</a> /
-<a onclick="pan.src='https://reportbase.com/home.html?p=CITY.0000.webp&r=50&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0014'; finish(); return false;" href="javascript:void(0);">Drone Photos</a> /
-<a onclick="pan.src='https://reportbase.com/home.html?p=BOND.0000.webp&r=30&c=0&z=50&b=41&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0075'; finish(); return false;" href="javascript:void(0);">Posters</a> /
-<a onclick="pan.src='https://reportbase.com/home.html?p=HOPE.0000.webp&r=50&c=0&z=50&b=50&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0076'; finish(); return false;" href="javascript:void(0);">Nature Photograpy</a> /
-<a onclick="pan.src='https://reportbase.com/home.html?p=DMZ.0000.webp&r=0&c=0&z=50&b=60&h=100&w=50&v=4&o=1&g=0&a=0&k=0&m=0000-0071'; finish(); return false;" href="javascript:void(0);">Comic Book</a> /
-<a onclick="pan.src='https://reportbase.com/home.html?p=SKIN.0001.webp&r=50&z=60&b=60&h=100&v=5&w=50&o=1&g=0&a=0&m=0000-0021&c=1963.00'; finish(); return false;" href="javascript:void(0);">1200x6500</a> /
+<a onclick="pan.src='https://reportbase.com/home.html?p=DAME.0000.webp&r=30&z=40&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=1&m=0000-0056'; finish(); return false;" href="javascript:void(0);">Portraits</a> /
+<a onclick="pan.src='https://reportbase.com/home.html?p=MEB3.0001.webp&r=50&z=20&b=60&h=100&w=50&v=7&o=3&g=0&a=1&m=0000-0006'; finish(); return false;" href="javascript:void(0);">Real Estate</a> / 
+<a onclick="pan.src='https://reportbase.com/home.html?p=PUNO.0000.webp&r=50&z=50&b=60&h=100&w=50&v=7&o=5&g=0&a=0&k=0&m=0000-0087'; finish(); return false;" href="javascript:void(0);">Landscapes</a> / 
+<a onclick="pan.src='https://reportbase.com/home.html?p=GOAT.0001.webp&r=50&z=50&b=77&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0097'; finish(); return false;" href="javascript:void(0);">Vintage Paintings</a> /
+<a onclick="pan.src='https://reportbase.com/home.html?p=SAIL.0000.webp&r=0&t=1&z=0&b=42&h=100&w=50&v=7&o=6&g=0&a=1&k=00&m=0000-0009'; finish(); return false;" href="javascript:void(0);">Montage</a> /
+<a onclick="pan.src='https://reportbase.com/home.html?p=MADM.0000.webp&r=0&z=70&b=60&h=100&w=50&v=7&o=3&g=0&a=0&k=0&m=0000-0047'; finish(); return false;" href="javascript:void(0);">Comics</a> /
+<a onclick="pan.src='https://reportbase.com/home.html?p=JAPN.0000.webp&r=50&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0024'; finish(); return false;" href="javascript:void(0);">Picture Book</a> /
+<a onclick="pan.src='https://reportbase.com/home.html?p=DOCS.0000.webp&r=0&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=1&m=0000-0008'; finish(); return false;" href="javascript:void(0);">Historical Documents</a> /
+<a onclick="pan.src='https://reportbase.com/home.html?p=CITY.0000.webp&r=50&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0014'; finish(); return false;" href="javascript:void(0);">Drone Photos</a> /
+<a onclick="pan.src='https://reportbase.com/home.html?p=BOND.0000.webp&r=30&z=50&b=41&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0075'; finish(); return false;" href="javascript:void(0);">Posters</a> /
+<a onclick="pan.src='https://reportbase.com/home.html?p=HOPE.0000.webp&r=50&z=50&b=50&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0076'; finish(); return false;" href="javascript:void(0);">Nature Photograpy</a> /
+<a onclick="pan.src='https://reportbase.com/home.html?p=DMZ.0000.webp&r=0&z=50&b=60&h=100&w=50&v=4&o=3&g=0&a=0&k=0&m=0000-0071'; finish(); return false;" href="javascript:void(0);">Comic Book</a> /
+<a onclick="pan.src='https://reportbase.com/home.html?p=TALL.0000.webp&r=50&z=60&b=60&h=100&v=5&w=50&o=3&g=0&a=0&m=0000-0004&c=1963.00'; finish(); return false;" href="javascript:void(0);">1200x6500</a> /
 <a onclick="pan.src='https://reportbase.com/home.html?p=PANO.0009.webp&r=61&z=60&b=60&h=100&v=7&w=50&o=5&g=0&a=0&m=0000-0087&c=1963.00'; finish(); return false;" href="javascript:void(0);">9500x2560</a> /
 <a onclick="pan.src='https://reportbase.com/home.html?p=PANO.0012.webp&r=57&z=60&b=60&h=100&v=7&w=50&o=5&g=0&a=0&m=0000-0087&c=2306.52'; finish(); return false;" href="javascript:void(0);">6000x4000</a> 
-</section>
-
-<section>
-  <h2>Codepens<p>
-<p class="codepen" data-height="400" data-default-tab="html,result" data-slug-hash="LYQYxoJ" 
-  data-user="reportbase" style="height: 400px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid; margin: 1em 0; padding: 1em;">
-  <span>See the Pen <a href="https://codepen.io/reportbase/pen/LYQYxoJ">
-  Simple Image</a> by Tom Brinkman (<a href="https://codepen.io/reportbase">@reportbase</a>)
-  on <a href="https://codepen.io">CodePen</a>.</span>
-</p>
-<p class="codepen" data-height="252.15231323242188" data-default-tab="html,result" data-slug-hash="JjprZjy" data-user="reportbase" style="height: 252.15231323242188px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid; margin: 1em 0; padding: 1em;">
-  <span>See the Pen <a href="https://codepen.io/reportbase/pen/JjprZjy">
-  Untitled</a> by Tom Brinkman (<a href="https://codepen.io/reportbase">@reportbase</a>)
-  on <a href="https://codepen.io">CodePen</a>.</span>
-</p>
-  
-<p class="codepen" data-height="300" data-default-tab="html,result" data-slug-hash="GRQoMvV" data-user="reportbase" style="height: 300px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid; margin: 1em 0; padding: 1em;">
-  <span>See the Pen <a href="https://codepen.io/reportbase/pen/GRQoMvV">
-  CITY.0000</a> by Tom Brinkman (<a href="https://codepen.io/reportbase">@reportbase</a>)
-  on <a href="https://codepen.io">CodePen</a>.</span>
-</p>
-  </h2>
-<script async src="https://cpwebassets.codepen.io/assets/embed/ei.js"></script>
 </section>
 
 <script>
@@ -325,8 +308,8 @@ function swipeup() { pano.postMessage("swipeup", '*'); finish();}
 function swipedown() { pano.postMessage("swipedown", '*'); finish();}
 function pantop() { pano.postMessage("pantop", '*'); finish();}
 function panbottom() { pano.postMessage("panbottom", '*'); finish();}
-function panleft() { pano.postMessage("panleft", '*'); finish();}
-function panright() { pano.postMessage("panright", '*'); finish();}
+function swipeleft() { pano.postMessage("swipeleft", '*'); finish();}
+function swiperight() { pano.postMessage("swiperight", '*'); finish();}
 function panup() { pano.postMessage("panup", '*'); finish();}
 function pandown() { pano.postMessage("pandown", '*'); finish();}
 function moveprev() { pano.postMessage("moveprev", '*'); finish();}
@@ -429,8 +412,9 @@ window.addEventListener("message", (event) =>
 }, false);
 
  const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-document.addEventListener('dblclick', function(event) {
-    event.preventDefault();
+
+document.addEventListener('dblclick', function(event) 
+{
 }, { passive: false });
 
   Number.prototype.pad = function(size)
@@ -447,7 +431,7 @@ window.addEventListener("load", function (evt)
     if (url.search)
       pan.src="https://reportbase.com/home.html"+url.search;
     else
-      pan.src="https://reportbase.com/home.html?p=SKIN.0001.webp&r=50&z=60&b=60&h=100&v=5&w=50&o=1&g=0&a=0&m=0000-0000&c=1963.00";
+      pan.src="https://reportbase.com/home.html?p=SKIN.0001.webp&r=50&z=60&b=60&h=100&v=5&w=50&o=3&g=0&a=0&m=0000-0002&c=1963.00";
 });
 function finish()
 {
