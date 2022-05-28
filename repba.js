@@ -6,9 +6,9 @@
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
-const MAXVIRTUALWIDTH = 5760; 
+const MAXVIRTUALWIDTH = SAFARI?5760:5760*2; 
 const THUMBALPHA = 0.5;
-const PANXFACTOR = 0.04; 
+const PANXFACTOR = 0.015; 
 const PANYFACTOR = 2;
 const CANVASCOUNT = 20;
 const PANENDTIME = 750;
@@ -77,7 +77,7 @@ url.thumblines = url.searchParams.has("a") ? Number(url.searchParams.get("a")) :
 url.thumbheight = url.searchParams.has("h") ? Number(url.searchParams.get("h")) : 50;
 url.thumbwidth = url.searchParams.has("w") ? Number(url.searchParams.get("w")) : 75;
 url.thumbindex = url.searchParams.has("g") ? Number(url.searchParams.get("g")) : 1;
-url.thumbpic = url.searchParams.has("t") ? Number(url.searchParams.get("t")) : 0;
+url.thumbpicture = url.searchParams.has("t") ? Number(url.searchParams.get("t")) : 1;
 url.pinch = url.searchParams.has("b") ? Number(url.searchParams.get("b")) : 50;
 url.row = url.searchParams.has("r") ? Number(url.searchParams.get("r")) : 50;
 url.zoom = url.searchParams.has("z") ? Number(url.searchParams.get("z")) : 50;
@@ -595,6 +595,7 @@ addressobj.body = function (l)
         "&b="+context.pinchobj.current()+
         "&h="+context.thumbheightobj.current()+
         "&v="+context.positobj.current()+
+        "&t="+url.thumbpicture+
         "&w="+url.thumbwidth+
         "&o="+url.cols+
         "&g="+thumbobj.current()+
@@ -725,13 +726,13 @@ CanvasRenderingContext2D.prototype.swipedown = function(h)
 
 CanvasRenderingContext2D.prototype.panup = function(h)
 {
-    this.nextrow(0,0.05);
+    this.nextrow(0,0.1);
     this.refresheaders();
 }
 
 CanvasRenderingContext2D.prototype.pandown = function(h)
 {
-    this.nextrow(1,0.05);
+    this.nextrow(1,0.1);
     this.refresheaders();
 }
 
@@ -866,8 +867,7 @@ CanvasRenderingContext2D.prototype.panbottom = function()
 
 CanvasRenderingContext2D.prototype.swipe = function(less)
 {
-    var e = window.innerWidth/3;
-    var k = e*1;
+    var k = window.innerWidth/3;
     this.timeobj.rotate(less ? k : -k);
     this.refresh();
 }
@@ -1267,7 +1267,7 @@ var pinchlst =
     name: "BOSS",
     pinch: function (context, scale)
     {
-        if (thumbobj.current() == 0)
+        if (context.isthumbrect)
         {
             var obj = context.thumbheightobj;
             var data = obj.data_; 
@@ -1302,6 +1302,14 @@ var pinchlst =
         context.hidethumb = 1;
         context.pinching = 1;
         context.panning = 0;
+        context.isthumbrect = 0;
+        if (thumbobj.current() == 0)
+        {
+            var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+            var n = context.grid ? context.grid.hitest(x,y) : 4; 
+            context.isthumbrect = isthumbrect || n == context.positobj.current();
+        }
+
         context.thumbheightsave = context.thumbheightobj.getcurrent()
         context.pinchsave = context.pinchobj.getcurrent()
         pageresize();
@@ -1399,11 +1407,11 @@ var panlst =
 
         context.panning = 1;
 
-        if (context.isthumbrect)
-        {
-            context.hithumb(x,y);
-        }
-        else if (type == "panleft" || type == "panright")
+        //if (context.isthumbrect)
+        //{
+        //    context.hithumb(x,y);
+        //}
+        if (type == "panleft" || type == "panright")
         {
             context.panimage(type=="panright");
         }
@@ -1602,20 +1610,9 @@ var swipelst =
             _4cnvctx.refresh();
             pageresize();
             if (type == "swipeleft")
-            {
-                if (url.movepage)
-                    context.swipe(0);
-                else
-                    context.nextcolumn();
-            }
+                context.swipe(0);
             else if (type == "swiperight")
-            {
-                if (url.movepage)
-                    context.swipe(1);
-                else
-                    context.prevcolumn();
-            }
-
+                context.swipe(1);
         }, JULIETIME);
     },
 
@@ -1763,9 +1760,16 @@ var keylst =
         {
             context.panning = 1;
             if (context.ctrlhit)
+            {
                 context.moveprev();
+            }
             else
-                context.swipe(1);
+            {
+                var k = window.innerWidth/36;
+                context.timeobj.rotate(k);
+                context.refresh();
+            }
+
             context.refresheaders();
             addressobj.refresh();
             evt.preventDefault();
@@ -1774,9 +1778,16 @@ var keylst =
         {
             context.panning = 1;
             if (context.ctrlhit)
+            {
                 context.movenext();
+            }
             else
-                context.swipe(0);
+            {
+                var k = window.innerWidth/36;
+                context.timeobj.rotate(-k);
+                context.refresh();
+            }
+
             context.refresheaders();
             addressobj.refresh();
             evt.preventDefault();
@@ -1819,7 +1830,6 @@ var keylst =
             evt.preventDefault();
         }
         else if (
-            evt.key ==  "Tab" ||
             evt.key == "PageUp" ||
             evt.key == "PageDown" )
         {
@@ -2110,12 +2120,12 @@ var thumblst =
         if (photo.image.width > photo.image.height)
         {
             var tw = context.thumbheightobj.getcurrent();
-            var th = url.thumbwidth/100;
+            var th = 1;//url.thumbwidth/100;
         }
         else
         {
             var th = context.thumbheightobj.getcurrent();
-            var tw = url.thumbwidth/100;
+            var tw = 1;//url.thumbwidth/100;
         }
 
         var headers = IFRAME?0:ALIEXTENT*2; 
@@ -2190,7 +2200,7 @@ var thumblst =
             a.draw(context, rect, url.fullproject(), 0);
         }
      
-        if (context.hidethumb)
+        if (context.hidethumb || !url.thumbpicture)
         {
             
         }
@@ -2227,7 +2237,7 @@ var thumblst =
         var whiterect = new StrokeRect(THUMBSTROKE);
         var blackrect = new Fill(THUMBFILL);
 
-        if (context.hidethumb)
+        if (context.hidethumb || !url.thumbpicture)
             blackrect.draw(context, context.thumbrect, 0, 0);
         whiterect.draw(context, context.thumbrect, 0, 0);
         if (context.moveprevrect)
@@ -2528,6 +2538,7 @@ function splitrange(obj,k,j,size)
     else
     {
         obj = new makeoption("", lst);
+        var b = Math.berp(0,size-1,k/100);
         obj.set(k);
     }
 
@@ -4914,10 +4925,9 @@ function help()
     setevents(context, eventlst[n])
 
     context.describe =
-  `Reportbase.com is a high-resolution image viewer for full-screen panoramas. It can be integrated into existing applications or viewed stand-alone. 
-  Reportbase.com is a flexible image browsing platform.  It is suitable for the most demanding high-resolution tasks, including: topographic maps, drone and satellite photos, maps, action photography, digital art, panoramas, comics and cartoons, portraits, landscapes, cityscapes, infographics, real estate, automobiles, and vintage paintings.  We are building a community of image enthusiasts.  Contact us if your an artist or photographer and interested in creating compelling image viewing experiences.  
-  Contact the developers at repba@proton.me. 
-        Press or pinch the thumbnail to move or resize it. Pan or tap the thumbnail to rotate the underlying image. Long press anywhere to show/hide the thumbnail (space).  Tap off the thumbnail to zoom in or out.  Pan the image to rotate it any direction. Swipe left or right to move to the next image. Load images from the local computer with drag and drop.`
+  `High Resolution Interactive Panoramas
+  Topographic maps, drone and satellite photos, maps, action photography, digital art, panoramas, comics and cartoons, portraits, landscapes, cityscapes, infographics, real estate, automobiles, and vintage paintings
+  Contact the developers at repba@proton.me.` 
     context.time = 0;
     context.describeobj.set(0);
     context.refresh()
@@ -4930,11 +4940,6 @@ function about()
     setevents(context, eventlst[n])
     context.describe =
         [
-            "Reportbase.com",
-            window.innerWidth > 420 ?  "High Resolution Image Viewer":"Image Viewer",
-            "Interactive Panoramas",
-            "Fullscreen Slideshows",
-            "",
             "Developer",
             "Tom Brinkman",
             "",
