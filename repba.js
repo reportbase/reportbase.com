@@ -87,13 +87,13 @@ url.projectrange = url.searchParams.has("m") ? url.searchParams.get("m") : "0000
 if (url.projectrange.split("-").length != 2)
     url.projectrange = "0000-"+url.projectrange; 
 
-url.height = url.searchParams.has("h") ? Number(url.searchParams.get("h")) : 60;
+url.height = url.searchParams.has("h") ? Number(url.searchParams.get("h")) : 85;
 url.thumbindex = url.searchParams.has("g") ? Number(url.searchParams.get("g")) : 0;
-url.thumbalpha = url.searchParams.has("q") ? Number(url.searchParams.get("q")) : 100;
-url.thumbpicture = url.searchParams.has("t") ? Number(url.searchParams.get("t")) : 0;
+url.thumbalpha = url.searchParams.has("q") ? Number(url.searchParams.get("q")) : 75;
+url.thumbpicture = url.searchParams.has("t") ? Number(url.searchParams.get("t")) : 1;
 url.pinch = url.searchParams.has("b") ? Number(url.searchParams.get("b")) : 50;
 url.row = url.searchParams.has("r") ? Number(url.searchParams.get("r")) : 50;
-url.zoom = url.searchParams.has("z") ? Number(url.searchParams.get("z")) : 50;
+url.zoom = url.searchParams.has("z") ? Number(url.searchParams.get("z")) : 40;
 url.slideshow = url.searchParams.has("s") ? Number(url.searchParams.get("s")) : 0.5;
 url.slidecomplete = url.searchParams.has("x") ? Number(url.searchParams.get("x")) : 0;
 url.slidemax = url.searchParams.has("w") ? Number(url.searchParams.get("w")) : TIMEOBJ;
@@ -137,9 +137,6 @@ globalobj = {};
 var canvaslst = [];
 for (var n = 0; n < CANVASCOUNT; ++n)
     canvaslst[n] = document.createElement("canvas");
-
-if (url.slideshow)
-    setTimeout(function() { slideshow(); }, 2000);
 
 var makeoption = function (title, data)
 {
@@ -788,6 +785,41 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
     contextobj.reset();
 }
 
+CanvasRenderingContext2D.prototype.menuslide = function(less)
+{
+    var e = this.visibles / this.sliceobj.data_.length;
+    var k = e*TIMEOBJ*0.25;
+    this.timeobj.rotate(less ? k : -k);
+}
+
+CanvasRenderingContext2D.prototype.slideshow = function()
+{
+    var context = this;
+    function foo()
+    {
+        if (context.panning || 
+            context.pinching)
+            return;
+        if (menuvisible())
+            return;
+
+        if (url.slidecomplete && Math.abs(context.slidecomplete) > url.slidemax)
+        {
+            context.movenext();
+            context.slidecomplete = 0;
+        }
+        else
+        {
+            context.slidecomplete += url.slideshow;
+            context.timeobj.rotate(url.slideshow);
+            context.refresh();
+        }
+    }
+
+    clearInterval(context.slidetime);
+    context.slidetime = setInterval(foo, url.slideinterval);
+}
+
 CanvasRenderingContext2D.prototype.swipeup = function(h)
 {
     this.nextrow(0,0.5);
@@ -893,7 +925,7 @@ CanvasRenderingContext2D.prototype.swipehard = function(less)
     url.slideshow = Math.abs(url.slideshow);
     if (!less)
         url.slideshow *= -1;
-    var k = TIMEOBJ/20;
+    var k = TIMEOBJ/15;
     this.timeobj.rotate(less ? k : -k);
     this.refresh();
     addressobj.refresh();
@@ -913,7 +945,7 @@ CanvasRenderingContext2D.prototype.swipe = function(less)
 CanvasRenderingContext2D.prototype.panimage2 = function (less)
 {
     var e = this.visibles / this.sliceobj.data_.length;
-    var k = e*TIMEOBJ*0.015;
+    var k = e*TIMEOBJ*0.01;
     this.timeobj.rotate(less ? k : -k);
     localStorage.setItem(url.path+this.id+".time", this.timeobj.current());
 }
@@ -1488,12 +1520,7 @@ var panlst =
     },
     panend: function (context, rect, x, y)
 	{
-        clearTimeout(context.pantime);
-        context.pantime = setTimeout(function()
-            {
-                context.panning = 0;  
-            }, 1000);
-
+        context.panning = 0;  
         context.refresh();
         addressobj.refresh();
         delete context.zoomobj.offset;
@@ -1619,6 +1646,14 @@ var swipelst =
     },
     swipeupdown: function (context, rect, x, y, type)
     {
+        clearTimeout(context.timeswipe);
+        context.timeswipe = setTimeout(function()
+        {
+            if (type == "swipedown")
+                context.menuslide(1);
+            else
+                context.menuslide(0);
+        }, JULIETIME);
     },
 },
 {
@@ -1632,7 +1667,7 @@ var swipelst =
                 url.slideshow = -1 * Math.abs(url.slideshow);
             else if (type == "swiperight")
                 url.slideshow = Math.abs(url.slideshow);
-            slideshow(); 
+            context.slideshow(); 
         
             if (!context.isthumbrect)
             {
@@ -1973,20 +2008,10 @@ var taplst =
             url.slideshow = Math.abs(url.slideshow);
             context.swipe(1)
         }
-        else if (context.swipeleft2 && context.swipeleft2.hitest(x,y))
-        {
-            url.slideshow = Math.abs(url.slideshow);
-            context.swipe(1)
-        }
         else if (context.swiperight && context.swiperight.hitest(x,y))
         {
             url.slideshow = -1 * Math.abs(url.slideshow);
             context.swipe(0);
-        }
-        else if (context.swiperight2 && context.swiperight2.hitest(x,y))
-        {
-            url.slideshow = -1 * Math.abs(url.slideshow);
-            context.swipe(1);
         }
         else if (context.movebottomrect && context.movebottomrect.hitest(x,y))
         {
@@ -2268,8 +2293,6 @@ var thumblst =
         context.fullscreen = new rectangle();
         context.swipeleft = new rectangle();
         context.swiperight = new rectangle();
-        context.swipeleft2 = new rectangle();
-        context.swiperight2 = new rectangle();
         var w = GUIDEHEIGHT;
         var w2 = w*3;
 
@@ -2396,7 +2419,7 @@ var drawlst = [
             }
             else if (user.path == "SLIDESHOW")
             {
-                if (globalobj.slidetime)
+                if (_4cnvctx.slidetime)
                     clr = select;
             }
             else if (user.path == "FULLSCREEN")
@@ -2674,6 +2697,7 @@ var ContextObj = (function ()
 			context.font = "400 100px Source Code Pro";
 			context.fillText("  ", 0, 0);
 			context.lastime = 0;
+            context.slidecomplete = 0;
             context.timeobj = new makeoption("", TIMEOBJ);
             var time = Math.floor(localStorage.getItem(url.path+context.id+".time"));
             var j = Math.floor(Number(time));
@@ -3549,8 +3573,8 @@ window.addEventListener("beforeunload", (evt) =>
 
 function escape() 
 {
-    clearInterval(globalobj.slidetime);
-    globalobj.slidetime = 0;
+    clearInterval(_4cnvctx.slidetime);
+    _4cnvctx.slidetime = 0;
     menuhide();
     context.hidepicture = 0;
     delete _4cnvctx.describe;
@@ -3665,9 +3689,7 @@ var YollPanel = function ()
                 delete context.movenextrect;
                 delete context.movebottomrect;
                 delete context.swipeleft;
-                delete context.swipeleft2;
                 delete context.swiperight;
-                delete context.swiperight2;
                 delete context.aboutrect;
                 delete context.fullscreen;
                 delete context.zoominrect;
@@ -4375,7 +4397,7 @@ window.addEventListener('message', function(evt)
 
 function pageresize()
 {
-    var h = IFRAME?0:headobj.getcurrent().height;
+    var h = (IFRAME||thumbobj.current()==1)?0:headobj.getcurrent().height;
     headcnvctx.show(0,0,window.innerWidth, h);
     headham.panel = headobj.getcurrent();
     footcnvctx.show(0,window.innerHeight-ALIEXTENT, window.innerWidth, h);
@@ -4607,37 +4629,24 @@ function transparent()
     _4cnvctx.refresh();
 }
 
-globalobj.slidecomplete = 0;
-function slideshow()
-{
-    function foo()
-    {
-        if (_4cnvctx.panning || 
-            _4cnvctx.pinching)
-            return;
-        if (menuvisible())
-            return;
-
-        if (url.slidecomplete && Math.abs(globalobj.slidecomplete) > url.slidemax)
-        {
-            context.movenext();
-            globalobj.slidecomplete = 0;
-        }
-        else
-        {
-            globalobj.slidecomplete += url.slideshow;
-            _4cnvctx.timeobj.rotate(url.slideshow);
-            _4cnvctx.refresh();
-        }
-    }
-
-    clearInterval(globalobj.slidetime);
-    globalobj.slidetime = setInterval(foo, url.slideinterval);
-}
-
 document.addEventListener('touchmove', function (event) 
 { 
     event.preventDefault(); 
 }, { passive: false });
 
+if (url.slideshow)
+    setTimeout(function() { _4cnvctx.slideshow(); }, 1000);
 
+function slideshow()
+{
+    var context = _4cnvctx;
+    if (context.slidetime)
+    {
+        clearInterval(context.slidetime);
+        context.slidetime = 0;
+    }
+    else
+    {
+        context.slideshow();
+    }
+}
