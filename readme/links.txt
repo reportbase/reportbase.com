@@ -144,7 +144,7 @@ artstation
 artist sell stuff here
 
 []
-https://vectr.com/editor/f9982fcb-3db6-4d7a-b8d8-b9b8512f6f68
+https://vectr.com/design/editor/2c43fa8f-b08f-4bca-8a7a-5fffb1047eb2
 https://sketch.io/sketchpad/
 https://yqnn.github.io/svg-path-editor/
 https://editor.method.ac/
