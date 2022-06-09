@@ -996,15 +996,6 @@ CanvasRenderingContext2D.prototype.swipe = function(less)
     this.timeobj.rotate(less ? k : -k);
 }
 
-CanvasRenderingContext2D.prototype.panimage2 = function (less)
-{
-    //todo
-    var e = this.visibles / this.sliceobj.data_.length;
-    var e = this.rect().height / this.virtualheight;
-    var k = e*TIMEOBJ*0.005;
-    this.timeobj.rotate(less ? k : -k);
-}
-
 CanvasRenderingContext2D.prototype.panimage = function (less)
 {
     var e = this.visibles / this.sliceobj.data_.length;
