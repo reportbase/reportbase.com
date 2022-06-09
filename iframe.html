@@ -112,11 +112,11 @@ section
 <center>
 <iframe seamless id=pano></iframe>
 <section>
-  <button onclick="moveprev()" id="projectag"></button>
-  <button onclick="moveprev()"><img src="res/left.png"/></button>
+  <button onclick="moveup()" id="projectag"></button>
+  <button onclick="moveup()"><img src="res/left.png"/></button>
   <button onclick="fullscreen()"><img src="res/full.png"/></button> 
-  <button onclick="movenext()"><img src="res/right.png"/></button>
-  <button onclick="movenext()"id="projectstag"></button><p>
+  <button onclick="movedown()"><img src="res/right.png"/></button>
+  <button onclick="movedown()"id="projectstag"></button><p>
     
   <a onclick="help(); return false;" href="javascript:void(0);">Help</a> / 
   <a onclick="panup(); return false;" href="javascript:void(0);">Pan-up</a> / 
@@ -127,8 +127,8 @@ section
   <a onclick="swiperight(); return false;" href="javascript:void(0);">Swipe-right</a> / 
   <a onclick="swipeup(); return false;" href="javascript:void(0);">Swipe-up</a> / 
   <a onclick="swipedown(); return false;" href="javascript:void(0);">Swipe-down</a> / 
-  <a onclick="moveprev(); return false;" href="javascript:void(0);">Move-previous</a> / 
-  <a onclick="movenext(); return false;" href="javascript:void(0);">Move-next</a> / 
+  <a onclick="moveup(); return false;" href="javascript:void(0);">Move-previous</a> / 
+  <a onclick="movedown(); return false;" href="javascript:void(0);">Move-next</a> / 
   <a onclick="movefirst(); return false;" href="javascript:void(0);">Move-first</a> / 
   <a onclick="movelast(); return false;" href="javascript:void(0);">Move-last</a> / 
   <a onclick="zoomin(); return false;" href="javascript:void(0);">Zoom-in</a> / 
@@ -138,6 +138,8 @@ section
   <a onclick="pinchin(); return false;" href="javascript:void(0);">Pinch-in</a> / 
   <a onclick="pinchout(); return false;" href="javascript:void(0);">Pinch-out</a> / 
   <a onclick="thumbnail(); return false;" href="javascript:void(0);">Thumbnail</a> / 
+  <a onclick="slideshow(); return false;" href="javascript:void(0);">Slideshow</a> / 
+  <a onclick="slideoff(); return false;" href="javascript:void(0);">Slide-off</a> / 
   <a onclick="transparent(); return false;" href="javascript:void(0);">Transparent</a> / 
   <a onclick="original(); return false;" href="javascript:void(0);">Original</a> / 
   <a onclick="fullscreen(); return false;" href="javascript:void(0);">Full-screen</a> / 
@@ -157,7 +159,7 @@ section
 <a onclick="pan.src='https://reportbase.com/home.html?p=BOAT&m=0090'; finish(); return false;" href="javascript:void(0);">BOAT</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=BALL&m=0009'; finish(); return false;" href="javascript:void(0);">BALL</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=BELL&m=0015'; finish(); return false;" href="javascript:void(0);">BELL</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=ASPO&m=0014'; finish(); return false;" href="javascript:void(0);">ASPO</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ASPO&m=0030'; finish(); return false;" href="javascript:void(0);">ASPO</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=GOLF&m=0013'; finish(); return false;" href="javascript:void(0);">GOLF</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=PUCK&m=0058'; finish(); return false;" href="javascript:void(0);">PUCK</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=PUMP&m=0029'; finish(); return false;" href="javascript:void(0);">PUMP</a>
@@ -175,7 +177,7 @@ section
 <a onclick="pan.src='https://reportbase.com/home.html?p=FABL&m=0027'; finish(); return false;" href="javascript:void(0);">FABL</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=FAIR&m=0014'; finish(); return false;" href="javascript:void(0);">FAIR</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=FASH&m=0007'; finish(); return false;" href="javascript:void(0);">FASH</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DOCS&m=0008'; finish(); return false;" href="javascript:void(0);">DOCS</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DOCS&m=0010'; finish(); return false;" href="javascript:void(0);">DOCS</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=GIRL&m=0031'; finish(); return false;" href="javascript:void(0);">GIRL</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=PENO&z=0&m=0074'; finish(); return false;" href="javascript:void(0);">PENO</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=PUNO&z=0&m=0087'; finish(); return false;" href="javascript:void(0);">PUNO</a>
@@ -213,9 +215,9 @@ section
 <a onclick="pan.src='https://reportbase.com/home.html?p=BTLD&m=0007'; finish(); return false;" href="javascript:void(0);">BTLD</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=BWLD&m=0005'; finish(); return false;" href="javascript:void(0);">BWLD</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=NAVY&m=0030'; finish(); return false;" href="javascript:void(0);">NAVY</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=CORN&m=0001'; finish(); return false;" href="javascript:void(0);">CORN</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=HUPE&m=0004'; finish(); return false;" href="javascript:void(0);">HUPE</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=GOUT&m=0005'; finish(); return false;" href="javascript:void(0);">GOUT</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=CORN&o=5&e=1&m=0002'; finish(); return false;" href="javascript:void(0);">CORN</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=HUPE&o=5&m=0004'; finish(); return false;" href="javascript:void(0);">HUPE</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GOUT&o=5&m=0005'; finish(); return false;" href="javascript:void(0);">GOUT</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=LITE&m=0053'; finish(); return false;" href="javascript:void(0);">LITE</a>
 
 <a onclick="pan.src='https://reportbase.com/home.html?p=DARK&m=0022'; finish(); return false;" href="javascript:void(0);">DARK</a>
@@ -232,10 +234,9 @@ section
 <a onclick="pan.src='https://reportbase.com/home.html?p=SECH&m=0460'; finish(); return false;" href="javascript:void(0);">SECH</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=SECI&m=0498'; finish(); return false;" href="javascript:void(0);">SECI</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=WALK.0005.webp&m=0005-0433'; finish(); return false;" href="javascript:void(0);">WALK</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=WATC&m=0410'; finish(); return false;" href="javascript:void(0);">WATC</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=GRIM&m=0390'; finish(); return false;" href="javascript:void(0);">GRIM</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=SUIC&m=0409'; finish(); return false;" href="javascript:void(0);">SUIC</a>
-<a onclick="pan.src='https://reportbase.com/home.html?p=DMZ&m=0071'; finish(); return false;" href="javascript:void(0);">DMZ</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DMZ&m=0095'; finish(); return false;" href="javascript:void(0);">DMZ</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=SKIN&m=0004'; finish(); return false;" href="javascript:void(0);">SKIN</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=HOME&g=1&f=0&m=0015'; finish(); return false;" href="javascript:void(0);">HOME</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=MAP&g=1&m=0000'; finish(); return false;" href="javascript:void(0);">MAP</a>
@@ -279,14 +280,16 @@ function swipeleft() { pano.postMessage("swipeleft", '*'); finish();}
 function swiperight() { pano.postMessage("swiperight", '*'); finish();}
 function panup() { pano.postMessage("panup", '*'); finish();}
 function pandown() { pano.postMessage("pandown", '*'); finish();}
-function moveprev() { pano.postMessage("moveprev", '*'); finish();}
-function movenext() { pano.postMessage("movenext", '*'); finish();}
+function moveup() { pano.postMessage("moveup", '*'); finish();}
+function movedown() { pano.postMessage("movedown", '*'); finish();}
 function movefirst() { pano.postMessage("movefirst", '*'); finish();}
 function movelast() { pano.postMessage("movelast", '*'); finish();}
 function zoommax() { pano.postMessage("zoommax", '*'); finish();}
 function zoommin() { pano.postMessage("zoommin", '*'); finish();}
 function zoomin() { pano.postMessage("zoomin", '*'); finish();}
 function zoomout() { pano.postMessage("zoomout", '*'); finish();}
+function slideshow() { pano.postMessage("slideshow", '*'); finish();}
+function slideoff() { pano.postMessage("slideoff", '*'); finish();}
 function pinchin() { pano.postMessage("pinchin", '*'); finish();}
 function pinchout() { pano.postMessage("pinchout", '*'); finish();}
 function thumbnail() { pano.postMessage("thumbnail", '*');  finish();}
@@ -341,7 +344,7 @@ window.addEventListener("message", (event) =>
             
             for (var project = 0; project < data.projects; ++project)
             {
-                var cols = data.movepage ? 1 : data.cols; 
+                var cols = 1;//data.movepage ? 1 : data.cols; 
                 for (var col = 0; col < cols; ++col)
                 {
                     let anchor = document.createElement('a');
@@ -354,7 +357,6 @@ window.addEventListener("message", (event) =>
                     {
                         this.go = function ()
                         {
-                            //todo function
                           var src="https://reportbase.com/home.html?p="+
                             data.path+"."+
                             i.pad(4)+"."+
@@ -399,7 +401,7 @@ window.addEventListener("load", function (evt)
     if (url.search)
       pan.src="https://reportbase.com/home.html"+url.search;
     else
-      pan.src="https://reportbase.com/home.html?p=CORN.0000.webp&r=50.5&z=49.5&b=49.5&h=100.0&k=49.5&n=49.5&v=5&g=0&q=100&t=1&s=0.5&y=16&w=3926&x=0&d=1&o=1&e=1&a=1&i=1&j=8&m=0000-0001&c=2098.01";
+      pan.src="https://reportbase.com/home.html?p=CORN.0000.webp&o=5&e=1&m=0000-0002";
   });
 
 function finish()
