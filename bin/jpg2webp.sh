@@ -1,4 +1,4 @@
-for i in DEAD*.jpg; do
-     convert $i ${i/.jpg/.webp}
+for i in *.jpg; 
+    do convert $i -quality 80 ${i/.jpg/.webp} 
 done
 
