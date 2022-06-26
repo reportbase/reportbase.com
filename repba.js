@@ -2208,7 +2208,7 @@ var thumblst =
         var yy = Math.lerp(0,h,berp);
         var s = context.sliceobj.data_.length;
         var e = context.slicefirst/s;
-        var k = context.visibles/s; 
+        var k = context.lstx.length/s; 
         var wwwww = k*w;
         var xxxxx = x+e*w;
         var s = xxxxx+wwwww;
@@ -3509,14 +3509,16 @@ var YollPanel = function ()
                 var width = context.canvas.width;
                 context.save();
                 context.translate(xt, 0);
-                var lstx = [];                
+                context.shadowOffsetX = 0;
+                context.shadowOffsetY = 0;
+                context.lstx = [];                
                 first = 0;
                 context.visibles = 0;
+                var kfirst = context.getslicefirst()
 
                 for (var m = 0; m < sliceobj.length; ++m)
                 {
                     var x = context.getx(m);
-                    lstx.push(x); 
                     if (!first)
                         first = x;
                     if (x >= width && 
@@ -3525,7 +3527,7 @@ var YollPanel = function ()
                     if (x < 0 || x >= width)
                         continue
 
-                    context.visibles++;
+                    context.lstx.push({slice:sliceobj[m],x:x}); 
                     if (x < firstx)
                     {
                         firstx = x;
@@ -3533,29 +3535,21 @@ var YollPanel = function ()
                     }
                 }
 
-                first = 0;
-                for (var m = 0; m < sliceobj.length; ++m)
+                for (var m = 0; m < context.lstx.length-1; ++m)
                 {
-                    var slice = sliceobj[m];
-                    var x = lstx[m];
-
-                    if (!first)
-                        first = x;
-                    if (x >= width && 
-                        (first < 0 || (first >= width && x < first)))
-                        break;
-                    if (x < 0 || x >= width)
-                        continue
+                    var j = context.lstx[m]; 
+                    var slice = j.slice;
+                    var x = j.x;
 
                     if (slice.isright && url.divider)
                     {
                         var a = new Fill(url.divider);
-                        let pinchwidth = m>0?lstx[m]-lstx[m-1]:1; 
+                        let pinchwidth = m>0?x-context.lstx[m-1].x:1; 
                         a.draw(context, new rectangle(x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height), 0, 0);
                     }
                     else
                     {
-                        let pinchwidth = Math.max((m<sliceobj.length-1)?lstx[m+1]-x:1,1); 
+                        let pinchwidth = Math.max((m<sliceobj.length-1)?context.lstx[m+1].x-x:1,1); 
                         context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
                             x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height);
                     }
@@ -3564,7 +3558,7 @@ var YollPanel = function ()
                 context.restore();
                 context.save();
                 
-                if (!context.setcolumncomplete && context.visibles > 100)
+                if (!context.setcolumncomplete)
                 {
                     context.setcolumncomplete = 1;
                     continue;
