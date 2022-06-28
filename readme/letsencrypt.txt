@@ -1,3 +1,5 @@
+sudo certbot renew
+
 #https://wiki.archlinux.org/index.php/Let%E2%80%99s_Encrypt
 #/etc/letsencrypt/renewal
 #https://www.ssllabs.com/ssltest/analyze.html?d=reportbase.com
@@ -10,7 +12,6 @@ chmod g+s /var/lib/letsencrypt
 sudo certbot certonly   --email reportbase@gmail.com --webroot -w /var/lib/letsencrypt/ -d blissfactor.app
 wget http://reportbase.com/.well-known/acme-challenge/a.jpg
 wget https://blissfactor.app/.well-known/acme-challenge/a.jpg
-sudo certbot renew
 
 ########################
 #certbot.service
