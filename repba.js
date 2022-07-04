@@ -3,20 +3,21 @@ Copyright 2017 Tom Brinkman
 http://www.reportbase.com 
 */
 
-const MOBLE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
 const MAXVIRTUALWIDTH = SAFARI?5760:5760*2; 
 const DOUBLECLICK = 500;
-const CANVASCOUNT = 20;
+const SLIDECOUNT = 60;
+const CANVASCOUNT = 10;
 const REFRESHEADER = 1000;
 const MAXSLIDER = 720;
 const POSITYSPACE = 50;
 const THUMBLINE = 1;
 const THUMBLINEIN = 2.5;
 const THUMBLINEOUT = 4.0;
-const JULIETIME = 25;
+const JULIETIME = 100; 
 const GUIDEHEIGHT = 60; 
 const DELAY = 10000000;
 const THUMBORDER = 16;
@@ -90,7 +91,6 @@ url.divider = url.searchParams.has("l") ? url.searchParams.get("l") : "0";
 if (url.divider == "0")
     url.divider = 0;
 
-url.slideshow = url.searchParams.has("a") ? Number(url.searchParams.get("a")) : 1;
 url.rowbegin = url.searchParams.has("e") ? Number(url.searchParams.get("e")) : 50;
 url.thumbindex = url.searchParams.has("g") ? Number(url.searchParams.get("g")) : 0;
 url.thumbalpha = url.searchParams.has("q") ? Number(url.searchParams.get("q")) : 100;
@@ -101,7 +101,6 @@ url.rows = url.searchParams.has("o") ? Number(url.searchParams.get("o")) : 1;
 url.row = url.searchParams.has("r") ? Number(url.searchParams.get("r")) : 50;
 url.zoom = url.searchParams.has("z") ? Number(url.searchParams.get("z")) : 30;
 url.time = url.searchParams.has("c") ? Number(url.searchParams.get("c")) : TIMEOBJ/2;
-url.slicewidth = url.searchParams.has("i") ? Number(url.searchParams.get("i")) : 1;
 url.timemain = url.searchParams.has("j") ? Number(url.searchParams.get("j")) : 12;
 url.position = url.searchParams.has("v") ? Number(url.searchParams.get("v")) : 4;
 url.fullpath = function() { return url.path + "." + projectobj.current().pad(4) + "." + url.extension; }
@@ -718,7 +717,6 @@ addressobj.body = function ()
         "&v="+context.positobj.current()+
         "&c="+context.timeobj.current().toFixed(2)+
         "&g="+thumbobj.current()+
-        "&a="+url.slideshow+
         "&e="+url.rowbegin+
         "&d="+url.cols+
         "&o="+url.rows+
@@ -726,7 +724,6 @@ addressobj.body = function ()
         "&q="+url.thumbalpha+
         "&t="+url.thumbpicture+
         "&f="+url.hide+
-        "&i="+url.slicewidth+
         "&l="+url.divider+
         "&j="+url.timemain+
         "&m="+(projectobj.length()-1);
@@ -747,7 +744,6 @@ addressobj.refresh = function()
     {  
         var str = addressobj.full();
         history.replaceState(0, document.title, str);
-        localStorage.setItem(url.fullpath(), str);
         _4cnvctx.refresh();
     }, 100);
 }
@@ -842,16 +838,20 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
     clearTimeout(this.movepagetime);
     this.movepagetime = setTimeout(function()
     {
-        delete photo.cached;
-        _4cnvctx.slidecomplete = 0;
-        projectobj.rotate(j?1:-1);
-        _4cnvctx.timeobj.set(TIMEOBJ/2);
-        _4cnvctx.refresh();
-        _4cnvctx.setcolumncomplete = 0;
-        var row = (url.rowbegin/100)*_4cnvctx.rowobj.length();
-        _4cnvctx.rowobj.set(row);
-        contextobj.reset();
-    }, 40);
+        if (_4cnvctx.setcolumncomplete)
+        {
+            delete photo.cached;
+            delete photo.image;
+            _4cnvctx.slidecomplete = 0;
+            projectobj.rotate(j?1:-1);
+            _4cnvctx.timeobj.set(TIMEOBJ/2);
+            _4cnvctx.refresh();
+            _4cnvctx.setcolumncomplete = 0;
+            var row = (url.rowbegin/100)*_4cnvctx.rowobj.length();
+            _4cnvctx.rowobj.set(row);
+            contextobj.reset();
+        }
+    }, 200);
 }
 
 CanvasRenderingContext2D.prototype.hide = function ()
@@ -877,14 +877,6 @@ CanvasRenderingContext2D.prototype.panbottom = function()
 {
     this.rowobj.set(this.rowobj.length()-1);
     contextobj.reset();
-}
-
-CanvasRenderingContext2D.prototype.menuswipe = function(m)
-{
-    var j = window.innerHeight / this.virtualheight;
-    var e = (j*TIMEOBJ);
-    e *= m?1:-1;
-    this.timeobj.rotate(e);
 }
 
 CanvasRenderingContext2D.prototype.swipehard = function(m)
@@ -1421,7 +1413,7 @@ var panlst =
     {
         var s = Math.min(rect.height,context.visibles.length*BUTTONHEIGHT);
         var e = (s/context.virtualheight)*TIMEOBJ;
-        var k = e*0.015;
+        var k = e*0.01;
         this.timeobj.rotate(type=="pandown" ? k : -k);
 	},
  	leftright: function (context, rect, x, y, type)
@@ -1435,7 +1427,6 @@ var panlst =
     },
 	panend: function (context, rect, x, y) 
     { 
-        localStorage.setItem(url.path+context.id+".time", context.timeobj.current());
     }
 },
 {
@@ -1448,7 +1439,6 @@ var panlst =
              return;
         context.pantype = type;
 
-        //if ((!url.thumbpicture || context.hidepicture || context.ctrlhit) && context.isthumbrect)
         if (context.isthumbrect)
         {
             context.hithumb(x,y);
@@ -1472,7 +1462,7 @@ var panlst =
     },
 	panstart: function (context, rect, x, y)
 	{
-        url.slideshow = 0;
+        slideoff();
         context.hidepicture = 0;
         context.panning = 1;
         context.refresh();
@@ -1576,7 +1566,8 @@ var presslst =
 
     press: function (context, rect, x, y)
     {
-        url.hide = 0;  
+        if (url.hide)
+            return;
         var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         var n = context.grid.hitest(x,y); 
         if (isthumbrect || context.positobj.current() == n)
@@ -1609,25 +1600,24 @@ var swipelst =
     name: "MENU",
     swipeleftright: function (context, rect, x, y, evt)
     {    
+        context.swipetype = evt.type;
     },
     swipeupdown: function (context, rect, x, y, evt)
     {
-        evt.preventDefault();
-        clearTimeout(context.timeswipe);
-        context.timeswipe = setTimeout(function()
-        {
-            context.type = evt.type;
-            if (evt.type == "swipedown")
-                context.menuswipe(1);
-            else
-                context.menuswipe(0);
-        }, JULIETIME);
+        context.swipetype = evt.type;
+        context.slideshow = 25;
+        context.refresh();
+        addressobj.refresh();
     },
 },
 {
     name: "BOSS",
     swipeleftright: function (context, rect, x, y, evt)
     {
+        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+        if (isthumbrect)
+            return;
+        context.swipetype = evt.type;
         evt.preventDefault();
         clearTimeout(context.timeswipe);
         context.timeswipe = setTimeout(function()
@@ -1636,24 +1626,17 @@ var swipelst =
                 context.swipehard(0);
             else
                 context.swipehard(1);
-            url.slideshow = 1;
-            context.refresh();
+            slideon();
         }, JULIETIME);
     },
 
     swipeupdown: function (context, rect, x, y, evt)
     {
+        context.swipetype = evt.type;
         evt.preventDefault();
         clearTimeout(context.timeswipe);
         context.timeswipe = setTimeout(function()
         {
-            var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
-            if (isthumbrect)
-                return;
-            if (evt.type == "swipedown")
-                context.moveup(1);
-            else
-                context.movedown(1);
 
         }, JULIETIME);
     },
@@ -1723,9 +1706,9 @@ var keylst =
             url.hide = url.hide?0:1;
             evt.preventDefault();
         }
-        else if (evt.key == " ")
+        else if (evt.key == " ")//space
         {
-            slideshow();
+            slideon();
             evt.preventDefault();
         }
         else if (evt.key == "-" || evt.key == "[")
@@ -1842,7 +1825,7 @@ var keylst =
             var s = Math.min(window.innerHeight,context.visibles.length*BUTTONHEIGHT);
             var e = (s/context.virtualheight)*TIMEOBJ;
             var k = e*0.05;
-            context.timeobj.rotate(evt.key == "ArrowUp" ? k : -k);
+            context.timeobj.rotate(evt.key == "ArrowUp" ? -k : k);
 		}
  	}
 },
@@ -1909,8 +1892,8 @@ var taplst =
             menuhide();
             return;
         }
-   
-        url.slideshow = 0;
+  
+        slideoff();
         context.refresh();
 
         if (context.movetoprect && context.movetoprect.hitest(x,y))
@@ -1994,9 +1977,9 @@ var taplst =
         context.refresh();
         setTimeout(function () 
         { 
-            menuhide();
             slice.func(); 
             slice.tap = 0;
+            context.refresh();
         }, JULIETIME*5);
     },
 },
@@ -2153,8 +2136,6 @@ var thumblst =
             whiterect.draw(context, context.thumbselect[1], 0, 0);
             context.thumbselectwidth += wwwww;
         }
-
-     //   context.restore();
     },
 },
 ];
@@ -2166,12 +2147,10 @@ thumbobj.rotate = function()
     if (thumbobj.current() == 0 && url.thumbpicture)
     {
         url.thumbpicture = 0;
-        context.hidepicture = 1;
     }
     else if (thumbobj.current() == 0 && !url.thumbpicture)
     {
         url.thumbpicture = 1;
-        context.hidepicture = 0;
         thumbobj.set(1);
     }
     else 
@@ -2179,10 +2158,6 @@ thumbobj.rotate = function()
         thumbobj.set(0);
     }
 
-    url.hide = 0;
-    helpobj.hide(); 
-    pageresize();
-    addressobj.refresh();
     _4cnvctx.refresh();
 }
 
@@ -2237,10 +2212,12 @@ var drawlst = [
                 if (user.index == projectobj.current())
                     clr = select;
             }
-            else if (user.path == "SLIDESHOW")
+            else if (user.path == "THUMBNAIL")
             {
-                if (url.slideshow)
+                if (thumbobj.current() == 0 && url.thumbpicture)
                     clr = select;
+                else if (thumbobj.current() == 0 && !url.thumbpicture)
+                    clr = select2;
             }
             else if (user.path == "FULLSCREEN")
             {
@@ -2335,7 +2312,8 @@ function resetcanvas()
         var lerp = Math.lerp(0,context.rowobj.length()-1,url.row/100); 
         context.rowobj.set(lerp);
     }
-       
+      
+    var slicewidth = Math.lerp(1,2,context.zoomobj.berp());
     var y = Math.clamp(0,context.canvas.height-1,context.canvas.height*context.rowobj.berp());
     context.nuby = Math.nub(y, context.canvas.height, context.imageheight, photo.image.height);  
     var ks = 0;
@@ -2343,7 +2321,7 @@ function resetcanvas()
     {
         var k = slicelst[n];
         var fw = context.virtualwidth / k.slices;
-        if (fw < url.slicewidth)
+        if (fw < slicewidth)
             continue;
         ks = n;
         break;
@@ -2361,8 +2339,9 @@ function resetcanvas()
     var slice = 0;
     context.sliceobj.data_ = []
 
-    for (var n = 0; n < canvaslst.length; ++n)
-        releaseCanvas(canvaslst[n]);
+    if (SAFARI)
+        for (var n = 0; n < canvaslst.length; ++n)
+            releaseCanvas(canvaslst[n]);
     var j = 0;
     for (var n = 0; n < canvaslen; ++n)
     {
@@ -2530,10 +2509,7 @@ var ContextObj = (function ()
 			context.lastime = 0;
 			context.sliceobj = new makeoption("", []);
             context.timeobj = new makeoption("", TIMEOBJ);
-            var time = Math.floor(localStorage.getItem(url.path+context.id+".time"));
-            var j = Math.floor(Number(time));
-            context.timeobj.set(j);
-            context.describeobj = new makeoption("", 0);
+           context.describeobj = new makeoption("", 0);
             context.columnobj = new makeoption("", url.cols);
             context.positobj = new makeoption("", 9);
             context.positobj.set(url.position);
@@ -2562,9 +2538,10 @@ var ContextObj = (function ()
         var slices = _9cnvctx.sliceobj;
         slices.data_= [];
         slices.data_.push({title:"Refresh", path: "REFRESH", func: refresh})
-        slices.data_.push({title:"Slideshow", path: "SLIDESHOW", func: slideshow})
+        slices.data_.push({title:"Thumbnail", path: "THUMBNAIL", func: thumbnail})
         slices.data_.push({title:"Help", path: "HELP", func: helpdraw})
         slices.data_.push({title:"Open...", path: "LOAD", func: load})
+        slices.data_.push({title:"Screenshot", path: "SCREENSHOT", func: screenshot})
         slices.data_.push({title:"Original", path: "ORIGINAL", func: original})
         if (!SAFARI)
             slices.data_.push({title:"Fullscreen", path: "FULLSCREEN", func: fullscreen})
@@ -2634,7 +2611,7 @@ var ContextObj = (function ()
 
         resetcontext4: function (context)
        	{
-            if (photo.image && _4cnvctx.setcolumncomplete)
+            if (photo.image)// && _4cnvctx.setcolumncomplete)
             {
                 contextobj.resize(context);
                 resetcanvas(context);
@@ -2664,8 +2641,6 @@ var ContextObj = (function ()
                     seteventspanel(new YollPanel());
                     clearTimeout(globalobj.loadtime);
 
-                    if (url.slideshow)
-                        url.slideshow = 1;
                     globalobj.loadtime = setTimeout(function()
                     {
                         context.refresh();
@@ -3420,12 +3395,11 @@ var YollPanel = function ()
                 else
                     context.lastime = context.timeobj.current();
 
-                if (url.slideshow && !context.pantype)
+                if (context.slideshow > 0)
                 {
-                    var p = context.panslide.berp();
-                    var s = TIMEOBJ/context.virtualwidth;
-                    var k = p*s;
-                    context.timeobj.rotate(-k);
+                    var k = (context.swipetype == "swipeleft")?-1:1;
+                    context.timeobj.rotate(k*context.slideshow);
+                    context.slideshow -= 2;
                 }
                 
                 var time = context.timeobj.getcurrent()/1000;
@@ -3529,7 +3503,12 @@ var YollPanel = function ()
 
                 context.restore();
                 context.save();
-                context.setcolumncomplete = 1;
+                if (!context.setcolumncomplete)
+                {
+                    context.setcolumncomplete = 1;
+                    continue;
+                }
+
                 context.thumbselect = [];
                 context.grid = [];
                 delete context.menurect;
@@ -3574,10 +3553,10 @@ var YollPanel = function ()
                 var a = new Grid(3,3,0,new Rects(context.grid));
                 a.draw(context, rect, 0, 0);
 
-                if (!context.describe && !url.hide)
+                if (!context.describe && !url.hide && !context.screenshot)
                     thumbobj.getcurrent().draw(context, rect, 0, 0);
                 
-                if (context.zoomobj.current())
+                if (context.zoomobj.current() && !context.screenshot)
                 {
                     context.shadowOffsetX = 0;
                     context.shadowOffsetY = 0;
@@ -3631,6 +3610,13 @@ var YollPanel = function ()
                 else
                     context.lastime = Number(time.toFixed(8));
 
+                if (context.slideshow > 0)
+                {
+                    var k = (context.swipetype == "swipeup")?-1:1;
+                    context.timeobj.rotate(k*context.slideshow);
+                    context.slideshow--;
+                }
+ 
 			    var sliceobj = context.sliceobj;
 				var slices = sliceobj.data();
 				var r = context.rect();
@@ -3851,6 +3837,8 @@ var headlst =
 		{
             if (context.page.hitest(x,y))
             {
+                var time = parseFloat(localStorage.getItem(url.path+_8cnvctx.id+".time"));
+                _8cnvctx.timeobj.set(time);
                 menushow(_8cnvctx);
             }
             else if (context.prevpage2.hitest(x,y) ||
@@ -3904,14 +3892,14 @@ var headlst =
 
             var a = new Layer(
             [
-                new Fill(HEADCOLOR),
+                //new Fill(HEADCOLOR),
                 new ColA([ALIEXTENT,0,ALIEXTENT,ALIEXTENT,ALIEXTENT,0,ALIEXTENT],
                 [
-                    projectobj.length() > 1 ? new Layer(
+                    (url.hide || projectobj.length() < 2) ? 0:new Layer(
                     [
                         new PagePanel(_8cnvctx.enabled?0.125:0.1),
                         new Rectangle(context.page),
-                    ]) : 0,
+                    ]),
                     new Layer(
                     [
                         new Rectangle(context.prevpage2),
@@ -3934,7 +3922,7 @@ var headlst =
                     [
                         new Rectangle(context.nextpage2),
                     ]),
-                    new Layer(
+                    url.hide?0:new Layer(
                     [
                         new OptionPanel(_9cnvctx.enabled?0.125:0.1),
                         new Rectangle(context.option),
@@ -4054,7 +4042,7 @@ var Footer = function (obj)
 
         var a = new Layer(
         [
-            new Fill(HEADCOLOR),
+            //new Fill(HEADCOLOR),
             new ColA([j,ALIEXTENT,0,ALIEXTENT,j],
             [
                 0,
@@ -4127,7 +4115,7 @@ var footobj = new makeoption("", footlst);
  
 function menushow(context)
 {
-    url.slideshow = 0;
+     slideoff();
     var enabled = context.enabled;
     _3cnvctx.hide();
     _5cnvctx.hide();
@@ -4262,26 +4250,37 @@ window.addEventListener('message', function(evt)
         _4cnvctx.pantop();
     else if (evt.data == "panbottom")
         _4cnvctx.panbottom();
-    else if (evt.data == "moveup")
-        _4cnvctx.moveup(1);
     else if (evt.data == "pinchout")
         _4cnvctx.pinchout();
     else if (evt.data == "pinchin")
         _4cnvctx.pinchin();
-    else if (evt.data == "movedown")
+    else if (evt.data == "slideon")
+        slideon();
+    else if (evt.data == "slideoff")
+        slideoff();
+    else if (evt.data == "swipeleft")
+        _4cnvctx.swipehard(0);
+    else if (evt.data == "swiperight")
+        _4cnvctx.swipehard(1);
+    else if (evt.data == "swipeup")
+        _4cnvctx.moveup(1);
+    else if (evt.data == "swipedown")
         _4cnvctx.movedown(1);
-    else if (evt.data == "thumbnail")
-        thumbobj.rotate();
+    else if (evt.data == "moveleft")
+        _4cnvctx.movepage(0);
+    else if (evt.data == "moveright")
+        _4cnvctx.movepage(1);
 
     return true;
 });
 
 function pageresize()
 {
-    var h = (url.hide||IFRAME)?0:ALIEXTENT;
+    var h = (IFRAME)?0:ALIEXTENT;
     headcnvctx.show(0,0,window.innerWidth,h);
     headobj.set(0);
     headham.panel = headobj.getcurrent();
+    var h = (url.hide||IFRAME)?0:ALIEXTENT;
     footcnvctx.show(0,window.innerHeight-ALIEXTENT, window.innerWidth, h);
     footobj.set(0);
     footham.panel = footobj.getcurrent();
@@ -4551,15 +4550,23 @@ function refresh()
     location.reload();
 }
 
-function slideshow()
+function slideon()
 {
-    url.slideshow = 1;
+    _4cnvctx.slideshow = SLIDECOUNT;
+    _4cnvctx.refresh();
+    addressobj.refresh();
+}
+
+function slideoff()
+{
+    _4cnvctx.slideshow = 0;
     _4cnvctx.refresh();
     addressobj.refresh();
 }
 
 function helpdraw()
 {
+    menuhide();
     var context = _4cnvctx;
     helpobj.getcurrent().draw(context, context.rect(), 0, 0);
 }
@@ -4569,6 +4576,12 @@ function load()
     promptFile().then(function(files) { dropfiles(files); });
 }
 
+function thumbnail()
+{
+    thumbobj.rotate();
+}
+
+
 function original()
 {
     var path = photo.image.original;
@@ -4577,11 +4590,18 @@ function original()
 
 function screenshot()
 {
-    var k = document.createElement('canvas');
-    var link = document.createElement("a");
-    link.href = _4cnvctx.canvas.toDataURL('image/jpg');
-    link.download = projectobj.current().pad(4) + ".jpg";
-    link.click();
+    _4cnvctx.refresh()
+    _4cnvctx.screenshot = 1;
+    setTimeout(function()
+    {
+        var k = document.createElement('canvas');
+        var link = document.createElement("a");
+        link.href = _4cnvctx.canvas.toDataURL('image/jpg');
+        link.download = projectobj.current().pad(4) + ".jpg";
+        link.click();
+        _4cnvctx.screenshot = 0;
+        _4cnvctx.refresh()
+    }, 1000);
 }
 
 function fullscreen()
@@ -4591,6 +4611,8 @@ function fullscreen()
 
 function project()
 {
+    var k = _8cnvctx.timeobj.current();
+    localStorage.setItem(url.path+_8cnvctx.id+".time", k);
     projectobj.set(this.index);
     var s = addressobj.full();
     window.open(s,"_self");

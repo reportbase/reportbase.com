@@ -2,27 +2,13 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="icon" href="res/favicon.ico" type="image/x-icon" />
 <style>
-html {
+html 
+{
    font-family: monospace;
 	font-size: 150%; /* 2 */
 	line-height: 1.6; /* 3 */
 	-webkit-text-size-adjust: 150%; /* 4 */
 	word-break: break-word; /* 5 */
-
-h1 
-{
-  font-size: 5.9vw;
-}
-
-h2 
-{
-  font-size: 3.0vh;
-}
-
-p 
-{
-  font-size: 2vmin;
-}
 }
 
 a:link { text-decoration: none; } 
@@ -30,27 +16,6 @@ a:hover { text-decoration: none; background-color:yellow; }
 a:active { text-decoration: none; color: black; }
 a:visited { text-decoration: none; color: purple; }
 
-.grid-container {
-  display: grid;
-  grid-template-columns: auto auto;
-}
-
-.grid-item {
-    font-size: 20px; 
-    font-weight: bold; 
-    padding-right: 6px;
-  text-align: right;
-}
-
-.grid-item2 {
-    font-size: 20px; 
-    font-weight: bold; 
-    padding-left: 6px;
-  text-align: left;
-  -webkit-text-size-adjust: 150%;
-}
-
-*{ box-sizing:border-box }
 body 
 {
   #touch-action: pan-x pan-y;
@@ -126,24 +91,20 @@ section
 <center>
 <iframe seamless id=pano></iframe>
 <section>
-  <button onclick="moveup()" id="projectag"></button>
-  <button onclick="moveup()"><img src="res/left.png"/></button>
-  <button onclick="fullscreen()"><img src="res/full.png"/></button> 
-  <button onclick="movedown()"><img src="res/right.png"/></button>
-  <button onclick="movedown()"id="projectstag"></button><p>
-    
   <a onclick="help(); return false;" href="javascript:void(0);">Help</a> / 
+  <a onclick="moveleft(); return false;" href="javascript:void(0);">Move-left</a> / 
+  <a onclick="moveright(); return false;" href="javascript:void(0);">Move-right</a> / 
   <a onclick="pantop(); return false;" href="javascript:void(0);">Pan-top</a> / 
   <a onclick="panbottom(); return false;" href="javascript:void(0);">Pan-bottom</a> / 
   <a onclick="swipeleft(); return false;" href="javascript:void(0);">Swipe-left</a> / 
   <a onclick="swiperight(); return false;" href="javascript:void(0);">Swipe-right</a> / 
-  <a onclick="moveup(); return false;" href="javascript:void(0);">Move-previous</a> / 
-  <a onclick="movedown(); return false;" href="javascript:void(0);">Move-next</a> / 
+  <a onclick="swipeup(); return false;" href="javascript:void(0);">Swipe-up</a> / 
+  <a onclick="swipedown(); return false;" href="javascript:void(0);">Swipe-down</a> / 
   <a onclick="pinchin(); return false;" href="javascript:void(0);">Pinch-in</a> / 
   <a onclick="pinchout(); return false;" href="javascript:void(0);">Pinch-out</a> / 
   <a onclick="thumbnail(); return false;" href="javascript:void(0);">Thumbnail</a> / 
-  <a onclick="slideshow(); return false;" href="javascript:void(0);">Slideshow</a> / 
-  <a onclick="slideoff(); return false;" href="javascript:void(0);">Slide-off</a> / 
+  <a onclick="slideon(); return false;" href="javascript:void(0);">Slideshow-on</a> / 
+  <a onclick="slideoff(); return false;" href="javascript:void(0);">Slideshow-off</a> / 
   <a onclick="original(); return false;" href="javascript:void(0);">Original</a> / 
   <a onclick="fullscreen(); return false;" href="javascript:void(0);">Full-screen</a> / 
   <a onclick="newindow(); return false;" href="javascript:void(0);">New-Window</a><p>
@@ -153,7 +114,6 @@ section
 <section>
 <center>
   <h2>Galleries</h2><p>
-<gallery>
 <a onclick="pan.src='https://reportbase.com/home.html?p=RAIN&m=0077'; finish(); return false;" href="javascript:void(0);">RAIN</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=BIRD&m=0041'; finish(); return false;" href="javascript:void(0);">BIRD</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=CITY&m=0037'; finish(); return false;" href="javascript:void(0);">CITY</a>
@@ -262,14 +222,11 @@ section
 <a onclick="pan.src='https://reportbase.com/home.html?p=PANO&f=0&tg=0&t=1&h=100&v=7&z=0&m=0045'; finish(); return false;" href="javascript:void(0);">PANO</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=PINO&f=0&tg=0&t=1&h=100&v=7&z=0&m=0029'; finish(); return false;" href="javascript:void(0);">PINO</a>
 <a onclick="pan.src='https://reportbase.com/home.html?p=WIDE&f=0&tg=0&t=1&h=100&v=7&z=0&m=0020'; finish(); return false;" href="javascript:void(0);">WIDE</a>
-</gallery> 
 <p>
 </section>
 <section>
-<gallery> 
 <h2>Images</h2>
 <span id=images></span>
-</gallery> 
 </section>
 <section>
   <h2>
@@ -292,6 +249,8 @@ var pano = pan.contentWindow;
 var path = document.getElementById('path');
 var address = document.getElementById('address');
 
+function moveleft() { pano.postMessage("moveleft", '*'); finish();}
+function moveright() { pano.postMessage("moveright", '*'); finish();}
 function swipeup() { pano.postMessage("swipeup", '*'); finish();}
 function swipedown() { pano.postMessage("swipedown", '*'); finish();}
 function pantop() { pano.postMessage("pantop", '*'); finish();}
@@ -308,7 +267,7 @@ function zoommax() { pano.postMessage("zoommax", '*'); finish();}
 function zoommin() { pano.postMessage("zoommin", '*'); finish();}
 function zoomin() { pano.postMessage("zoomin", '*'); finish();}
 function zoomout() { pano.postMessage("zoomout", '*'); finish();}
-function slideshow() { pano.postMessage("slideshow", '*'); finish();}
+function slideon() { pano.postMessage("slideon", '*'); finish();}
 function slideoff() { pano.postMessage("slideoff", '*'); finish();}
 function pinchin() { pano.postMessage("pinchin", '*'); finish();}
 function pinchout() { pano.postMessage("pinchout", '*'); finish();}
