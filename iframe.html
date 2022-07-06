@@ -92,10 +92,14 @@ section
 <iframe seamless id=pano></iframe>
 <section>
   <a onclick="help(); return false;" href="javascript:void(0);">Help</a> / 
-  <a onclick="moveleft(); return false;" href="javascript:void(0);">Move-left</a> / 
-  <a onclick="moveright(); return false;" href="javascript:void(0);">Move-right</a> / 
+  <a onclick="openimage(); return false;" href="javascript:void(0);">Open-image</a> / 
+  <a onclick="refresh(); return false;" href="javascript:void(0);">Refresh</a> / 
+  <a onclick="moveleft(); return false;" href="javascript:void(0);">Previous-image</a> / 
+  <a onclick="moveright(); return false;" href="javascript:void(0);">Next-image</a> / 
   <a onclick="pantop(); return false;" href="javascript:void(0);">Pan-top</a> / 
   <a onclick="panbottom(); return false;" href="javascript:void(0);">Pan-bottom</a> / 
+  <a onclick="zoomin(); return false;" href="javascript:void(0);">Zoom-in</a> / 
+  <a onclick="zoomout(); return false;" href="javascript:void(0);">Zoom-out</a> / 
   <a onclick="swipeleft(); return false;" href="javascript:void(0);">Swipe-left</a> / 
   <a onclick="swiperight(); return false;" href="javascript:void(0);">Swipe-right</a> / 
   <a onclick="swipeup(); return false;" href="javascript:void(0);">Swipe-up</a> / 
@@ -249,6 +253,8 @@ var pano = pan.contentWindow;
 var path = document.getElementById('path');
 var address = document.getElementById('address');
 
+function openimage() { pano.postMessage("openimage", '*'); finish();}
+function refresh() { pano.postMessage("refresh", '*'); finish();}
 function moveleft() { pano.postMessage("moveleft", '*'); finish();}
 function moveright() { pano.postMessage("moveright", '*'); finish();}
 function swipeup() { pano.postMessage("swipeup", '*'); finish();}
