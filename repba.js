@@ -11,7 +11,7 @@ const IFRAME = window !== window.parent;
 const MAXVIRTUALWIDTH = SAFARI?5760:5760*2; 
 const DOUBLECLICK = 500;
 const CANVASCOUNT = 10;
-const TIMERELOAD = 5000;
+const TIMERELOAD = 10000;
 const REFRESHEADER = 1000;
 const MAXSLIDER = 720;
 const POSITYSPACE = 50;
@@ -42,18 +42,18 @@ const FONTHEIGHT = 16;
 const BUTTONHEIGHT = 38; 
 const ROWHEIGHT = FONTHEIGHT*2;
 const QUALITY = 0.65;
-const THUMBMIN = 0.00;
+const TIMEMAIN = 1;
 const ZOOMADJ = 0.01;
 const PINCHRANGE = "0.35-1.1";
 const HEIGHTRANGE = "0.10-1.0";
-const PANXRANGE = "5-30";
+const PANXRANGE = "3-15";
 const PANYRANGE = "1.0-4.0";
 const CANVASMAX = 30;
 const MAXCANVASWIDTH = 32767;
 const MAXCANVASIZE = SAFARI?16777216:32777216;
 const MAXVIRTUALSIZE = SAFARI?12000000:24000000;
 const MENUCOLOR = "rgba(0,0,0,0.50)";
-const HEADCOLOR = "rgba(0,0,0,0.30)";
+const HEADCOLOR = "rgba(0,0,0,0.40)";
 const HEADLIGHT = "rgba(0,0,0,0.50)";
 const DARKHEADCOLOR = "rgba(0,0,0,0.8)";
 const ARROWSELECT = "rgba(255,125,0,0.5)";
@@ -68,8 +68,10 @@ globalobj = {};
 var url = new URL(window.location.href);
 url.group = url.searchParams.has("u") ? url.searchParams.get("u") : "reportbase";
 url.projects = url.searchParams.has("m") ? url.searchParams.get("m") : "0000";
-url.filename = url.searchParams.get("p");
-var filename = url.filename.split(".");
+url.cols = url.searchParams.has("d") ? Number(url.searchParams.get("d")) : 1;
+url.rows = url.searchParams.has("o") ? Number(url.searchParams.get("o")) : 1;
+var filename = url.searchParams.get("p");
+filename = filename.split(".");
 if (filename.length == 3)
 {
     url.path = filename[0];
@@ -83,29 +85,19 @@ else
     url.extension = "webp"; 
 }
 
-url.hide = url.searchParams.has("f") ? Number(url.searchParams.get("f")) : 0;
+url.divider = url.searchParams.has("l") ? url.searchParams.get("l") : "black";
+url.vpan = url.searchParams.has("x") ? Number(url.searchParams.get("x")) : 1;
+url.trait = url.searchParams.has("h") ? Number(url.searchParams.get("h")) : 50;
+url.scape = url.searchParams.has("a") ? Number(url.searchParams.get("a")) : 100;
 url.panx = url.searchParams.has("k") ? Number(url.searchParams.get("k")) : 25;
 url.pany = url.searchParams.has("n") ? Number(url.searchParams.get("n")) : 50;
-url.portrait = url.searchParams.has("h") ? Number(url.searchParams.get("h")) : 50;
-url.landscape = url.searchParams.has("a") ? Number(url.searchParams.get("a")) : 100;
-
-url.divider = url.searchParams.has("l") ? url.searchParams.get("l") : "0";
-if (url.divider == "0")
-    url.divider = 0;
-
+url.hide = url.searchParams.has("f") ? Number(url.searchParams.get("f")) : 0;
 url.autostart = url.searchParams.has("k") ? Number(url.searchParams.get("k")) : 0;
 url.autopage = url.searchParams.has("n") ? Number(url.searchParams.get("n")) : 1500;
-url.vpan = url.searchParams.has("x") ? Number(url.searchParams.get("x")) : 1;
-url.slidecount = url.searchParams.has("i") ? Number(url.searchParams.get("i")) : 30;
+url.slidecount = url.searchParams.has("i") ? Number(url.searchParams.get("i")) : 10;
 url.slidereduce = url.searchParams.has("s") ? Number(url.searchParams.get("s")) : 0.5;
 url.rowbegin = url.searchParams.has("e") ? Number(url.searchParams.get("e")) : 50;
-url.thumbalpha = url.searchParams.has("q") ? Number(url.searchParams.get("q")) : 100;
 url.thumbpicture = url.searchParams.has("t") ? Number(url.searchParams.get("t")) : 1;
-url.cols = url.searchParams.has("d") ? Number(url.searchParams.get("d")) : 1;
-url.rows = url.searchParams.has("o") ? Number(url.searchParams.get("o")) : 1;
-url.row = url.searchParams.has("r") ? Number(url.searchParams.get("r")) : 50;
-url.time = url.searchParams.has("c") ? Number(url.searchParams.get("c")) : TIMEOBJ/2;
-url.timemain = url.searchParams.has("j") ? Number(url.searchParams.get("j")) : 1;
 url.fullpath = function() { return url.path + "." + projectobj.current().pad(4) + "." + url.extension; }
 
 Math.clamp = function (min, max, val)
@@ -155,31 +147,6 @@ var makeoption = function (title, data)
     };
 
     this.split = function(k,j,size)
-    {
-        var s = j.split("-");
-        var begin = Number(s[0]);
-        var end = Number(s[1]);
-        var mn = begin;
-        var mx = end;
-        var ad = (mx-mn)/size;
-        if (mx == mn)
-            size = 1;
-        var lst = [];
-        for (var n = 0; n < size; ++n, mn+=ad)
-            lst.push(mn.toFixed(4));
-        var j = this.length();
-        this.data_ = lst;
-        if (j == 0)
-        {
-            var l = Math.lerp(0,size-1,k/100);
-            this.set(Math.floor(l));
-        }
-
-        this.begin = begin;
-        this.end = end;
-    }
-   
-    this.split2 = function(k,j,size)
     {
         var s = j.split("-");
         var begin = Number(s[0]);
@@ -732,21 +699,20 @@ addressobj.body = function ()
 {
     var context = _4cnvctx;
     var out = 
-        "&c="+context.timeobj.current().toFixed(2)+//todo
-        "&s="+url.slidereduce+
-        "&i="+url.slidecount+
-        "&e="+url.rowbegin+
+        "&m="+(projectobj.length()-1)+
         "&d="+url.cols+
-        "&o="+url.rows+
-        "&q="+url.thumbalpha+
-        "&t="+url.thumbpicture+
+        "&e="+url.rowbegin+
         "&f="+url.hide+
-        "&l="+url.divider+
-        "&j="+url.timemain+
-        "&x="+url.vpan+
+        "&i="+url.slidecount+
         "&k="+url.autostart+
-        "&n="+url.autopage+
-        "&m="+(projectobj.length()-1);
+        "&l="+url.divider+
+        "&o="+url.rows+
+        "&s="+url.slidereduce+
+        "&t="+url.thumbpicture+
+        "&x="+url.vpan+
+        "&a="+url.scape+
+        "&h="+url.trait+
+        "&n="+url.autopage;
     return out;
 }
 
@@ -828,14 +794,14 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
 {
     _4cnvctx.newimage = j;
     pageresize();
+    slideoff();
     
     clearTimeout(globalobj.move);
     globalobj.move = setTimeout(function()
     {
         if (_4cnvctx.setcolumncomplete)
         {
-            slideoff();
-            var date = photo.image.date.getTime();
+            var dt = photo.image.date;   
             delete photo.cached;
             delete photo.image;
             _4cnvctx.slidecomplete = 0;
@@ -845,11 +811,13 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
             var row = (url.rowbegin/100)*rowobj.length();
             rowobj.set(row);
             _4cnvctx.timeobj.set(_4cnvctx.timeobj.length()/2);
-            var date1 = new Date(); 
-            if (date1-date > TIMERELOAD)
-                location.href = addressobj.full();
-            else
-                contextobj.reset();
+            var str = addressobj.full();
+            history.replaceState(0, document.title, str);
+            contextobj.reset();
+            var dta = new Date(); 
+            var diff = dta.getTime()-dt.getTime();
+            if (MOBILE && diff > TIMERELOAD)
+                setTimeout(function() { location.reload(); }, 100);
         }
     }, 100);
 }
@@ -889,9 +857,9 @@ CanvasRenderingContext2D.prototype.swipehard = function(m)
 
 CanvasRenderingContext2D.prototype.panimage = function (less,x,y)
 {
-    var p = panxobj.berp();
+    var p = panxobj.getcurrent();
     var s = this.timeobj.length()/this.virtualwidth;
-    var k = 30*p*s;
+    var k = p*s;
     this.timeobj.rotate(less ? k : -k);
 }
 
@@ -1293,7 +1261,7 @@ var pinchlst =
     name: "BOSS",
     pinch: function (context, scale)
     {
-        if (!url.hide && context.isthumbrect)
+        if (!localobj.hide && context.isthumbrect)
         {
             var obj = heightobj.getcurrent();
             var data = obj.data_; 
@@ -1479,6 +1447,7 @@ var panlst =
     },
 	panstart: function (context, rect, x, y)
 	{
+        slideoff();
         context.hidepicture = 0;
         context.panning = 1;
         context.refresh();
@@ -1581,7 +1550,7 @@ var presslst =
 
     press: function (context, rect, x, y)
     {
-        if (url.hide)
+        if (localobj.hide)
         {
             context.hidehead = context.hidehead?0:1;
             pageresize();
@@ -1641,21 +1610,14 @@ var swipelst =
         else
             context.swipetype = evt.type;
         evt.preventDefault();
-        clearTimeout(globalobj.swipe);
-        globalobj.swipe = setTimeout(function()
-        {
-            if (context.swipetype == "swipeleft")
-                context.swipehard(0);
-            else
-                context.swipehard(1);
-            context.slideshow = url.slidecount;
-            context.refresh();
-        }, JULIETIME);
+        context.slideshow = url.slidecount;
+        context.refresh();
     },
 
     swipeupdown: function (context, rect, x, y, evt)
     {
         slideoff();
+
         if (url.vpan)
             return;
         var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
@@ -1743,15 +1705,14 @@ var keylst =
         }
         else if (evt.key == " ")//space
         {
-            context.hideheader = 0;
-            url.hide = url.hide?0:1;
+            localobj.hide = localobj.hide?0:1;
             pageresize();
             context.refresh();
             evt.preventDefault();
         }
         else if (evt.key == "Tab")
         {
-            _4cnvctx.swipetype = "swipeleft";
+            _4cnvctx.swipetype = _4cnvctx.shifthit ? "swiperight" : "swipeleft";
             _4cnvctx.slideshow = url.slidecount;
             _4cnvctx.refresh();
             evt.preventDefault();
@@ -1995,13 +1956,16 @@ var taplst =
             zoomobj.add(1);
             contextobj.reset();
         }
-        else if (url.hide)
+        else if (localobj.hide)
         {
-            context.hidehead = context.hidehead?0:1;
-            pageresize();
-            context.refresh();
+        //    context.hidehead = context.hidehead?0:1;
+        //    pageresize();
+        //    context.refresh();
         }
-            
+        else
+        {
+        }
+
         pageresize();
         context.refresh();
     }
@@ -2114,7 +2078,7 @@ var thumblst =
         var whiterect = new StrokeRect(THUMBSTROKE);
         var blackrect = new Fill(THUMBFILL);
 
-        context.globalAlpha  =  url.thumbalpha/100;
+        context.globalAlpha  =  1;
         context.thumbrect = new rectangle(x,y,w,h);
         if (context.pinching || !url.thumbpicture || context.hidepicture)
         {
@@ -2262,11 +2226,6 @@ var drawlst = [
                 else if (thumbobj.current() == 0 && !url.thumbpicture)
                     clr = select2;
             }
-            else if (user.path == "SLIDESHOW")
-            {
-                if (url.autostart)
-                    clr = select;
-            }
             else if (user.path == "FULLSCREEN")
             {
                 if (screenfull.isFullscreen)
@@ -2321,7 +2280,7 @@ function resetcanvas()
     }
 
     zoomrange[1] = 0.925;
-    zoomobj.split2(zoomobj.current(), zoomrange.join("-"), OPTIONSIZE);
+    zoomobj.split(zoomobj.current(), zoomrange.join("-"), OPTIONSIZE);
 
    /* AAPL 
     for (var n = 0; n < zoomobj.length(); ++n)
@@ -2544,7 +2503,7 @@ var ContextObj = (function ()
             context.debugobj = new makeoption("", [ projectobj, context.sliceobj, context.timeobj, context.columnobj ]);
         }
 
-        _4cnvctx.timeobj.set(url.time);//todo
+        _4cnvctx.timeobj.set(url.time);
         var slices = _8cnvctx.sliceobj;
         slices.data_= [];
         var items = projectobj.length();
@@ -2559,7 +2518,7 @@ var ContextObj = (function ()
 
         var slices = _9cnvctx.sliceobj;
         slices.data_= [];
-        slices.data_.push({title:"Refresh (F5)", path: "REFRESH", func: function(){location.reload()}})
+        slices.data_.push({title:"Refresh (F5)", path: "REFRESH", func: function(){savelocal(); location.reload()}})
         slices.data_.push({title:"Thumbnail (T)", path: "THUMBNAIL", func: function(){thumbobj.rotate()}})
         slices.data_.push({title:"Help", path: "HELP", func: function(){menuhide(); helpobj.getcurrent().draw(_4cnvctx, _4cnvctx.rect(), 0, 0);} })
         slices.data_.push({title:"Open... (O)", path: "LOAD", func: function(){promptFile().then(function(files) { dropfiles(files); })}})
@@ -2721,6 +2680,7 @@ var ContextObj = (function ()
                     {
                         slideon();
                     }
+
                     clearTimeout(globalobj.load);
                     globalobj.load = setTimeout(function()
                     {
@@ -3426,12 +3386,6 @@ window.addEventListener("screenorientation", (evt) =>
     resize();
 });
 
-window.addEventListener("unload", (evt) => 
-{
-    for (var n = 0; n < canvaslst.length; ++n)
-        releaseCanvas(canvaslst[n]);
-});
-
 function escape() 
 {
     menuhide();
@@ -3632,7 +3586,7 @@ function yoll(context, rect, user, time)
         var a = new Grid(3,3,0,new Rects(context.grid));
         a.draw(context, rect, 0, 0);
 
-        if (!IFRAME && !context.describe && !url.hide && !context.screenshot)
+        if (!IFRAME && !context.describe && !localobj.hide && !context.screenshot)
             thumbobj.getcurrent().draw(context, rect, 0, 0);
         
         if (!context.screenshot)
@@ -3744,7 +3698,7 @@ var YollPanel = function ()
     {
         yoll(context, rect, user, time);
         clearInterval(globalobj.main);
-        globalobj.main = setInterval(function () { yoll(); }, url.timemain);
+        globalobj.main = setInterval(function () { yoll(); }, TIMEMAIN);
     };
 
 	this.tap = function (context, rect, x, y, shift, ctrl)
@@ -3755,6 +3709,13 @@ var YollPanel = function ()
 
 	this.dblclick = function (context, x, y)
     {
+        var thumb = context.thumbrect && context.thumbrect.hitest(x,y);
+        if (thumb)
+            return;
+        context.hidehead = 0;
+        localobj.hide = localobj.hide?0:1;
+        pageresize();
+        _4cnvctx.refresh();
     };
 
     this.wheeldown = function (context, x, y, ctrl, shift)
@@ -3867,8 +3828,6 @@ var YollPanel = function ()
 	}
 };
 
-var linkobj = new makeoption("Links", []);
-
 function getyollplst(k)
 {
     var lst = function (k)
@@ -3930,9 +3889,14 @@ var headlst =
             }
             else if (context.reload.hitest(x,y))
             {
-                url.hide = url.hide?0:1;
+                localobj.hide = localobj.hide?0:1;
                 pageresize();
                 _4cnvctx.refresh();
+                var dt = photo.image.date;   
+                var dta = new Date(); 
+                var diff = dta.getTime()-dt.getTime();
+                if (MOBILE && !localobj.hide && diff > TIMERELOAD)
+                    location.reload();
             }
             else if (context.nextpage2.hitest(x,y) ||
                     context.nextpage.hitest(x,y))
@@ -3982,7 +3946,7 @@ var headlst =
                 //new Fill(HEADCOLOR),
                 new ColA([ALIEXTENT,0,ALIEXTENT,90,ALIEXTENT,0,ALIEXTENT],
                 [
-                    (url.hide || projectobj.length() < 2) ? 0:new Layer(
+                    (localobj.hide || projectobj.length() < 2) ? 0:new Layer(
                     [
                         new PagePanel(_8cnvctx.enabled?0.125:0.1),
                         new Rectangle(context.page),
@@ -4007,7 +3971,7 @@ var headlst =
                         0,
                         new Layer(
                         [
-                            new Fill(url.hide?HEADCOLOR:ARROWSELECT),
+                            new Fill(localobj.hide?HEADCOLOR:ARROWSELECT),
                             new Rectangle(context.reload),
                             new Text("white", "center", "middle",0,1,1),
                         ]),
@@ -4028,7 +3992,7 @@ var headlst =
                     [
                         //new Rectangle(context.nextpage2),
                     ]),
-                    url.hide?0:new Layer(
+                    localobj.hide?0:new Layer(
                     [
                         new OptionPanel(_9cnvctx.enabled?0.125:0.1),
                         new Rectangle(context.option),
@@ -4399,7 +4363,7 @@ function pageresize()
     headcnvctx.show(0,y,window.innerWidth,h);
     headobj.set(0);
     headham.panel = headobj.getcurrent();
-    var h = (url.hide||IFRAME)?0:ALIEXTENT;
+    var h = (localobj.hide||IFRAME)?0:ALIEXTENT;
     footcnvctx.show(0,window.innerHeight-ALIEXTENT, window.innerWidth, h);
     footobj.set(0);
     footham.panel = footobj.getcurrent();
@@ -4686,20 +4650,34 @@ window.addEventListener("load", async () =>
         var obj = JSON.parse(localStorage.getItem(url.path));
         if (obj)
             localobj = obj;
+        if (typeof localobj.hide === "undefined")
+            localobj.hide = url.hide;
+        if (typeof localobj.current === "undefined")
+            localobj.current = {} 
+        if (typeof localobj.timers === "undefined")
+            localobj.timers = []
         for (var n = 0; n < localst.length; ++n)
         {
               var j = localst[n];
-              if (!localobj[j.obj.title])
-                localobj[j.obj.title] = j.def;
-            var b =localobj[j.obj.title];
+              if (!localobj.current[j.obj.title])
+                localobj.current[j.obj.title] = j.def;
+            var b =localobj.current[j.obj.title];
             j.obj.set(b);
         }
-//todo row time
-        pinchobj.split2(Number(localobj.pinch), PINCHRANGE, OPTIONSIZE);
-        panxobj.split2(Number(localobj.panx), PANXRANGE, OPTIONSIZE);
-        panyobj.split2(Number(localobj.pany), PANYRANGE, OPTIONSIZE);
-        traitobj.split2(Number(localobj.trait), HEIGHTRANGE, OPTIONSIZE);
-        scapeobj.split2(Number(localobj.scape), HEIGHTRANGE, OPTIONSIZE);
+
+        for (var n = 0; n < contextlst.length; ++n)
+        {
+            var j = contextlst[n];
+            var k = localobj.timers[n]?localobj.timers[n]:TIMEOBJ/2;
+            j.timeobj.set(k);
+            localobj.timers[n] = k;
+        }
+            
+        pinchobj.split(Number(localobj.current.pinch), PINCHRANGE, OPTIONSIZE);
+        panxobj.split(Number(localobj.current.panx), PANXRANGE, OPTIONSIZE);
+        panyobj.split(Number(localobj.current.pany), PANYRANGE, OPTIONSIZE);
+        traitobj.split(Number(localobj.current.trait), HEIGHTRANGE, OPTIONSIZE);
+        scapeobj.split(Number(localobj.current.scape), HEIGHTRANGE, OPTIONSIZE);
     }
     catch(error)
     {
@@ -4707,6 +4685,7 @@ window.addEventListener("load", async () =>
 
     pageresize(); 
     reset();
+    _4cnvctx.refresh()
 });
 
 var localobj = {}
@@ -4717,22 +4696,52 @@ var localst =
     {obj:pinchobj,def:50},
     {obj:panyobj,def:50},
     {obj:panxobj,def:50},
-    {obj:traitobj,def:100},
-    {obj:scapeobj,def:100},
+    {obj:traitobj,def:url.trait},
+    {obj:scapeobj,def:url.scape},
     {obj:zoomobj,def:50},
     {obj:rowobj,def:50},
 ];
 
-window.addEventListener("beforeunload", (evt) => 
+function savelocal()
 {
-    var k = {};
+    localobj.current = {};
+    localobj.timers = [];
     for (var n = 0; n < localst.length; ++n)
     {
         var j = localst[n].obj;
-        k[j.title] = j.current()
+        localobj.current[j.title] = j.current()
+    }
+        
+    for (var n = 0; n < contextlst.length; ++n)
+    {
+        var j = contextlst[n];
+        localobj.timers.push(j.timeobj.current());
     }
     
-    localStorage.setItem(url.path, JSON.stringify(k));
+    localStorage.setItem(url.path, JSON.stringify(localobj));
+}
+
+window.addEventListener("unload", (evt) => 
+{
+    savelocal();
+});
+
+window.addEventListener("visibilitychange", (evt) => 
+{
+    if (document.visibilityState === 'hidden') 
+    {
+        for (var n = 0; n < canvaslst.length; ++n)
+            releaseCanvas(canvaslst[n]);
+        savelocal();
+        clearInterval(globalobj.main);
+    }
+    else
+    {
+        _1ham.panel.draw(_1cnvctx, _1cnvctx.rect(), 0);
+        pageresize();
+        reset();
+        _4cnvctx.refresh()
+    }
 });
 
 
