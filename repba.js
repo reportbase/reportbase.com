@@ -8,10 +8,11 @@ const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
+const MFRAME = MOBILE && IFRAME;
 const MAXVIRTUALWIDTH = SAFARI?5760:5760*2; 
-const DOUBLECLICK = 500;
+const DRAWCOUNT = 25;
 const CANVASCOUNT = 10;
-const TIMERELOAD = 10000;
+const TIMERELOAD = 30000;
 const REFRESHEADER = 1000;
 const MAXSLIDER = 720;
 const POSITYSPACE = 50;
@@ -64,12 +65,11 @@ const SLIDELST = [0,27.5,50,72.5,100];
 
 dropobj = {};
 globalobj = {};
+localobj = {}
 
 var url = new URL(window.location.href);
 url.group = url.searchParams.has("u") ? url.searchParams.get("u") : "reportbase";
 url.projects = url.searchParams.has("m") ? url.searchParams.get("m") : "0000";
-url.cols = url.searchParams.has("d") ? Number(url.searchParams.get("d")) : 1;
-url.rows = url.searchParams.has("o") ? Number(url.searchParams.get("o")) : 1;
 var filename = url.searchParams.get("p");
 filename = filename.split(".");
 if (filename.length == 3)
@@ -85,20 +85,79 @@ else
     url.extension = "webp"; 
 }
 
-url.divider = url.searchParams.has("l") ? url.searchParams.get("l") : "black";
-url.vpan = url.searchParams.has("x") ? Number(url.searchParams.get("x")) : 1;
-url.trait = url.searchParams.has("h") ? Number(url.searchParams.get("h")) : 50;
-url.scape = url.searchParams.has("a") ? Number(url.searchParams.get("a")) : 100;
-url.panx = url.searchParams.has("k") ? Number(url.searchParams.get("k")) : 25;
-url.pany = url.searchParams.has("n") ? Number(url.searchParams.get("n")) : 50;
-url.hide = url.searchParams.has("f") ? Number(url.searchParams.get("f")) : 0;
-url.autostart = url.searchParams.has("k") ? Number(url.searchParams.get("k")) : 0;
-url.autopage = url.searchParams.has("n") ? Number(url.searchParams.get("n")) : 1500;
-url.slidecount = url.searchParams.has("i") ? Number(url.searchParams.get("i")) : 10;
-url.slidereduce = url.searchParams.has("s") ? Number(url.searchParams.get("s")) : 0.5;
-url.rowbegin = url.searchParams.has("e") ? Number(url.searchParams.get("e")) : 50;
-url.thumbpicture = url.searchParams.has("t") ? Number(url.searchParams.get("t")) : 1;
 url.fullpath = function() { return url.path + "." + projectobj.current().pad(4) + "." + url.extension; }
+
+globalobj.template = url.searchParams.has("t") ? url.searchParams.get("t") : "";
+localobj.hide = 0;
+globalobj.divider = "rgba(0,0,0,0)";
+globalobj.autostart = 0;
+globalobj.autopage = 1500;
+globalobj.slidecount = 10;
+globalobj.slidereduce = 0.25;
+globalobj.picture = 1;
+globalobj.position = 1;
+globalobj.cols = 1;
+globalobj.rows = 5;
+globalobj.vpan = 1;
+globalobj.trait = 50;
+globalobj.scape = 100;
+globalobj.panybegin = 50;
+globalobj.panxbegin = 50;
+globalobj.pinchbegin = 50;
+globalobj.zoombegin = 50;
+globalobj.rowbegin = window.innerHeight/2;
+if (globalobj.template == "comic")
+{
+    globalobj.slidecount = 5;
+    globalobj.slidereduce = 0.05;
+    globalobj.position = 6;
+    globalobj.rowbegin = 0;
+    globalobj.zoombegin = 60;
+}
+else if (globalobj.template == "wide")
+{
+    globalobj.position = 7;
+    globalobj.rows = 1;
+    globalobj.vpan = 0;
+    globalobj.trait = 50;
+    globalobj.scape = 50;
+    globalobj.zoombegin = 0;
+    globalobj.autostart = 1;
+    globalobj.autopage = 3000;
+}
+else if (globalobj.template == "plain")
+{
+    globalobj.position = 5;
+    globalobj.rows = 5;
+    globalobj.cols = 1;
+    localobj.hide = 1;
+    globalobj.trait = 100;
+    globalobj.scape = 100;
+}
+else if (globalobj.template == "tall")
+{
+    globalobj.position = 5;
+    globalobj.rows = 1;
+    globalobj.cols = 1;
+    localobj.hide = 1;
+}
+else if (globalobj.template == "catalog")
+{
+    globalobj.position = 7;
+    globalobj.cols = 7;
+    localobj.hide = 1;
+    globalobj.trait = 50;
+    globalobj.scape = 50;
+    globalobj.zoombegin = 0;
+}
+else if (globalobj.template == "fastslide")
+{
+    globalobj.position = 6;
+    globalobj.trait = 50;
+    globalobj.scape = 75;
+    globalobj.autostart = 1;
+    globalobj.autopage = 1500;
+}
 
 Math.clamp = function (min, max, val)
 {
@@ -698,21 +757,9 @@ var addressobj = {}
 addressobj.body = function ()
 {
     var context = _4cnvctx;
-    var out = 
-        "&m="+(projectobj.length()-1)+
-        "&d="+url.cols+
-        "&e="+url.rowbegin+
-        "&f="+url.hide+
-        "&i="+url.slidecount+
-        "&k="+url.autostart+
-        "&l="+url.divider+
-        "&o="+url.rows+
-        "&s="+url.slidereduce+
-        "&t="+url.thumbpicture+
-        "&x="+url.vpan+
-        "&a="+url.scape+
-        "&h="+url.trait+
-        "&n="+url.autopage;
+    var out = "&m="+(projectobj.length()-1);
+    if (globalobj.template)
+        out += "&t="+globalobj.template;
     return out;
 }
 
@@ -793,6 +840,7 @@ CanvasRenderingContext2D.prototype.movedown = function(p)
 CanvasRenderingContext2D.prototype.movepage = function(j)
 {
     _4cnvctx.newimage = j;
+    _4cnvctx.swipetype = j == -1 ? "swiperight" : "swipeleft";
     pageresize();
     slideoff();
     
@@ -808,16 +856,11 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
             _4cnvctx.setcolumncomplete = 0;
             headobj.getcurrent().draw(headcnvctx, headcnvctx.rect(), 0);
             projectobj.rotate(j);
-            var row = (url.rowbegin/100)*rowobj.length();
-            rowobj.set(row);
+            rowobj.set(globalobj.rowbegin);
             _4cnvctx.timeobj.set(_4cnvctx.timeobj.length()/2);
             var str = addressobj.full();
             history.replaceState(0, document.title, str);
-            contextobj.reset();
-            var dta = new Date(); 
-            var diff = dta.getTime()-dt.getTime();
-            if (MOBILE && diff > TIMERELOAD)
-                setTimeout(function() { location.reload(); }, 100);
+            contextobj.reset()
         }
     }, 100);
 }
@@ -835,18 +878,6 @@ CanvasRenderingContext2D.prototype.refresh = function ()
     this.lastime = -0.0101010101;
 };
 
-CanvasRenderingContext2D.prototype.pantop = function()
-{
-    rowobj.set(0);
-    contextobj.reset();
-}
-
-CanvasRenderingContext2D.prototype.panbottom = function()
-{
-    rowobj.set(rowobj.length()-1);
-    contextobj.reset();
-}
-
 CanvasRenderingContext2D.prototype.swipehard = function(m)
 {
     var j = window.innerWidth/this.virtualwidth;
@@ -857,10 +888,7 @@ CanvasRenderingContext2D.prototype.swipehard = function(m)
 
 CanvasRenderingContext2D.prototype.panimage = function (less,x,y)
 {
-    var p = panxobj.getcurrent();
-    var s = this.timeobj.length()/this.virtualwidth;
-    var k = p*s;
-    this.timeobj.rotate(less ? k : -k);
+    this.timeobj.rotate(less ? this.rvalue : -this.rvalue);
 }
 
 CanvasRenderingContext2D.prototype.show = function (x, y, width, height)
@@ -1317,6 +1345,7 @@ var pinchlst =
 ];
 
 var rowobj = new makeoption("ROW", window.innerHeight);
+rowobj.set(window.innerHeight/2);
 var pinchobj = new makeoption("PINCH", pinchlst);
 var panxobj = new makeoption("PANX", OPTIONSIZE); 
 var panyobj = new makeoption("PANY", OPTIONSIZE); 
@@ -1392,18 +1421,11 @@ var panlst =
         var k = 6*s;
         context.timeobj.rotate(type=="pandown" ? k : -k);
 	},
- 	leftright: function (context, rect, x, y, type)
-    {
-	},
+ 	leftright: function (context, rect, x, y, type) { },
 	pan: function (context, rect, x, y, type) { },
     enabled : function() { return 1; },
-	panstart: function (context, rect, x, y) 
-    { 
-    //    context.start = y;
-    },
-	panend: function (context, rect, x, y) 
-    { 
-    }
+	panstart: function (context, rect, x, y) { },
+	panend: function (context, rect, x, y) { }
 },
 {
     name: "BOSS",
@@ -1414,12 +1436,12 @@ var panlst =
         if ( context.pinching )
              return;
         context.pantype = type;
-        if (!url.vpan)
+        if (!globalobj.vpan)
             y = rowobj.getcurrent()
 
         if (context.isthumbrect)
         {
-            context.hithumb(x, url.vpan?y:undefined);
+            context.hithumb(x, globalobj.vpan?y:undefined);
         }
         else if (type == "panleft" || type == "panright")
         {
@@ -1427,7 +1449,7 @@ var panlst =
         }
         else if (type == "panup" || type == "pandown")
         {
-            if (url.vpan)
+            if (globalobj.vpan && zoomobj.current() > 0)
             {
                 var h = rect.height*(1-zoomobj.getcurrent())*panyobj.getcurrent();
                 y = (y/rect.height)*h;
@@ -1455,6 +1477,10 @@ var panlst =
     },
     panend: function (context, rect, x, y)
 	{
+        if (MOBILE && context.drawcount++ > DRAWCOUNT)
+            location.reload();
+
+        contextobj.reset();
         context.pantype = 0;
         context.panning = 0;  
         context.refresh();
@@ -1551,25 +1577,18 @@ var presslst =
     press: function (context, rect, x, y)
     {
         if (localobj.hide)
+            return;
+        context.hidehead = 0;
+        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+        var n = context.grid.hitest(x,y); 
+        if (isthumbrect)
         {
-            context.hidehead = context.hidehead?0:1;
-            pageresize();
-            context.refresh();
+            thumbobj.rotate();
         }
         else
         {
-            context.hidehead = 0;
-            var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
-            var n = context.grid.hitest(x,y); 
-            if (isthumbrect)
-            {
-                thumbobj.rotate();
-            }
-            else
-            {
-                positobj.set(n);
-                context.refresh();
-            }
+            positobj.set(n);
+            context.refresh();
         }
     }
 },
@@ -1610,7 +1629,7 @@ var swipelst =
         else
             context.swipetype = evt.type;
         evt.preventDefault();
-        context.slideshow = url.slidecount;
+        context.slideshow = globalobj.slidecount;
         context.refresh();
     },
 
@@ -1618,7 +1637,7 @@ var swipelst =
     {
         slideoff();
 
-        if (url.vpan)
+        if (globalobj.vpan && zoomobj.current() > 0)
             return;
         var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         if (isthumbrect)
@@ -1626,16 +1645,7 @@ var swipelst =
         else
             context.swipetype = evt.type == "swipeup"?"swiperight":"swipeleft";
         evt.preventDefault();
-        clearTimeout(context.timeswipe);
-        context.timeswipe = setTimeout(function()
-        {
-            if (context.swipetype == "swipeleft")
-                context.swipehard(0);
-            else
-                context.swipehard(1);
-            context.slideshow = url.slidecount;
-            context.refresh();
-        }, JULIETIME);
+        context.slideshow = globalobj.slidecount;
     },
 },
 ];
@@ -1713,7 +1723,7 @@ var keylst =
         else if (evt.key == "Tab")
         {
             _4cnvctx.swipetype = _4cnvctx.shifthit ? "swiperight" : "swipeleft";
-            _4cnvctx.slideshow = url.slidecount;
+            _4cnvctx.slideshow = globalobj.slidecount;
             _4cnvctx.refresh();
             evt.preventDefault();
         }
@@ -1738,7 +1748,7 @@ var keylst =
         }
          else if (evt.key == "ArrowLeft" || evt.key == "h")
         {
-            if (context.ctrlhit && url.cols > 1)
+            if (context.ctrlhit && globalobj.cols > 1)
             {
                 context.swipehard(0);
             }
@@ -1758,7 +1768,7 @@ var keylst =
         }
         else if (evt.key == "ArrowRight" || evt.key == "l")
         {
-            if (context.ctrlhit && url.cols > 1)
+            if (context.ctrlhit && globalobj.cols > 1)
             {
                 context.swipehard(1);
             }
@@ -1958,9 +1968,9 @@ var taplst =
         }
         else if (localobj.hide)
         {
-        //    context.hidehead = context.hidehead?0:1;
-        //    pageresize();
-        //    context.refresh();
+            context.hidehead = context.hidehead?0:1;
+            pageresize();
+            context.refresh();
         }
         else
         {
@@ -2020,13 +2030,13 @@ var thumblst =
     draw: function (context, rect, user, time)
     {
         var th = heightobj.getcurrent().getcurrent();
-        var headers = IFRAME?0:ALIEXTENT*2; 
+        var headers = MFRAME?0:ALIEXTENT*2; 
         var width = rect.width-THUMBORDER*2;
         var height = rect.height-headers-THUMBORDER*2;
         var r = calculateAspectRatioFit(photo.image.width, photo.image.height, width*th, height*th); 
         var h = r.height;
         var w = r.width;
-        var a = IFRAME?0:ALIEXTENT;
+        var a = MFRAME?0:ALIEXTENT;
         var pos = positobj.current();
         if (pos == 0)
         {
@@ -2080,7 +2090,7 @@ var thumblst =
 
         context.globalAlpha  =  1;
         context.thumbrect = new rectangle(x,y,w,h);
-        if (context.pinching || !url.thumbpicture || context.hidepicture)
+        if (context.pinching || !globalobj.picture || context.hidepicture)
         {
             blackrect.draw(context, context.thumbrect, 0, 0);
         }
@@ -2151,13 +2161,13 @@ var positobj = new makeoption("POSITION", 9);
 var thumbobj = new makeoption("THUMB", thumblst);
 thumbobj.rotate = function()
 {
-    if (thumbobj.current() == 0 && url.thumbpicture)
+    if (thumbobj.current() == 0 && globalobj.picture)
     {
-        url.thumbpicture = 0;
+        globalobj.picture = 0;
     }
-    else if (thumbobj.current() == 0 && !url.thumbpicture)
+    else if (thumbobj.current() == 0 && !globalobj.picture)
     {
-        url.thumbpicture = 1;
+        globalobj.picture = 1;
         thumbobj.set(1);
     }
     else 
@@ -2221,9 +2231,9 @@ var drawlst = [
             }
             else if (user.path == "THUMBNAIL")
             {
-                if (thumbobj.current() == 0 && url.thumbpicture)
+                if (thumbobj.current() == 0 && globalobj.picture)
                     clr = select;
-                else if (thumbobj.current() == 0 && !url.thumbpicture)
+                else if (thumbobj.current() == 0 && !globalobj.picture)
                     clr = select2;
             }
             else if (user.path == "FULLSCREEN")
@@ -2308,7 +2318,7 @@ function resetcanvas()
     context.virtualwidth = context.virtualheight * imageaspect;
     context.virtualaspect = context.virtualwidth / context.virtualheight;
       
-    var slicewidth = Math.lerp(1,2,zoomobj.berp());
+    var slicewidth = Math.lerp(1.0,1.5,zoomobj.berp());
     var y = Math.clamp(0,context.canvas.height-1,context.canvas.height*rowobj.berp());
     context.nuby = Math.nub(y, context.canvas.height, context.imageheight, photo.image.height);  
     var ks = 0;
@@ -2369,7 +2379,7 @@ function resetcanvas()
     }
 
     var slices = context.sliceobj.data_;
-    var cols = gridToRect(url.cols, 1, 0, context.sliceobj.data_.length, 1)
+    var cols = gridToRect(globalobj.cols, 1, 0, context.sliceobj.data_.length, 1)
     for (var n = 0; n < cols.length; ++n)
     {
         var col = cols[n]
@@ -2381,6 +2391,10 @@ function resetcanvas()
         slices[m+col.width-1].isright = 1;
         slices[m+Math.floor(col.width/2)].ismiddle = 1;
     }
+
+    var p = panxobj.getcurrent();
+    var s = context.timeobj.length()/context.virtualwidth;
+    context.rvalue = p*s;
 
     var k = window.innerHeight > window.innerWidth?0:1;
     heightobj.set(k);
@@ -2493,13 +2507,14 @@ var ContextObj = (function ()
 			context.fillText("  ", 0, 0);
 			context.font = "400 100px Source Code Pro";
 			context.fillText("  ", 0, 0);
+            context.drawcount = 0;  
 			context.lastime = 0;
             setevents(context, eventlst[n]);
 			context.swipetype = "swipeleft"
             context.sliceobj = new makeoption("", []);
             context.timeobj = new makeoption("", TIMEOBJ);
             context.describeobj = new makeoption("", 0);
-            context.columnobj = new makeoption("", url.cols);
+            context.columnobj = new makeoption("", globalobj.cols);
             context.debugobj = new makeoption("", [ projectobj, context.sliceobj, context.timeobj, context.columnobj ]);
         }
 
@@ -2663,7 +2678,6 @@ var ContextObj = (function ()
                 photo.image = new Image();
                 photo.image.original = path;
                 photo.image.load(path);
-                photo.image.date = new Date();
                 photo.image.onload = function()
                 {
                     this.aspect = this.width/this.height; 
@@ -2676,7 +2690,7 @@ var ContextObj = (function ()
                     resetcanvas(context);
                     seteventspanel(new YollPanel());
 
-                    if (url.autostart)
+                    if (globalobj.autostart)
                     {
                         slideon();
                     }
@@ -3396,7 +3410,7 @@ function escape()
     contextobj.reset();
 }
 
-function yoll(context, rect, user, time)
+function yoll()
 {
     if (!photo.image.complete || 
         photo.image.naturalHeight == 0)
@@ -3416,9 +3430,9 @@ function yoll(context, rect, user, time)
         {
             var k = (context.swipetype == "swipeleft")?-1:1;
             context.timeobj.rotate(k*context.slideshow);
-            context.slideshow -= url.slidereduce;
+            context.slideshow -= globalobj.slidereduce;
         }
-        
+
         var time = context.timeobj.getcurrent()/1000;
         var rect = context.rect();
         var sliceobj = context.sliceobj.data_;
@@ -3428,7 +3442,6 @@ function yoll(context, rect, user, time)
         var r = calculateAspectRatioFit(context.colwidth,
             rect.height, context.canvas.width, rect.height);
         var xt = -rect.width / 2;
-        var yt = -rect.height / 2;
         let y = rect.height*0.5;
         context.save();
         context.translate(xt, 0);
@@ -3503,18 +3516,9 @@ function yoll(context, rect, user, time)
             var j = context.visibles1[m]; 
             var slice = sliceobj[j.m];
             var x = j.x;
-
             let pinchwidth = Math.max(context.visibles1[m+1]?context.visibles1[m+1].x-x:1,1); 
-            if (slice.isright && url.divider)
-            {
-                var a = new Fill(url.divider);
-                a.draw(context, new rectangle(x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height), 0, 0);
-            }
-            else
-            {
-                context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
-                    x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height);
-            }
+            context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
+                x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height);
         }
 
         for (var m = 0; m < context.visibles2.length; ++m)
@@ -3522,18 +3526,9 @@ function yoll(context, rect, user, time)
             var j = context.visibles2[m]; 
             var slice = sliceobj[j.m];
             var x = j.x;
-
             let pinchwidth = Math.max(context.visibles2[m+1]?context.visibles2[m+1].x-x:1,1); 
-            if (slice.isright && url.divider)
-            {
-                var a = new Fill(url.divider);
-                a.draw(context, new rectangle(x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height), 0, 0);
-            }
-            else
-            {
-                context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
-                    x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height);
-            }
+            context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
+                x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height);
         }
 
         context.restore();
@@ -3586,7 +3581,7 @@ function yoll(context, rect, user, time)
         var a = new Grid(3,3,0,new Rects(context.grid));
         a.draw(context, rect, 0, 0);
 
-        if (!IFRAME && !context.describe && !localobj.hide && !context.screenshot)
+        if (!context.describe && !localobj.hide && !context.screenshot)
             thumbobj.getcurrent().draw(context, rect, 0, 0);
         
         if (!context.screenshot)
@@ -3696,9 +3691,6 @@ var YollPanel = function ()
 {
     this.draw = function (context, rect, user, time)
     {
-        yoll(context, rect, user, time);
-        clearInterval(globalobj.main);
-        globalobj.main = setInterval(function () { yoll(); }, TIMEMAIN);
     };
 
 	this.tap = function (context, rect, x, y, shift, ctrl)
@@ -3892,11 +3884,6 @@ var headlst =
                 localobj.hide = localobj.hide?0:1;
                 pageresize();
                 _4cnvctx.refresh();
-                var dt = photo.image.date;   
-                var dta = new Date(); 
-                var diff = dta.getTime()-dt.getTime();
-                if (MOBILE && !localobj.hide && diff > TIMERELOAD)
-                    location.reload();
             }
             else if (context.nextpage2.hitest(x,y) ||
                     context.nextpage.hitest(x,y))
@@ -4314,33 +4301,10 @@ window.addEventListener('message', function(evt)
         promptFile().then(function(files) { dropfiles(files); })
     else if (evt.data == "refresh")
         location.reload();
-    else if (evt.data == "help")
-        helpobj.getcurrent().draw(_4cnvctx, _4cnvctx.rect(), 0, 0);
-    else if (evt.data == "pantop")
-        _4cnvctx.pantop();
-    else if (evt.data == "panbottom")
-        _4cnvctx.panbottom();
-    else if (evt.data == "swipeleft")
-        _4cnvctx.swipehard(0);
-    else if (evt.data == "swiperight")
-        _4cnvctx.swipehard(1);
-    else if (evt.data == "swipeup")
-        _4cnvctx.moveup(1);
-    else if (evt.data == "swipedown")
-        _4cnvctx.movedown(1);
-    else if (evt.data == "moveleft")
-        _4cnvctx.movepage(-1);
-    else if (evt.data == "moveright")
-        _4cnvctx.movepage(1);
-    else if (evt.data == "pinchout")
+    else if (evt.data == "thumbnail")
     {
-        pinchobj.add(5);
-        contextobj.reset();
-    }
-    else if (evt.data == "pinchin")
-    {
-        pinchobj.add(-5);
-        contextobj.reset();
+        localobj.hide = localobj.hide?0:1;
+        _4cnvctx.refresh();
     }
     else if (evt.data == "zoomin")
     {
@@ -4358,12 +4322,12 @@ window.addEventListener('message', function(evt)
 
 function pageresize()
 {
-    var h = (_4cnvctx.hidehead||IFRAME)?0:ALIEXTENT;
+    var h = (_4cnvctx.hidehead||MFRAME)?0:ALIEXTENT;
     var y = 0;
     headcnvctx.show(0,y,window.innerWidth,h);
     headobj.set(0);
     headham.panel = headobj.getcurrent();
-    var h = (localobj.hide||IFRAME)?0:ALIEXTENT;
+    var h = (localobj.hide||MFRAME)?0:ALIEXTENT;
     footcnvctx.show(0,window.innerHeight-ALIEXTENT, window.innerWidth, h);
     footobj.set(0);
     footham.panel = footobj.getcurrent();
@@ -4585,7 +4549,7 @@ function slideon()
         if (_4cnvctx.panning)
             return;
         _4cnvctx.movepage(_4cnvctx.swipetype == "swipeleft" ? 1 : -1);
-    }, url.autopage);
+    }, globalobj.autopage);
 }
 
 function slideoff()
@@ -4643,15 +4607,16 @@ window.addEventListener("load", async () =>
 
     seteventspanel(new YollPanel());
     _4cnvctx.enabled = 1;
-    _1ham.panel.draw(_1cnvctx, _1cnvctx.rect(), 0);
+    globalobj.main = setInterval(function () { yoll(); }, TIMEMAIN);
 
     try
     {
         var obj = JSON.parse(localStorage.getItem(url.path));
         if (obj)
-            localobj = obj;
-        if (typeof localobj.hide === "undefined")
-            localobj.hide = url.hide;
+        {
+            localobj = {...localobj, ...obj};
+        }
+
         if (typeof localobj.current === "undefined")
             localobj.current = {} 
         if (typeof localobj.timers === "undefined")
@@ -4688,18 +4653,17 @@ window.addEventListener("load", async () =>
     _4cnvctx.refresh()
 });
 
-var localobj = {}
 var localst = 
 [
     {obj:thumbobj,def:0},
-    {obj:positobj,def:1},
-    {obj:pinchobj,def:50},
-    {obj:panyobj,def:50},
-    {obj:panxobj,def:50},
-    {obj:traitobj,def:url.trait},
-    {obj:scapeobj,def:url.scape},
-    {obj:zoomobj,def:50},
-    {obj:rowobj,def:50},
+    {obj:positobj,def:globalobj.position},
+    {obj:pinchobj,def:globalobj.pinchbegin},
+    {obj:panyobj,def:globalobj.panybegin},
+    {obj:panxobj,def:globalobj.panxbegin},
+    {obj:traitobj,def:globalobj.trait},
+    {obj:scapeobj,def:globalobj.scape},
+    {obj:zoomobj,def:globalobj.zoombegin},
+    {obj:rowobj,def:globalobj.rowbegin},
 ];
 
 function savelocal()
@@ -4737,10 +4701,11 @@ window.addEventListener("visibilitychange", (evt) =>
     }
     else
     {
-        _1ham.panel.draw(_1cnvctx, _1cnvctx.rect(), 0);
-        pageresize();
-        reset();
-        _4cnvctx.refresh()
+        globalobj.main = setInterval(function () { yoll(); }, TIMEMAIN);
+        if (globalobj.autostart)
+            slideon()
+        else
+            contextobj.reset();
     }
 });
 
