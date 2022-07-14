@@ -10,7 +10,7 @@ const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
 const MFRAME = MOBILE && IFRAME;
 const MAXVIRTUALWIDTH = SAFARI?5760:5760*2; 
-const DRAWCOUNT = 20;
+const DRAWCOUNT = 10;
 const CANVASCOUNT = 10;
 const SWIPETIME = 60;
 const TIMERELOAD = 30000;
@@ -44,7 +44,7 @@ const FONTHEIGHT = 16;
 const BUTTONHEIGHT = 38; 
 const ROWHEIGHT = FONTHEIGHT*2;
 const QUALITY = 0.65;
-const TIMEMAIN = 1;
+const TIMEMAIN = 18;
 const ZOOMADJ = 0.01;
 const PINCHRANGE = "0.35-1.1";
 const HEIGHTRANGE = "0.10-1.0";
@@ -93,11 +93,8 @@ localobj.hide = 0;
 localobj.picture = 1;
 globalobj.divider = "rgba(0,0,0,0)";
 globalobj.timebegin = TIMEOBJ/2;
-globalobj.autotab = 1;
 globalobj.autostart = 0;
 globalobj.autopage = 1500;
-globalobj.slidecount = 1.0;
-globalobj.slidereduce = 0.005;
 globalobj.position = 1;
 globalobj.cols = 1;
 globalobj.rows = 5;
@@ -111,17 +108,14 @@ globalobj.maxheight = 0;
 globalobj.zoombegin = MOBILE?60:40;
 globalobj.rowreset = 0;
 globalobj.rowbegin = window.innerHeight/2;
+globalobj.slidecount = TIMEOBJ/window.innerWidth;
+globalobj.slidereduce = globalobj.slidecount/300;
 if (globalobj.template == "comic")
 {
     globalobj.position = 7;
     globalobj.rowbegin = 0;
     globalobj.rowreset = 1;
     globalobj.zoombegin = 60;
-    if (!MOBILE)
-    {
-        globalobj.slidecount = 10;
-        globalobj.slidereduce = 0.1;
-    }
 }
 else if (globalobj.template == "wide")
 {
@@ -134,12 +128,6 @@ else if (globalobj.template == "wide")
     globalobj.zoombegin = 0;
     globalobj.autostart = 1;
     globalobj.autopage = 5000;
-    if (!MOBILE)
-    {
-        globalobj.autotab = 1;
-        globalobj.slidecount = 0.4;
-        globalobj.slidereduce = 0.00001;
-    }
 }
 else if (globalobj.template == "5x1")
 {
@@ -149,12 +137,6 @@ else if (globalobj.template == "5x1")
     localobj.hide = 1;
     globalobj.trait = 50;
     globalobj.scape = 100;
-    if (!MOBILE)
-    {
-        globalobj.autotab = 1;
-        globalobj.slidecount = 0.5;
-        globalobj.slidereduce = 0.00001;
-    }
 }
 else if (globalobj.template == "portrait")
 {
@@ -163,14 +145,7 @@ else if (globalobj.template == "portrait")
     globalobj.scape = 75;
     globalobj.autostart = 1;
     globalobj.autopage = 2000;
-    globalobj.autotab = 0;
-    if (!MOBILE)
-    {
-        globalobj.autopage = 5000;
-        globalobj.autotab = 1;
-        globalobj.slidecount = 0.30;
-        globalobj.slidereduce = 0.0001;
-    }
+    globalobj.autopage = 5000;
 }
 else if (globalobj.template == "landscape")
 {
@@ -179,13 +154,7 @@ else if (globalobj.template == "landscape")
     globalobj.scape = 100;
     globalobj.autostart = 1;
     globalobj.autopage = 2000;
-    if (!MOBILE)
-    {
-        globalobj.autopage = 5000;
-        globalobj.autotab = 1;
-        globalobj.slidecount = 0.5;
-        globalobj.slidereduce = 0.00001;
-    }
+    globalobj.autopage = 5000;
 }
 else if (globalobj.template == "tall")
 {
@@ -195,12 +164,6 @@ else if (globalobj.template == "tall")
     localobj.hide = 0;
     globalobj.autostart = 1;
     globalobj.autopage = 5000;
-    if (!MOBILE)
-    {
-        globalobj.autotab = 1;
-        globalobj.slidecount = 0.5;
-        globalobj.slidereduce = 0.00001;
-    }
 }
 else if (globalobj.template == "1x5")
 {
@@ -214,13 +177,8 @@ else if (globalobj.template == "1x5")
     globalobj.zoombegin = 0;
     globalobj.autostart = 1;
     globalobj.autopage = 4000;
-    if (!MOBILE)
-    {
-        globalobj.autotab = 1;
-        globalobj.slidecount = 0.5;
-        globalobj.slidereduce = 0.00001;
-    }
 }
+
 else if (globalobj.template == "7x1" || globalobj.template == "7x1a")
 {
     globalobj.position = 7;
@@ -231,14 +189,8 @@ else if (globalobj.template == "7x1" || globalobj.template == "7x1a")
     globalobj.scape = 35;
     globalobj.autostart = globalobj.template == "7x1" ? 1 : 0;
     globalobj.autopage = 1500;
-    if (!MOBILE)
-    {
-        globalobj.scape = 100;
-        globalobj.autotab = 1;
-        globalobj.autopage = 5000;
-        globalobj.slidecount = 1.0;
-        globalobj.slidereduce = 0.001;
-    }
+    globalobj.scape = 100;
+    globalobj.autopage = 5000;
 }
 
 Math.clamp = function (min, max, val)
@@ -933,7 +885,7 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
             _4cnvctx.timeobj.set(globalobj.timebegin);
             var str = addressobj.full();
             history.replaceState(0, document.title, str);
-            contextobj.reset();
+            location.reload();
         }
     }, 100);
 }
@@ -1669,19 +1621,9 @@ var presslst =
     {
         if (localobj.hide)
             return;
-        context.hidehead = 0;
-        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         var n = context.grid.hitest(x,y); 
-        if (isthumbrect)
-        {
-            localobj.picture = localobj.picture?0:1; 
-            _4cnvctx.refresh()            
-        }
-        else
-        {
-            positobj.set(n);
-            context.refresh();
-        }
+        positobj.set(n);
+        context.refresh();
     }
 },
 ];
@@ -1924,6 +1866,13 @@ var keylst =
  	}
 },
 ];
+
+CanvasRenderingContext2D.prototype.togglepicture = function()
+{
+    this.hidehead = 0;
+    localobj.picture = localobj.picture?0:1; 
+    this.refresh()            
+}
 
 CanvasRenderingContext2D.prototype.hithumb = function(x,y)
 {
@@ -2212,7 +2161,7 @@ var thumblst =
         var hh = Math.lerp(0,h,berp);
 
         y += yy;
-        context.thumbselect[0] = new rectangle(xxxxx,y,wwwww,hh);//todo
+        context.thumbselect[0] = new rectangle(xxxxx,y,wwwww,hh);
         context.thumbselectwidth = wwwww;
        
         var kx = context.thumbselect[0].x - context.thumbrect.x;
@@ -2379,7 +2328,7 @@ function resetcanvas()
     context.virtualwidth = context.virtualheight * imageaspect;
     context.virtualaspect = context.virtualwidth / context.virtualheight;
       
-    var slicewidth = Math.lerp(1.0,2.0,zoomobj.berp());
+    var slicewidth = 1.0;//Math.lerp(1.0,2.0,zoomobj.berp());
     var y = Math.clamp(0,context.canvas.height-1,context.canvas.height*rowobj.berp());
     context.nuby = Math.nub(y, context.canvas.height, context.imageheight, photo.image.height);  
     var ks = 0;
@@ -2749,8 +2698,8 @@ var ContextObj = (function ()
                     this.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAADK0lEQVRIS7WXWYiOURjH57VknzIXiiwXKBRXLpSMC9OIEDEhk5KdBs0wzQUxSVlmQskSRU0ulKWIUq4MTYkpe1kKRZIt+zqf3//rvF+fd87yynyn/p2v8yz/5zzvc55zvqjIMzKZTDfEvcBYgwHMGfACXAM3wccoir77/NhkkW0Rwi6sTwSLwDzQ2eH4K+snwFHQQgA/0wbQjhjSYoz3GMIeKR0pAJFvhPxdGpu/iCHti9EVMCqNsUXnKmuTIf8css8RQ6rdXf8P0pirGeLSfyHej/LKgMEn5ApWBecbDZBv8Clkd8xuxzFdAEq1a9xGsB38ApsDmVGVj4f8hstZBGlX47A6sIs6HO0wgVYyNwX0m9Bf6CNWFWs3gz2OfiNbh6N9hniKyZCP+w7C6dg8sSlpx0MRPHJ4UMp0NttALU4OGeJy5otA31wZU6NJjvcsVGBzyUU8G8FJi/A+ayq410DdqhUnDw1xf+YyoMBKgD7TcIuPSmyOu4hVySLIHyJahdFBm1FyjazNZO2MRXdFnKWkTKlezqKNYD1GjSmJl6B32KK7DB+29SIRT8XgvMXoi8nEM5Pqyzi5ZVI9hLkCqFUOBHUWe2VtPjbq5e2GiFXNT1PsrBonuw3xNOZzAZtXyOdg0+wi7o1APXaMx5GO0xqcZGuBYOOq9nG3IizH5o2LuBOCGrAzsIN6nGwxxKuZs2faMXT89qLvbEpxy9RtdBboTLuGzmwD0LneChSwa3xAMBJiPRisI/92UlNXL/Y5DCQlJ37MrxkQ30tDrFfGAbA0rfeAnh4Eu0AjAfxI6iYfAt1RqAe1HUSuotQdvxjyu/k+bU8f7XwuUFPpkzKAb+ipnY526GvHut2yx1HD+tiTgCPTj2kT0JnVDdYT6BGooQJT81ARqVXqflYj0cUxyBPsKWRrCeC5kzg2JgClXw+FYUAXgsZboB3qZZn7fujq+KjyfX71pisLEnuit4og1zU4KWC3oBDEyspLoHvaNY50OLGY2PUsptMe4m2FIpbfY8D25tKtNaIgxGbXqnKR539vHbsqCrIwqY5TTMrVByYA/enTSVDhPYC47Q+jAwjFRbnDLAAAAABJRU5ErkJggg==";
                     resetcanvas(context);
                     contextobj.resize(context);
-                    seteventspanel(new YollPanel());
                     context.refresh();
+                    seteventspanel(new YollPanel());
                 }
 
                 photo.image.onload = function()
@@ -2763,13 +2712,11 @@ var ContextObj = (function ()
                     
                     contextobj.resize(context);
                     resetcanvas(context);
-                    seteventspanel(new YollPanel());
                     context.refresh();
 
                     if (globalobj.autostart)
                         slideon();
-                    if (globalobj.autotab)
-                        tab();
+                    tab();
 
                     var k = projectobj.current();
                     projectobj.rotate(_4cnvctx.swipetype=="swiperight"?-1:1);
@@ -2779,6 +2726,8 @@ var ContextObj = (function ()
                     var img = new Image();
                     img.src = path;
                     projectobj.set(k);
+                    
+                    seteventspanel(new YollPanel());
                }
 			}
 
@@ -3469,7 +3418,7 @@ function yoll()
         if (context.slideshow > 0)
         {
             var k = (context.swipetype == "swipeleft")?-1:1;
-            context.timeobj.rotate(k*context.slideshow);//todo
+            context.timeobj.rotate(k*context.slideshow);
             context.slideshow -= globalobj.slidereduce;
         }
 
@@ -3489,7 +3438,7 @@ function yoll()
         context.translate(xt, 0);
         context.shadowOffsetX = 0;
         context.shadowOffsetY = 0;
-        var m = context.getslicefirst()//todo
+        var m = context.getslicefirst()
         var msave = m;
         var j = time + slice.time;
         var b = Math.tan(j*VIRTCONST);
@@ -3732,11 +3681,13 @@ var YollPanel = function ()
 
 	this.dblclick = function (context, x, y)
     {
-        if (context.drawcount > DRAWCOUNT/2)
-            location.reload();
         var thumb = context.thumbrect && context.thumbrect.hitest(x,y);
         if (thumb)
+        {
+            context.togglepicture();
             return;
+        }
+        
         context.hidehead = 0;
         localobj.hide = localobj.hide?0:1;
         pageresize();
@@ -4561,8 +4512,6 @@ function slideon()
     {
         if (_4cnvctx.panning)
             return;
-        if (_4cnvctx.drawcount++ > DRAWCOUNT)
-            location.reload();
         _4cnvctx.movepage(_4cnvctx.swipetype == "swipeleft" ? 1 : -1);
     }, globalobj.autopage);
 }
