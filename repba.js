@@ -10,7 +10,7 @@ const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
 const MFRAME = MOBILE && IFRAME;
 const MAXVIRTUALWIDTH = SAFARI?5760:5760*2; 
-const DRAWCOUNT = 10;
+const DRAWCOUNT = 16;
 const CANVASCOUNT = 10;
 const SWIPETIME = 60;
 const TIMERELOAD = 30000;
@@ -105,11 +105,11 @@ globalobj.panybegin = 50;
 globalobj.panxbegin = 50;
 globalobj.pinchbegin = 50;
 globalobj.maxheight = 0;
-globalobj.zoombegin = MOBILE?60:40;
+globalobj.zoombegin = MOBILE?50:40;
 globalobj.rowreset = 0;
 globalobj.rowbegin = window.innerHeight/2;
-globalobj.slidecount = TIMEOBJ/window.innerWidth;
-globalobj.slidereduce = globalobj.slidecount/300;
+globalobj.slidecount = (TIMEOBJ/window.innerWidth)*5;
+globalobj.slidereduce = globalobj.slidecount/100;
 if (globalobj.template == "comic")
 {
     globalobj.position = 7;
@@ -145,7 +145,6 @@ else if (globalobj.template == "portrait")
     globalobj.scape = 75;
     globalobj.autostart = 1;
     globalobj.autopage = 2000;
-    globalobj.autopage = 5000;
 }
 else if (globalobj.template == "landscape")
 {
@@ -154,7 +153,6 @@ else if (globalobj.template == "landscape")
     globalobj.scape = 100;
     globalobj.autostart = 1;
     globalobj.autopage = 2000;
-    globalobj.autopage = 5000;
 }
 else if (globalobj.template == "tall")
 {
@@ -179,7 +177,7 @@ else if (globalobj.template == "1x5")
     globalobj.autopage = 4000;
 }
 
-else if (globalobj.template == "7x1" || globalobj.template == "7x1a")
+else if (globalobj.template == "7x1")
 {
     globalobj.position = 7;
     globalobj.cols = 7;
@@ -187,10 +185,9 @@ else if (globalobj.template == "7x1" || globalobj.template == "7x1a")
     localobj.picture = 0;
     globalobj.trait = 75;
     globalobj.scape = 35;
-    globalobj.autostart = globalobj.template == "7x1" ? 1 : 0;
-    globalobj.autopage = 1500;
-    globalobj.scape = 100;
+    globalobj.autostart = 1;
     globalobj.autopage = 5000;
+    globalobj.zoombegin = 0;
 }
 
 Math.clamp = function (min, max, val)
@@ -903,16 +900,6 @@ CanvasRenderingContext2D.prototype.refresh = function ()
     this.lastime = -0.0101010101;
 };
 
-/*
-CanvasRenderingContext2D.prototype.swipehard = function(m)
-{
-    var j = window.innerWidth/this.virtualwidth;
-    var e = (j*this.timeobj.length())/8;
-    e *= m?1:-1;
-    this.timeobj.rotate(e);
-}
-*/
-
 CanvasRenderingContext2D.prototype.panimage = function (less,x,y)
 {
     this.timeobj.rotate(less ? this.rvalue : -this.rvalue);
@@ -950,10 +937,10 @@ var makehammer = function (context, v)
 	context.ham = ham;
     ham.get("pan").set({ direction: Hammer.DIRECTION_ALL });
     ham.get("swipe").set({ direction: Hammer.DIRECTION_ALL });
-    ham.get('swipe').set({ velocity: 0.40});//30
-	ham.get('swipe').set({ threshold: 10 });//10
+    //ham.get('swipe').set({ velocity: 0.40});//30
+	//ham.get('swipe').set({ threshold: 10 });//10
 	ham.get('press').set({ time: 350 });
-	ham.get('pan').set({ threshold: 10 });
+	//ham.get('pan').set({ threshold: 10 });
 	ham.get('pinch').set({ enable: false });	
 
 	ham.on("pinch", function (evt)
@@ -1371,6 +1358,125 @@ var traitobj = new makeoption("TRAIT", OPTIONSIZE);
 var scapeobj = new makeoption("SCAPE", OPTIONSIZE); 
 var heightobj = new makeoption("HEIGHT", [traitobj,scapeobj]); 
 
+var demolst =
+[
+//5x1
+{path: "https://reportbase.com/home.html?p=HUPE&m=0004&t=1x5", title: "HUPE"},
+{path: "https://reportbase.com/home.html?p=GOUT&m=0005&t=1x5", title: "GOUT"}, 
+{path: "https://reportbase.com/home.html?p=CORN&m=0004&t=1x5", title: "CORN"}, 
+{path: "https://reportbase.com/home.html?p=ARMY&m=0005&t=1x5", title: "ARMY"},
+
+//1x7
+{path: "https://reportbase.com/home.html?p=REIN&m=0006&t=7x1", title: "REIN"},
+{path: "https://reportbase.com/home.html?p=GAMP&m=0006&t=7x1", title: "GAMP"},
+{path: "https://reportbase.com/home.html?p=NETA&m=0003&t=7x1", title: "NETA"},
+{path: "https://reportbase.com/home.html?p=NATA&m=0006&t=7x1", title: "NATA"},
+{path: "https://reportbase.com/home.html?p=GARL&m=0003&t=7x1", title: "GARL"},
+{path: "https://reportbase.com/home.html?p=WED8&m=0000&t=7x1", title: "WED8"},
+{path: "https://reportbase.com/home.html?p=PEN7&m=0000&t=7x1", title: "PEN7"},
+{path: "https://reportbase.com/home.html?p=GAL5&m=0000&t=7x1", title: "GAL5"},
+{path: "https://reportbase.com/home.html?p=HAN7&m=0000&t=7x1", title: "HAN7"},
+{path: "https://reportbase.com/home.html?p=BDR5&m=0000&t=7x1", title: "BDR5"},
+{path: "https://reportbase.com/home.html?p=GRO6&m=0000&t=7x1", title: "GRO6"},
+{path: "https://reportbase.com/home.html?p=MUS8&m=0000&t=7x1", title: "MUS8"},
+
+//Wide Images
+{path: "https://reportbase.com/home.html?p=PENO&m=0073&t=wide", title: "PENO"},                                                                                            
+{path: "https://reportbase.com/home.html?p=PUNO&m=0086&t=wide", title: "PUNO"},
+{path: "https://reportbase.com/home.html?p=PANO&m=0045&t=wide", title: "PANO"},
+{path: "https://reportbase.com/home.html?p=PINO&m=0029&t=wide", title: "PINO"},
+{path: "https://reportbase.com/home.html?p=WIDE&m=0029&t=wide", title: "WIDE"},
+
+//Landscapes
+{path: "https://reportbase.com/home.html?p=HOPE&m=0076&t=landscape", title: "HOPE"}, 
+{path: "https://reportbase.com/home.html?p=GOAT&m=0097&t=landscape", title: "GOAT"}, 
+{path: "https://reportbase.com/home.html?p=BOAT&m=0101&t=landscape", title: "BOAT"}, 
+{path: "https://reportbase.com/home.html?p=BELL&m=0015&t=landscape", title: "BELL"}, 
+{path: "https://reportbase.com/home.html?p=ASPO&m=0029&t=landscape", title: "ASPO"}, 
+{path: "https://reportbase.com/home.html?p=GOLF&m=0020&t=landscape", title: "GOLF"}, 
+{path: "https://reportbase.com/home.html?p=PUCK&m=0058&t=landscape", title: "PUCK"}, 
+{path: "https://reportbase.com/home.html?p=DISH&m=0016&t=landscape", title: "DISH"},
+{path: "https://reportbase.com/home.html?p=JESU&m=0014&t=landscape", title: "JESU"}, 
+{path: "https://reportbase.com/home.html?p=GIMP&m=0079&t=landscape", title: "GIMP"}, 
+{path: "https://reportbase.com/home.html?p=NAVY&m=0060&t=landscape", title: "NAVY"}, 
+
+//Portraits
+{path: "https://reportbase.com/home.html?p=ROBE&m=0012&t=portrait", title: "ROBE"}, 
+{path: "https://reportbase.com/home.html?p=RAIN&m=0077&t=portrait", title: "RAIN"}, 
+{path: "https://reportbase.com/home.html?p=BIRD&m=0041&t=portrait", title: "BIRD"}, 
+{path: "https://reportbase.com/home.html?p=CITY&m=0037&t=portrait", title: "CITY"}, 
+{path: "https://reportbase.com/home.html?p=HOOD&m=0036&t=portrait", title: "HOOD"}, 
+{path: "https://reportbase.com/home.html?p=BALL&m=0026&t=portrait", title: "BALL"}, 
+{path: "https://reportbase.com/home.html?p=PUMP&m=0029&t=portrait", title: "PUMP"}, 
+{path: "https://reportbase.com/home.html?p=NATB&m=0026&t=portrait", title: "NATB"}, 
+{path: "https://reportbase.com/home.html?p=DAME&m=0056&t=portrait", title: "DAME"}, 
+{path: "https://reportbase.com/home.html?p=BOND&m=0075&t=portrait", title: "BOND"}, 
+{path: "https://reportbase.com/home.html?p=ANIM&m=0014&t=portrait", title: "ANIM"}, 
+{path: "https://reportbase.com/home.html?p=CRBE&m=0009&t=portrait", title: "CRBE"}, 
+{path: "https://reportbase.com/home.html?p=CRBT&m=0010&t=portrait", title: "CRBT"}, 
+{path: "https://reportbase.com/home.html?p=DOLL&m=0056&t=portrait", title: "DOLL"}, 
+{path: "https://reportbase.com/home.html?p=FABL&m=0027&t=portrait", title: "FABL"}, 
+{path: "https://reportbase.com/home.html?p=FAIR&m=0014&t=portrait", title: "FAIR"}, 
+{path: "https://reportbase.com/home.html?p=FASH&m=0007&t=portrait", title: "FASH"}, 
+{path: "https://reportbase.com/home.html?p=DOCS&m=0013&t=portrait", title: "DOCS"}, 
+{path: "https://reportbase.com/home.html?p=WALL&m=0043&t=portrait", title: "WALL"}, 
+{path: "https://reportbase.com/home.html?p=GIRL&m=0055&t=portrait", title: "GIRL"}, 
+{path: "https://reportbase.com/home.html?p=PORT&m=0053&t=portrait", title: "PORT"}, 
+{path: "https://reportbase.com/home.html?p=POST&m=0188&t=portrait", title: "POST"}, 
+{path: "https://reportbase.com/home.html?p=STOY&m=0020&t=portrait", title: "STOY"}, 
+{path: "https://reportbase.com/home.html?p=TALE&m=0010&t=portrait", title: "TALE"}, 
+{path: "https://reportbase.com/home.html?p=ZEUS&m=0034&t=portrait", title: "ZEUS"}, 
+{path: "https://reportbase.com/home.html?p=BUGS&m=0026&t=portrait", title: "BUGS"}, 
+{path: "https://reportbase.com/home.html?p=NATU&m=0050&t=portrait", title: "NATU"}, 
+{path: "https://reportbase.com/home.html?p=DRES&m=0012&t=portrait", title: "DRES"}, 
+{path: "https://reportbase.com/home.html?p=GREK&m=0017&t=portrait", title: "GREK"}, 
+{path: "https://reportbase.com/home.html?p=JAPN&m=0024&t=portrait", title: "JAPN"}, 
+{path: "https://reportbase.com/home.html?p=ROME&m=0021&t=portrait", title: "ROME"}, 
+{path: "https://reportbase.com/home.html?p=BAKE&m=0047&t=portrait", title: "BAKE"}, 
+{path: "https://reportbase.com/home.html?p=DECS&m=0011&t=portrait", title: "DECS"}, 
+{path: "https://reportbase.com/home.html?p=OSHI&m=0010&t=portrait", title: "OSHI"}, 
+{path: "https://reportbase.com/home.html?p=LITE&m=0052&t=portrait", title: "LITE"}, 
+{path: "https://reportbase.com/home.html?p=BOOK&m=0063&t=portrait", title: "BOOK"}, 
+{path: "https://reportbase.com/home.html?p=LION&m=0027&t=portrait", title: "LION"}, 
+{path: "https://reportbase.com/home.html?p=DASH&m=0206&t=portrait", title: "DASH"}, 
+
+//Tall
+{path: "https://reportbase.com/home.html?p=TALL&m=0004&t=tall", title: "TALL"}, 
+{path: "https://reportbase.com/home.html?p=SKIN&m=0008&t=tall", title: "SKIN"},
+
+//Comic
+{path: "https://reportbase.com/home.html?p=DARK&m=0022&t=comic", title: "DARK"}, 
+{path: "https://reportbase.com/home.html?p=ULTR&m=0457&t=comic", title: "ULTR"}, 
+{path: "https://reportbase.com/home.html?p=HUSH&m=0298&t=comic", title: "HUSH"}, 
+{path: "https://reportbase.com/home.html?p=GOTH&m=0298&t=comic", title: "GOTH"}, 
+{path: "https://reportbase.com/home.html?p=KNIG&m=0197&t=comic", title: "KNIG"}, 
+{path: "https://reportbase.com/home.html?p=VIOL&m=0151&t=comic", title: "VIOL"}, 
+{path: "https://reportbase.com/home.html?p=MADB&m=0161&t=comic", title: "MADB"}, 
+{path: "https://reportbase.com/home.html?p=KILL&m=0064&t=comic", title: "KILL"}, 
+{path: "https://reportbase.com/home.html?p=DETC&m=0166&t=comic", title: "DETC"}, 
+{path: "https://reportbase.com/home.html?p=SECH&m=0460&t=comic", title: "SECH"}, 
+{path: "https://reportbase.com/home.html?p=SECI&m=0498&t=comic", title: "SECI"}, 
+{path: "https://reportbase.com/home.html?p=WALK&m=0433&t=comic", title: "WALK"}, 
+{path: "https://reportbase.com/home.html?p=SUIC&m=0409&t=comic", title: "SUIC"}, 
+{path: "https://reportbase.com/home.html?p=DMZ&&m=0283&t=comic", title: "DMZ"}, 
+{path: "ttps://reportbase.com/home.html?p=MANH&m=0027&t=comic", title: "MANH"},
+{path: "https://reportbase.com/home.html?p=MAD&m=0573&t=comic", title: "MAD"},
+
+//Retired
+{path: "https://reportbase.com/home.html?p=DBAT&m=0360&t=comic", title: "DBAT"}, 
+{path: "https://reportbase.com/home.html?p=GRIM&m=0390&t=comic", title: "GRIM"}, 
+];
+
+demolst.sort((a, b) => (a.title > b.title) ? 1 : -1)
+
+var demoobj = new makeoption("DEMOS", demolst);
+
+function demo()
+{
+    menuhide();
+    location.href = this.path;
+}
+
 function promptFile() 
 {
     var input = document.createElement("input");
@@ -1621,9 +1727,17 @@ var presslst =
     {
         if (localobj.hide)
             return;
+        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         var n = context.grid.hitest(x,y); 
-        positobj.set(n);
-        context.refresh();
+        if (isthumbrect || positobj.current() == n)
+        {
+            context.togglepicture();
+        }
+        else
+        {
+            positobj.set(n);
+            context.refresh();
+        }
     }
 },
 ];
@@ -1658,7 +1772,7 @@ var swipelst =
     {
         setTimeout(function()
         {
-            slideoff();
+        //    slideoff();
             var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
             if (isthumbrect)
                 context.swipetype = evt.type == "swipeleft"?"swiperight":"swipeleft";
@@ -1869,8 +1983,8 @@ var keylst =
 
 CanvasRenderingContext2D.prototype.togglepicture = function()
 {
-    this.hidehead = 0;
     localobj.picture = localobj.picture?0:1; 
+    pageresize();
     this.refresh()            
 }
 
@@ -2529,13 +2643,24 @@ var ContextObj = (function ()
         }
 
         _4cnvctx.timeobj.set(url.time);
+        
+        var slices = _7cnvctx.sliceobj;
+        slices.data_= [];
+        var items = demoobj.length(); 
+        for (var n = 0; n < items; ++n)
+        {
+            slices.data_.push({index:n, title:demoobj.data_[n].title, path: demoobj.data_[n].path, func: demo})
+        }
+
+        _7cnvctx.delayinterval = DELAYCENTER / slices.data_.length;
+        _7cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
+
         var slices = _8cnvctx.sliceobj;
         slices.data_= [];
         var items = projectobj.length();
         for (var n = 0; n < items; ++n)
         {
-            var b = Math.floor(n);
-            slices.data_.push({index:b, title:(b+1)+"", path: "PROJECT", func: project})
+            slices.data_.push({index:n, title:(n+1)+"", path: "PROJECT", func: project})
         }
         
         _8cnvctx.delayinterval = DELAYCENTER / slices.data_.length;
@@ -2543,10 +2668,11 @@ var ContextObj = (function ()
 
         var slices = _9cnvctx.sliceobj;
         slices.data_= [];
-        slices.data_.push({title:"Refresh (F5)", path: "REFRESH", func: function(){savelocal(); location.reload()}})
+        slices.data_.push({title:"Refresh (F5)", path: "REFRESH", func: function(){location.reload()}})
         slices.data_.push({title:"Thumbnail (T)", path: "THUMBNAIL", func: function(){localobj.picture=localobj.picture?0:1; _4cnvctx.refresh()}})
         slices.data_.push({title:"Help", path: "HELP", func: function(){menuhide(); helpobj.getcurrent().draw(_4cnvctx, _4cnvctx.rect(), 0, 0);} })
         slices.data_.push({title:"Open... (O)", path: "LOAD", func: function(){promptFile().then(function(files) { dropfiles(files); })}})
+        slices.data_.push({title:"Examples", path: "DEMOS", func: function(){ menushow(_7cnvctx); }})
         slices.data_.push({title:"Screenshot", path: "SCREENSHOT", func: screenshot})
         slices.data_.push({title:"Original", path: "ORIGINAL", func: function(){window.open(photo.image.original, '_blank');}})
         if (!SAFARI)
@@ -2716,7 +2842,6 @@ var ContextObj = (function ()
 
                     if (globalobj.autostart)
                         slideon();
-                    tab();
 
                     var k = projectobj.current();
                     projectobj.rotate(_4cnvctx.swipetype=="swiperight"?-1:1);
@@ -3688,6 +3813,7 @@ var YollPanel = function ()
             return;
         }
         
+        localobj.picture = 1; 
         context.hidehead = 0;
         localobj.hide = localobj.hide?0:1;
         pageresize();
@@ -4279,12 +4405,12 @@ window.addEventListener("keydown", function (evt)
 
 function pageresize()
 {
-    var h = (_4cnvctx.hidehead||MFRAME)?0:ALIEXTENT;
+    var h = (!localobj.picture||_4cnvctx.hidehead||MFRAME)?0:ALIEXTENT;
     var y = 0;
     headcnvctx.show(0,y,window.innerWidth,h);
     headobj.set(0);
     headham.panel = headobj.getcurrent();
-    var h = (localobj.hide||MFRAME)?0:ALIEXTENT;
+    var h = (!localobj.picture||localobj.hide||MFRAME)?0:ALIEXTENT;
     footcnvctx.show(0,window.innerHeight-ALIEXTENT, window.innerWidth, h);
     footobj.set(0);
     footham.panel = footobj.getcurrent();
