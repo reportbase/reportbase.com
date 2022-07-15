@@ -9,9 +9,8 @@ const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
 const MFRAME = MOBILE && IFRAME;
-const MAXVIRTUALWIDTH = SAFARI?5760:5760*2; 
+const MAXVIRTUALWIDTH = SAFARI?5760:3840; 
 const DRAWCOUNT = 16;
-const CANVASCOUNT = 10;
 const SWIPETIME = 60;
 const TIMERELOAD = 30000;
 const REFRESHEADER = 1000;
@@ -91,6 +90,7 @@ url.fullpath = function() { return url.path + "." + projectobj.current().pad(4) 
 globalobj.template = url.searchParams.has("t") ? url.searchParams.get("t") : "";
 localobj.hide = 0;
 localobj.picture = 1;
+localobj.autodirect = 1;
 globalobj.divider = "rgba(0,0,0,0)";
 globalobj.timebegin = TIMEOBJ/2;
 globalobj.autostart = 0;
@@ -99,7 +99,7 @@ globalobj.position = 1;
 globalobj.cols = 1;
 globalobj.rows = 5;
 globalobj.vpan = 1;
-globalobj.trait = 75;
+globalobj.trait = 50;
 globalobj.scape = 100;
 globalobj.panybegin = 50;
 globalobj.panxbegin = 50;
@@ -109,7 +109,7 @@ globalobj.zoombegin = MOBILE?50:40;
 globalobj.rowreset = 0;
 globalobj.rowbegin = window.innerHeight/2;
 globalobj.slidecount = (TIMEOBJ/window.innerWidth)*5;
-globalobj.slidereduce = globalobj.slidecount/100;
+globalobj.slidereduce = globalobj.slidecount/30;
 if (globalobj.template == "comic")
 {
     globalobj.position = 7;
@@ -127,7 +127,7 @@ else if (globalobj.template == "wide")
     globalobj.scape = 100;
     globalobj.zoombegin = 0;
     globalobj.autostart = 1;
-    globalobj.autopage = 5000;
+    globalobj.autopage = 3000;
 }
 else if (globalobj.template == "5x1")
 {
@@ -169,11 +169,10 @@ else if (globalobj.template == "1x5")
     globalobj.cols = 1;
     globalobj.rows = 5;
     localobj.hide = 1;
-    localobj.picture = 0;
     globalobj.trait = 25;
     globalobj.scape = 100;
     globalobj.zoombegin = 0;
-    globalobj.autostart = 1;
+    globalobj.autostart = 0;
     globalobj.autopage = 4000;
 }
 
@@ -182,10 +181,9 @@ else if (globalobj.template == "7x1")
     globalobj.position = 7;
     globalobj.cols = 7;
     localobj.hide = 0;
-    localobj.picture = 0;
-    globalobj.trait = 75;
+    globalobj.trait = 35;
     globalobj.scape = 35;
-    globalobj.autostart = 1;
+    globalobj.autostart = 0;
     globalobj.autopage = 5000;
     globalobj.zoombegin = 0;
 }
@@ -210,10 +208,6 @@ for (var n = 0; n < 1000; n++)
     slicelst[n] = {slices: j*100, delay: CYLRADIUS*(60/j)}
     j--;
 }
-
-var canvaslst = [];
-for (var n = 0; n < CANVASCOUNT; ++n)
-    canvaslst[n] = document.createElement("canvas");
 
 var makeoption = function (title, data)
 {
@@ -353,6 +347,10 @@ let footcnv = document.getElementById("foot");
 let footcnvctx = footcnv.getContext("2d", opts);
         
 var contextlst = [_1cnvctx,_2cnvctx,_3cnvctx,_4cnvctx,_5cnvctx,_6cnvctx,_7cnvctx,_8cnvctx,_9cnvctx];
+var contextobj = new makeoption("CONTEXT", contextlst);
+
+var canvaslst = [];
+var canvasobj = new makeoption("CANVAS", canvaslst);
 
 function setPixelDensity(canvas) 
 {
@@ -863,9 +861,9 @@ CanvasRenderingContext2D.prototype.movedown = function(p)
 
 CanvasRenderingContext2D.prototype.movepage = function(j)
 {
-    _4cnvctx.newimage = j;
-    _4cnvctx.swipetype = j == -1 ? "swiperight" : "swipeleft";
-    
+    this.movingpage = j;
+    this.refresh();
+
     clearTimeout(globalobj.move);
     globalobj.move = setTimeout(function()
     {
@@ -875,14 +873,16 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
             delete photo.image;
             _4cnvctx.slidecomplete = 0;
             _4cnvctx.setcolumncomplete = 0;
-            projectobj.rotate(j);
-            headobj.getcurrent().draw(headcnvctx, headcnvctx.rect(), 0);
             if (globalobj.rowreset)
                 rowobj.set(globalobj.rowbegin);
             _4cnvctx.timeobj.set(globalobj.timebegin);
             var str = addressobj.full();
             history.replaceState(0, document.title, str);
-            location.reload();
+            if (++context.drawcount > DRAWCOUNT)
+                location.reload();
+            projectobj.rotate(j);
+            contextobj.reset();
+            setTimeout(function(){_4cnvctx.movingpage = 0; _4cnvctx.refresh(); }, 200);
         }
     }, 100);
 }
@@ -1360,13 +1360,13 @@ var heightobj = new makeoption("HEIGHT", [traitobj,scapeobj]);
 
 var demolst =
 [
-//5x1
+//1x6
 {path: "https://reportbase.com/home.html?p=HUPE&m=0004&t=1x5", title: "HUPE"},
 {path: "https://reportbase.com/home.html?p=GOUT&m=0005&t=1x5", title: "GOUT"}, 
 {path: "https://reportbase.com/home.html?p=CORN&m=0004&t=1x5", title: "CORN"}, 
 {path: "https://reportbase.com/home.html?p=ARMY&m=0005&t=1x5", title: "ARMY"},
 
-//1x7
+//7x1
 {path: "https://reportbase.com/home.html?p=REIN&m=0006&t=7x1", title: "REIN"},
 {path: "https://reportbase.com/home.html?p=GAMP&m=0006&t=7x1", title: "GAMP"},
 {path: "https://reportbase.com/home.html?p=NETA&m=0003&t=7x1", title: "NETA"},
@@ -1562,7 +1562,6 @@ var panlst =
         context.pantype = type;
         if (!globalobj.vpan)
             y = rowobj.getcurrent()
-
         context.x7 = context.x6;
         context.x6 = context.x5;
         context.x5 = context.x4;
@@ -1627,7 +1626,7 @@ var panlst =
     },
     panend: function (context, rect, x, y)
 	{
-        if (context.drawcount++ > DRAWCOUNT)
+        if (++context.drawcount > DRAWCOUNT)
             location.reload();
         contextobj.reset();
         context.pantype = 0;
@@ -1772,12 +1771,11 @@ var swipelst =
     {
         setTimeout(function()
         {
-        //    slideoff();
             var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
             if (isthumbrect)
-                context.swipetype = evt.type == "swipeleft"?"swiperight":"swipeleft";
+                localobj.autodirect = evt.type == "swipeleft"?1:-1;
             else
-                context.swipetype = evt.type;
+                localobj.autodirect = evt.type == "swipeleft"?-1:1;
             evt.preventDefault();
             context.slideshow = globalobj.slidecount;
             context.refresh();
@@ -1786,7 +1784,6 @@ var swipelst =
 
     swipeupdown: function (context, rect, x, y, evt)
     {
-        slideoff();
         if (globalobj.vpan && zoomobj.current() > 0)
             return;
 
@@ -1794,9 +1791,9 @@ var swipelst =
         {
             var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
             if (isthumbrect)
-                context.swipetype = evt.type == "swipeup"?"swipeleft":"swiperight";
+                localobj.autodirect = evt.type == "swipeup"?1:-1;
             else
-                context.swipetype = evt.type == "swipeup"?"swiperight":"swipeleft";
+                localobj.autodirect = evt.type == "swipeup"?-1:1;
             evt.preventDefault();
             context.slideshow = globalobj.slidecount;
             context.refresh();
@@ -1859,8 +1856,7 @@ var keylst =
         
         if (evt.key == "t")
         {
-            localobj.picture = localobj.picture?0:1; 
-            _4cnvctx.refresh()            
+            context.togglepicture();
             evt.preventDefault();
         }
         else if (evt.key == "f")
@@ -1878,7 +1874,9 @@ var keylst =
         }
         else if (evt.key == "Tab")
         {
-            tab();
+            localobj.autodirect = context.shifthit ? 1 : -1; 
+            _4cnvctx.slideshow = globalobj.slidecount;
+            _4cnvctx.refresh();
             evt.preventDefault();
         }
         else if (evt.key == "b")
@@ -1902,16 +1900,18 @@ var keylst =
         }
          else if (evt.key == "ArrowLeft" || evt.key == "h")
         {
+            localobj.autodirect = -1;
             if (context.ctrlhit)
-                context.movepage(-1)
+                context.movepage(localobj.autodirect)
             else
                 context.timeobj.rotate(context.rvalue);
             evt.preventDefault();
         }
         else if (evt.key == "ArrowRight" || evt.key == "l")
         {
+            localobj.autodirect = 1;
             if (context.ctrlhit)
-                context.movepage(1)
+                context.movepage(localobj.autodirect)
             else
                 context.timeobj.rotate(-context.rvalue);
             evt.preventDefault();
@@ -1938,12 +1938,14 @@ var keylst =
         }
         else if (evt.key == "Backspace")
         {
-            context.movepage(-1)
+            localobj.autodirect = -1;
+            context.movepage(localobj.autodirect)
             evt.preventDefault();
         }
         else if (evt.key == "Enter")
         {
-            context.movepage(1)
+            localobj.autodirect = 1;
+            context.movepage(localobj.autodirect)
             evt.preventDefault();
         }
         else if (evt.key == "Pageup" || evt.key == "o")
@@ -2057,27 +2059,9 @@ var taplst =
         slideoff();
         context.refresh();
 
-        if (context.movetoprect && context.movetoprect.hitest(x,y))
-        {
-            context.moveup(1);
-        }
-        else if (context.movebottomrect && context.movebottomrect.hitest(x,y))
-        {
-            context.movedown(1);
-        }
-        else if (context.menurect && context.menurect.hitest(x,y))
+        if (context.menurect && context.menurect.hitest(x,y))
         {
             menushow(_8cnvctx);
-        }
-        else if (context.moveprevrect && context.moveprevrect.hitest(x,y))
-        {
-            context.movepage(-1);
-            context.refresh();
-        }
-        else if (context.movenextrect && context.movenextrect.hitest(x,y))
-        {
-            context.movepage(1)
-            context.refresh();
         }
         else if (context.aboutrect && context.aboutrect.hitest(x,y))
         {
@@ -2468,14 +2452,15 @@ function resetcanvas()
     var slice = 0;
     context.sliceobj.data_ = []
 
-    if (SAFARI)
-        for (var n = 0; n < canvaslst.length; ++n)
-            releaseCanvas(canvaslst[n]);
+    for (var n = 0; n < canvaslst.length; ++n)
+        releaseCanvas(canvaslst[n]);
+    canvaslst = [] 
 
     var j = 0;
     for (var n = 0; n < canvaslen; ++n)
     {
-        var cnv = canvaslst[n];
+        var cnv = document.createElement("canvas");
+        canvaslst.push(cnv);
         if (cnv.height != context.canvas.height)
             cnv.height = context.canvas.height;
         if (cnv.width != context.bwidth)
@@ -2634,7 +2619,6 @@ var ContextObj = (function ()
             context.drawcount = 0;  
 			context.lastime = 0;
             setevents(context, eventlst[n]);
-			context.swipetype = "swipeleft"
             context.sliceobj = new makeoption("", []);
             context.timeobj = new makeoption("", TIMEOBJ);
             context.describeobj = new makeoption("", 0);
@@ -2819,7 +2803,8 @@ var ContextObj = (function ()
                     photo.image.onabort = function()
                 {
                     _4cnvctx.setcolumncomplete = 1;
-                    _4cnvctx.movepage(-1);
+                   _localobj.autodirect = localobj.autodirect?-1:1; 
+                    _4cnvctx.movepage(localobj.autodirect);
                     seteventspanel(new YollPanel());
                     this.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAADK0lEQVRIS7WXWYiOURjH57VknzIXiiwXKBRXLpSMC9OIEDEhk5KdBs0wzQUxSVlmQskSRU0ulKWIUq4MTYkpe1kKRZIt+zqf3//rvF+fd87yynyn/p2v8yz/5zzvc55zvqjIMzKZTDfEvcBYgwHMGfACXAM3wccoir77/NhkkW0Rwi6sTwSLwDzQ2eH4K+snwFHQQgA/0wbQjhjSYoz3GMIeKR0pAJFvhPxdGpu/iCHti9EVMCqNsUXnKmuTIf8css8RQ6rdXf8P0pirGeLSfyHej/LKgMEn5ApWBecbDZBv8Clkd8xuxzFdAEq1a9xGsB38ApsDmVGVj4f8hstZBGlX47A6sIs6HO0wgVYyNwX0m9Bf6CNWFWs3gz2OfiNbh6N9hniKyZCP+w7C6dg8sSlpx0MRPHJ4UMp0NttALU4OGeJy5otA31wZU6NJjvcsVGBzyUU8G8FJi/A+ayq410DdqhUnDw1xf+YyoMBKgD7TcIuPSmyOu4hVySLIHyJahdFBm1FyjazNZO2MRXdFnKWkTKlezqKNYD1GjSmJl6B32KK7DB+29SIRT8XgvMXoi8nEM5Pqyzi5ZVI9hLkCqFUOBHUWe2VtPjbq5e2GiFXNT1PsrBonuw3xNOZzAZtXyOdg0+wi7o1APXaMx5GO0xqcZGuBYOOq9nG3IizH5o2LuBOCGrAzsIN6nGwxxKuZs2faMXT89qLvbEpxy9RtdBboTLuGzmwD0LneChSwa3xAMBJiPRisI/92UlNXL/Y5DCQlJ37MrxkQ30tDrFfGAbA0rfeAnh4Eu0AjAfxI6iYfAt1RqAe1HUSuotQdvxjyu/k+bU8f7XwuUFPpkzKAb+ipnY526GvHut2yx1HD+tiTgCPTj2kT0JnVDdYT6BGooQJT81ARqVXqflYj0cUxyBPsKWRrCeC5kzg2JgClXw+FYUAXgsZboB3qZZn7fujq+KjyfX71pisLEnuit4og1zU4KWC3oBDEyspLoHvaNY50OLGY2PUsptMe4m2FIpbfY8D25tKtNaIgxGbXqnKR539vHbsqCrIwqY5TTMrVByYA/enTSVDhPYC47Q+jAwjFRbnDLAAAAABJRU5ErkJggg==";
                     resetcanvas(context);
@@ -2844,7 +2829,7 @@ var ContextObj = (function ()
                         slideon();
 
                     var k = projectobj.current();
-                    projectobj.rotate(_4cnvctx.swipetype=="swiperight"?-1:1);
+                    projectobj.rotate(localobj.autodirect);
                     var path = "https://reportbase.com/data/" + url.fullpath();
                     if (HOST == "Image.Vision")
                         path = "https://d.img.vision/" + url.group + '/' + url.fullpath();
@@ -3485,6 +3470,7 @@ function reset()
 
 function resize()
 {
+    _4cnvctx.drawcount = 0;
     menuhide();
     delete photo.cached;
     delete _4cnvctx.describe;
@@ -3542,8 +3528,7 @@ function yoll()
 
         if (context.slideshow > 0)
         {
-            var k = (context.swipetype == "swipeleft")?-1:1;
-            context.timeobj.rotate(k*context.slideshow);
+            context.timeobj.rotate(localobj.autodirect*context.slideshow);
             context.slideshow -= globalobj.slidereduce;
         }
 
@@ -3650,11 +3635,7 @@ function yoll()
         context.thumbselect = [];
         context.grid = [];
         delete context.menurect;
-        delete context.moveprevrect;
-        delete context.movetoprect;
-        delete context.movenextrect;
         delete context.nohit;
-        delete context.movebottomrect;
         delete context.aboutrect;
         delete context.fullscreen;
         delete context.zoominrect;
@@ -3694,7 +3675,6 @@ function yoll()
         if (!context.setcolumncomplete)
         {
             context.setcolumncomplete = 1;
-            context.newimage = 0;
         }
 
         if (!context.screenshot)
@@ -3987,7 +3967,15 @@ var headlst =
             else if (context.prevpage2.hitest(x,y) ||
                 context.prevpage.hitest(x,y))
             {
-                _4cnvctx.movepage(-1);
+                if (globalobj.auto)
+                {
+                    slideoff();
+                    _4cnvctx.refresh();
+                    return;
+                }
+
+                localobj.autodirect = -1
+                _4cnvctx.movepage(localobj.autodirect);
             }
             else if (context.reload.hitest(x,y))
             {
@@ -3998,7 +3986,15 @@ var headlst =
             else if (context.nextpage2.hitest(x,y) ||
                     context.nextpage.hitest(x,y))
             {
-                _4cnvctx.movepage(1);
+                if (globalobj.auto)
+                {
+                    slideoff();
+                    _4cnvctx.refresh();
+                    return;
+                }
+
+                localobj.autodirect = 1
+                _4cnvctx.movepage(localobj.autodirect);
             }
             else if (context.option.hitest(x,y))
             {
@@ -4026,14 +4022,7 @@ var headlst =
             context.nextpage2 = new rectangle()
             context.reload = new rectangle()
 
-            var columnobj = _4cnvctx.columnobj;
-            var timeobj = _4cnvctx.timeobj;
-            var sliceobj = _4cnvctx.sliceobj;
-            var a = timeobj.current() / timeobj.length();
-            columnobj.sett(a);
-            sliceobj.set(_4cnvctx.count);
-
-            var str = _4cnvctx.debugobj.getcurrent().print();
+            var str = projectobj.print();
             var k = str.split("-");
             var project = k[0];
             var projects = k[1];
@@ -4057,7 +4046,8 @@ var headlst =
                         0,
                         new Layer(
                         [
-                            (_4cnvctx.newimage == -1) ? new Fill(ARROWSELECT):new Fill(HEADCOLOR),
+                            (_4cnvctx.movingpage == -1 ||
+                                globalobj.auto && localobj.autodirect == -1) ? new Fill(ARROWSELECT):new Fill(HEADCOLOR),
                             new Shrink(new Arrow(270),ARROWBORES,ARROWBORES-BNUB),
                             new Rectangle(context.prevpage),
                         ]),
@@ -4079,7 +4069,8 @@ var headlst =
                         0,
                         new Layer(
                         [
-                            (_4cnvctx.newimage == 1) ? new Fill(ARROWSELECT):new Fill(HEADCOLOR),
+                            (_4cnvctx.movingpage == 1 ||
+                                globalobj.auto && localobj.autodirect == 1) ? new Fill(ARROWSELECT):new Fill(HEADCOLOR),
                             new Shrink(new Arrow(90),ARROWBORES,ARROWBORES-BNUB),
                             new Rectangle(context.nextpage),
                         ]),
@@ -4595,6 +4586,7 @@ var helplst =
             Gallery\n${url.path}\n
             Image\n${projectobj.current().pad(4)}\n
             Extension\n${url.extension}\n
+            Canvas Count\n${canvaslst.length}\n
             Photo Width\n${photo.image.width}\n
             Photo Height\n${photo.image.height}\n
             Photo Aspect\n${photo.image.aspect.toFixed(2)}\n
@@ -4604,6 +4596,7 @@ var helplst =
             Window Width\n${window.innerWidth}\n
             Window Height\n${window.innerHeight}\n
             Window Aspect\n${(window.innerWidth/window.innerHeight).toFixed(2)}\n
+            userAgent\n${navigator.userAgent}\n
             `;
 
         var k = helpobj.getcurrent().index?helpobj.getcurrent().index:0;
@@ -4623,13 +4616,6 @@ helpobj.hide = function()
     context.refresh();
 }
 
-function tab()
-{
-    _4cnvctx.swipetype = _4cnvctx.shifthit ? "swiperight" : "swipeleft";
-    _4cnvctx.slideshow = globalobj.slidecount;
-    _4cnvctx.refresh();
-}
-
 function slideon()
 {
     menuhide();
@@ -4638,7 +4624,7 @@ function slideon()
     {
         if (_4cnvctx.panning)
             return;
-        _4cnvctx.movepage(_4cnvctx.swipetype == "swipeleft" ? 1 : -1);
+        _4cnvctx.movepage(localobj.autodirect);
     }, globalobj.autopage);
 }
 
