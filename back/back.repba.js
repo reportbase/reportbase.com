@@ -8,11 +8,10 @@ const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
-const MFRAME = MOBILE && IFRAME;
-const MAXVIRTUALWIDTH = 7680;//SAFARI?5760:5760*2; 
-const DRAWCOUNT = 16;
-const SWIPETIME = 60;
-const TIMERELOAD = 30000;
+const MAXVIRTUALWIDTH = SAFARI?5760:5760*2; 
+const DOUBLECLICK = 500;
+const CANVASCOUNT = 10;
+const TIMERELOAD = 5000;
 const REFRESHEADER = 1000;
 const MAXSLIDER = 720;
 const POSITYSPACE = 50;
@@ -48,15 +47,15 @@ const ZOOMADJ = 0.01;
 const PINCHRANGE = "0.35-1.1";
 const HEIGHTRANGE = "0.10-1.0";
 const PANXRANGE = "3-15";
-const PANYRANGE = "1.0-6.0";
+const PANYRANGE = "1.0-4.0";
 const CANVASMAX = 30;
 const MAXCANVASWIDTH = 32767;
 const MAXCANVASIZE = SAFARI?16777216:32777216;
 const MAXVIRTUALSIZE = SAFARI?12000000:24000000;
 const MENUCOLOR = "rgba(0,0,0,0.50)";
-const HEADCOLOR = "rgba(0,0,0,0.40)";
+const HEADCOLOR = "rgba(0,0,0,0.30)";
 const HEADLIGHT = "rgba(0,0,0,0.50)";
-const DARKHEADCOLOR = "rgba(0,0,0,1)";
+const DARKHEADCOLOR = "rgba(0,0,0,0.8)";
 const ARROWSELECT = "rgba(255,125,0,0.5)";
 const ARROWBACK = "rgba(0,0,0,0.25)"
 const THUMBFILL = "rgba(0,0,0,0.25)"
@@ -65,13 +64,13 @@ const SLIDELST = [0,27.5,50,72.5,100];
 
 dropobj = {};
 globalobj = {};
-localobj = {}
 
 var url = new URL(window.location.href);
+url.hide = url.searchParams.has("f") ? Number(url.searchParams.get("f")) : 0;
 url.group = url.searchParams.has("u") ? url.searchParams.get("u") : "reportbase";
 url.projects = url.searchParams.has("m") ? url.searchParams.get("m") : "0000";
-var filename = url.searchParams.get("p");
-filename = filename.split(".");
+url.filename = url.searchParams.get("p");
+var filename = url.filename.split(".");
 if (filename.length == 3)
 {
     url.path = filename[0];
@@ -85,100 +84,25 @@ else
     url.extension = "webp"; 
 }
 
+url.panx = url.searchParams.has("k") ? Number(url.searchParams.get("k")) : 25;
+url.pany = url.searchParams.has("n") ? Number(url.searchParams.get("n")) : 50;
+url.trait = url.searchParams.has("h") ? Number(url.searchParams.get("h")) : 50;
+url.scape = url.searchParams.has("a") ? Number(url.searchParams.get("a")) : 100;
+
+url.divider = url.searchParams.has("l") ? url.searchParams.get("l") : "0";
+if (url.divider == "0")
+    url.divider = 0;
+
+url.autostart = url.searchParams.has("k") ? Number(url.searchParams.get("k")) : 0;
+url.autopage = url.searchParams.has("n") ? Number(url.searchParams.get("n")) : 1500;
+url.vpan = url.searchParams.has("x") ? Number(url.searchParams.get("x")) : 1;
+url.slidecount = url.searchParams.has("i") ? Number(url.searchParams.get("i")) : 10;
+url.slidereduce = url.searchParams.has("s") ? Number(url.searchParams.get("s")) : 0.5;
+url.rowbegin = url.searchParams.has("e") ? Number(url.searchParams.get("e")) : 50;
+url.thumbpicture = url.searchParams.has("t") ? Number(url.searchParams.get("t")) : 1;
+url.cols = url.searchParams.has("d") ? Number(url.searchParams.get("d")) : 1;
+url.rows = url.searchParams.has("o") ? Number(url.searchParams.get("o")) : 1;
 url.fullpath = function() { return url.path + "." + projectobj.current().pad(4) + "." + url.extension; }
-
-globalobj.template = url.searchParams.has("t") ? url.searchParams.get("t") : "";
-localobj.hide = 1;
-localobj.picture = 0;
-localobj.autodirect = 1;
-localobj.showthumb = 1;
-globalobj.divider = "rgba(0,0,0,0)";
-globalobj.timebegin = TIMEOBJ/2;
-globalobj.autostart = 0;
-globalobj.autopage = 1500;
-globalobj.position = 1;
-globalobj.cols = 1;
-globalobj.rows = 5;
-globalobj.vpan = 1;
-globalobj.trait = 80;
-globalobj.scape = 80;
-globalobj.panybegin = 50;
-globalobj.panxbegin = 50;
-globalobj.pinchbegin = 50;
-globalobj.maxheight = 0;
-globalobj.zoombegin = MOBILE?50:40;
-globalobj.rowreset = 0;
-globalobj.rowbegin = window.innerHeight/2;
-globalobj.slidecount = (TIMEOBJ/window.innerWidth)*10;
-globalobj.slidereduce = globalobj.slidecount/10;
-
-if (globalobj.template == "comic")
-{
-    globalobj.position = 7;
-    globalobj.rowbegin = 15;
-    globalobj.rowreset = 1;
-    globalobj.zoombegin = MOBILE?50:25;
-}
-else if (globalobj.template == "wide")
-{
-    globalobj.position = 7;
-    globalobj.maxheight = 35;
-    globalobj.rows = 1;
-    globalobj.vpan = 0;
-    globalobj.trait = 100;
-    globalobj.scape = 100;
-    globalobj.zoombegin = 0;
-    globalobj.autostart = 1;
-    globalobj.autopage = 3000;
-}
-else if (globalobj.template == "portrait")
-{
-    globalobj.position = 7;
-    globalobj.trait = 75;
-    globalobj.scape = 75;
-    globalobj.autostart = 1;
-    globalobj.autopage = 2000;
-    localobj.picture = 1;
-}
-else if (globalobj.template == "landscape")
-{
-    globalobj.position = 7;
-    localobj.picture = 1;
-    globalobj.trait = 100;
-    globalobj.scape = 100;
-    globalobj.autostart = 1;
-    globalobj.autopage = 2000;
-}
-else if (globalobj.template == "tall")
-{
-    globalobj.position = 5;
-    globalobj.rows = 1;
-    globalobj.cols = 1;
-    globalobj.autostart = 1;
-    globalobj.autopage = 5000;
-}
-else if (globalobj.template == "1x5")
-{
-    globalobj.position = 5;
-    globalobj.cols = 1;
-    globalobj.rows = 5;
-    globalobj.trait = 25;
-    globalobj.scape = 100;
-    globalobj.zoombegin = 0;
-    globalobj.autostart = 0;
-    globalobj.autopage = 4000;
-}
-else if (globalobj.template == "7x1")
-{
-    globalobj.maxheight = 35;
-    globalobj.position = 7;
-    globalobj.cols = 7;
-    globalobj.trait = 100;
-    globalobj.scape = 100;
-    globalobj.autostart = 0;
-    globalobj.autopage = 5000;
-    globalobj.zoombegin = 0;
-}
 
 Math.clamp = function (min, max, val)
 {
@@ -200,6 +124,10 @@ for (var n = 0; n < 1000; n++)
     slicelst[n] = {slices: j*100, delay: CYLRADIUS*(60/j)}
     j--;
 }
+
+var canvaslst = [];
+for (var n = 0; n < CANVASCOUNT; ++n)
+    canvaslst[n] = document.createElement("canvas");
 
 var makeoption = function (title, data)
 {
@@ -223,6 +151,31 @@ var makeoption = function (title, data)
     };
 
     this.split = function(k,j,size)
+    {
+        var s = j.split("-");
+        var begin = Number(s[0]);
+        var end = Number(s[1]);
+        var mn = begin;
+        var mx = end;
+        var ad = (mx-mn)/size;
+        if (mx == mn)
+            size = 1;
+        var lst = [];
+        for (var n = 0; n < size; ++n, mn+=ad)
+            lst.push(mn.toFixed(4));
+        var j = this.length();
+        this.data_ = lst;
+        if (j == 0)
+        {
+            var l = Math.lerp(0,size-1,k/100);
+            this.set(Math.floor(l));
+        }
+
+        this.begin = begin;
+        this.end = end;
+    }
+   
+    this.split2 = function(k,j,size)
     {
         var s = j.split("-");
         var begin = Number(s[0]);
@@ -300,6 +253,12 @@ var makeoption = function (title, data)
         this.setanchor(index); 
     };
 
+    this.addpercentage = function (f) 
+    { 
+        var p = this.current()*(1+f);
+        this.set(p); 
+    };
+
     this.add = function (index) 
     { 
         this.set(this.current()+index); 
@@ -339,7 +298,6 @@ let footcnv = document.getElementById("foot");
 let footcnvctx = footcnv.getContext("2d", opts);
         
 var contextlst = [_1cnvctx,_2cnvctx,_3cnvctx,_4cnvctx,_5cnvctx,_6cnvctx,_7cnvctx,_8cnvctx,_9cnvctx];
-var canvaslst = [];
 
 function setPixelDensity(canvas) 
 {
@@ -486,7 +444,6 @@ Image.prototype.load = function(url)
 };
 
 Image.prototype.completedPercentage = 0;
-
 String.prototype.stripquotes = function() { return this.replace(/(^"|"$)/g, ''); }
 
 String.prototype.clean = function()
@@ -602,7 +559,7 @@ var Help = function()
                     0,
                     new Layer(
                     [
-                        new Fill("rgba(0,0,0,0.75)"),
+                        new Fill("black"),
                         new Rectangle(context.hidehelp),
                         new ColA([ALIEXTENT,0,ALIEXTENT],
                         [
@@ -623,7 +580,7 @@ var Help = function()
                     ]),
                     new Layer(
                     [
-                        new Fill("rgba(0,0,0,0.75)"),
+                        new Fill("black"),
                         new ColA([0,ALIEXTENT,ALIEXTENT,0],
                         [
                             new Layer(
@@ -770,9 +727,21 @@ var addressobj = {}
 addressobj.body = function ()
 {
     var context = _4cnvctx;
-    var out = "&m="+(projectobj.length()-1);
-    if (globalobj.template)
-        out += "&t="+globalobj.template;
+    var out = 
+        "&m="+(projectobj.length()-1)+
+        "&d="+url.cols+
+        "&e="+url.rowbegin+
+        "&f="+url.hide+
+        "&i="+url.slidecount+
+        "&k="+url.autostart+
+        "&l="+url.divider+
+        "&o="+url.rows+
+        "&s="+url.slidereduce+
+        "&t="+url.thumbpicture+
+        "&x="+url.vpan+
+        "&a="+url.scape+
+        "&h="+url.trait+
+        "&n="+url.autopage;
     return out;
 }
 
@@ -809,12 +778,14 @@ CanvasRenderingContext2D.prototype.getx = function(k)
     var time = this.timeobj.getcurrent()/1000;
     var j = time + slice.time;
     var b = Math.tan(j*VIRTCONST);
-    return Math.berp(-1, 1, b) * this.virtualpinch-this.virtualeft;
+    var kv = this.virtualwidth*pinchobj.getcurrent();
+    var borderleft = (kv-this.canvas.width)/2;
+    return Math.berp(-1, 1, b) * kv - borderleft;
 }
 
 CanvasRenderingContext2D.prototype.getslicefirst = function()
 {
-    let mid, low = 0, high = this.sliceobj.data_.length;
+    let mid, low = 0,high = this.sliceobj.data_.length;
     while (low < high) 
     {
         mid = low + high >>> 1; 
@@ -850,33 +821,30 @@ CanvasRenderingContext2D.prototype.movedown = function(p)
 
 CanvasRenderingContext2D.prototype.movepage = function(j)
 {
-    this.movingpage = j;
-    this.refresh();
-
+    _4cnvctx.newimage = j;
+    pageresize();
+    
     clearTimeout(globalobj.move);
     globalobj.move = setTimeout(function()
     {
         if (_4cnvctx.setcolumncomplete)
         {
+            slideoff();
+            var date = photo.image.date.getTime();
             delete photo.cached;
             delete photo.image;
             _4cnvctx.slidecomplete = 0;
             _4cnvctx.setcolumncomplete = 0;
-            if (globalobj.rowreset)
-                rowobj.set(globalobj.rowbegin);
-            _4cnvctx.timeobj.set(globalobj.timebegin);
+            headobj.getcurrent().draw(headcnvctx, headcnvctx.rect(), 0);
             projectobj.rotate(j);
-            var str = addressobj.full();
-            history.replaceState(0, document.title, str);
-            if (++context.drawcount > DRAWCOUNT)
-            {
-                location.reload();
-            }
+            var row = (url.rowbegin/100)*rowobj.length();
+            rowobj.set(row);
+            _4cnvctx.timeobj.set(_4cnvctx.timeobj.length()/2);
+            var date1 = new Date(); 
+            if (date1-date > TIMERELOAD)
+                location.href = addressobj.full();
             else
-            {
                 contextobj.reset();
-                setTimeout(function(){_4cnvctx.movingpage = 0; _4cnvctx.refresh(); }, 200);
-            }
         }
     }, 100);
 }
@@ -894,9 +862,32 @@ CanvasRenderingContext2D.prototype.refresh = function ()
     this.lastime = -0.0101010101;
 };
 
+CanvasRenderingContext2D.prototype.pantop = function()
+{
+    rowobj.set(0);
+    contextobj.reset();
+}
+
+CanvasRenderingContext2D.prototype.panbottom = function()
+{
+    rowobj.set(rowobj.length()-1);
+    contextobj.reset();
+}
+
+CanvasRenderingContext2D.prototype.swipehard = function(m)
+{
+    var j = window.innerWidth/this.virtualwidth;
+    var e = (j*this.timeobj.length())/8;
+    e *= m?1:-1;
+    this.timeobj.rotate(e);
+}
+
 CanvasRenderingContext2D.prototype.panimage = function (less,x,y)
 {
-    this.timeobj.rotate(less ? this.rvalue : -this.rvalue);
+    var p = panxobj.getcurrent();
+    var s = this.timeobj.length()/this.virtualwidth;
+    var k = p*s;
+    this.timeobj.rotate(less ? k : -k);
 }
 
 CanvasRenderingContext2D.prototype.show = function (x, y, width, height)
@@ -931,10 +922,10 @@ var makehammer = function (context, v)
 	context.ham = ham;
     ham.get("pan").set({ direction: Hammer.DIRECTION_ALL });
     ham.get("swipe").set({ direction: Hammer.DIRECTION_ALL });
-    ham.get('swipe').set({ velocity: 0.50});//30
-	ham.get('swipe').set({ threshold: 20 });//10
+    ham.get('swipe').set({ velocity: 0.40});//30
+	ham.get('swipe').set({ threshold: 10 });//10
 	ham.get('press').set({ time: 350 });
-	//ham.get('pan').set({ threshold: 10 });
+	ham.get('pan').set({ threshold: 10 });
 	ham.get('pinch').set({ enable: false });	
 
 	ham.on("pinch", function (evt)
@@ -1202,6 +1193,9 @@ var _9ham = makehammer(_9cnvctx,0.9);
 var headham = makehammer(headcnvctx,0.3);
 var footham = makehammer(footcnvctx,0.3);
 _4ham.get('pinch').set({ enable: true });	
+_8ham.get('swipe').set({ velocity: 0.80});//30
+_8ham.get('swipe').set({ threshold: 30 });//10
+_9ham.get("swipe").set({ direction: Hammer.DIRECTION_NONE });
 
 var wheelst =
 [
@@ -1235,12 +1229,18 @@ var wheelst =
         if (isthumbrect)
         {
             var obj = heightobj.getcurrent();
-            obj.add(1);
+            var k = obj.current()+1;
+            obj.set(k);
             context.refresh();
         } 
+        else if (ctrl)
+        {
+            zoomobj.add(-5);
+            contextobj.reset();
+        }
         else
         {
-            zoomobj.add(1);
+            rowobj.addpercentage(0.05);
             contextobj.reset();
         }
 	},
@@ -1252,12 +1252,18 @@ var wheelst =
         if (isthumbrect)
         {
             var obj = heightobj.getcurrent();
-            obj.add(-1);
+            var k = obj.current()-1;
+            obj.set(k);
             context.refresh();
+        }
+        else if (ctrl)
+        {
+            zoomobj.add(5);
+            contextobj.reset();
         }
         else
         {
-            zoomobj.add(-1);
+            rowobj.addpercentage(-0.05);
             contextobj.reset();
         }
 	},
@@ -1282,12 +1288,7 @@ var pinchlst =
     name: "BOSS",
     pinch: function (context, scale)
     {
-        var pt = context.getweightedpoint(scale,0); 
-        if (!pt.x)
-            return;
-        scale = pt.x;
-
-        if (localobj.hide)
+        if (!localobj.hide && context.isthumbrect)
         {
             var obj = heightobj.getcurrent();
             var data = obj.data_; 
@@ -1309,9 +1310,21 @@ var pinchlst =
 
         context.refresh();
     },
+    pinchend: function (context)
+    {
+        clearTimeout(globalobj.pinch);
+        globalobj.pinch = setTimeout(function()
+            {
+                delete photo.cached;
+                context.pinching = 0;  
+                context.refresh();
+            }, 200);
+
+        context.refresh();
+        pageresize();
+    }, 
     pinchstart: function (context, rect, x, y) 
     {
-        this.clearweights();
         slideoff();
         context.pinching = 1;
         context.isthumbrect = 0;
@@ -1327,24 +1340,10 @@ var pinchlst =
         pageresize();
         context.refresh();
     },
-    pinchend: function (context)
-    {
-        clearTimeout(globalobj.pinch);
-        globalobj.pinch = setTimeout(function()
-            {
-                delete photo.cached;
-                context.pinching = 0;  
-                context.refresh();
-            }, 200);
-
-        context.refresh();
-        pageresize();
-    }, 
 },
 ];
 
 var rowobj = new makeoption("ROW", window.innerHeight);
-rowobj.set(window.innerHeight/2);
 var pinchobj = new makeoption("PINCH", pinchlst);
 var panxobj = new makeoption("PANX", OPTIONSIZE); 
 var panyobj = new makeoption("PANY", OPTIONSIZE); 
@@ -1352,171 +1351,6 @@ var zoomobj = new makeoption("ZOOM", OPTIONSIZE);
 var traitobj = new makeoption("TRAIT", OPTIONSIZE); 
 var scapeobj = new makeoption("SCAPE", OPTIONSIZE); 
 var heightobj = new makeoption("HEIGHT", [traitobj,scapeobj]); 
-
-var demolst =
-[
-//1x6
-{path: "https://reportbase.com/home.html?p=HUPE&m=0004&t=1x5", title: "HUPE"},
-{path: "https://reportbase.com/home.html?p=GOUT&m=0005&t=1x5", title: "GOUT"}, 
-{path: "https://reportbase.com/home.html?p=CORN&m=0004&t=1x5", title: "CORN"}, 
-{path: "https://reportbase.com/home.html?p=ARMY&m=0005&t=1x5", title: "ARMY"},
-
-//7x1
-{path: "https://reportbase.com/home.html?p=REIN&m=0006&t=7x1", title: "REIN"},
-{path: "https://reportbase.com/home.html?p=GAMP&m=0006&t=7x1", title: "GAMP"},
-{path: "https://reportbase.com/home.html?p=NETA&m=0003&t=7x1", title: "NETA"},
-{path: "https://reportbase.com/home.html?p=NATA&m=0006&t=7x1", title: "NATA"},
-{path: "https://reportbase.com/home.html?p=GARL&m=0003&t=7x1", title: "GARL"},
-{path: "https://reportbase.com/home.html?p=WED8&m=0000&t=7x1", title: "WED8"},
-{path: "https://reportbase.com/home.html?p=PEN7&m=0000&t=7x1", title: "PEN7"},
-{path: "https://reportbase.com/home.html?p=GAL5&m=0000&t=7x1", title: "GAL5"},
-{path: "https://reportbase.com/home.html?p=HAN7&m=0000&t=7x1", title: "HAN7"},
-{path: "https://reportbase.com/home.html?p=BDR5&m=0000&t=7x1", title: "BDR5"},
-{path: "https://reportbase.com/home.html?p=GRO6&m=0000&t=7x1", title: "GRO6"},
-{path: "https://reportbase.com/home.html?p=MUS8&m=0000&t=7x1", title: "MUS8"},
-
-//Wide Images
-{path: "https://reportbase.com/home.html?p=PENO&m=0073&t=wide", title: "PENO"},                                                                                            
-{path: "https://reportbase.com/home.html?p=PUNO&m=0086&t=wide", title: "PUNO"},
-{path: "https://reportbase.com/home.html?p=PANO&m=0045&t=wide", title: "PANO"},
-{path: "https://reportbase.com/home.html?p=PINO&m=0029&t=wide", title: "PINO"},
-{path: "https://reportbase.com/home.html?p=WIDE&m=0029&t=wide", title: "WIDE"},
-
-//Landscapes
-{path: "https://reportbase.com/home.html?p=HOPE&m=0076&t=landscape", title: "HOPE"}, 
-{path: "https://reportbase.com/home.html?p=GOAT&m=0097&t=landscape", title: "GOAT"}, 
-{path: "https://reportbase.com/home.html?p=BOAT&m=0101&t=landscape", title: "BOAT"}, 
-{path: "https://reportbase.com/home.html?p=BELL&m=0015&t=landscape", title: "BELL"}, 
-{path: "https://reportbase.com/home.html?p=ASPO&m=0029&t=landscape", title: "ASPO"}, 
-{path: "https://reportbase.com/home.html?p=GOLF&m=0020&t=landscape", title: "GOLF"}, 
-{path: "https://reportbase.com/home.html?p=PUCK&m=0058&t=landscape", title: "PUCK"}, 
-{path: "https://reportbase.com/home.html?p=DISH&m=0016&t=landscape", title: "DISH"},
-{path: "https://reportbase.com/home.html?p=JESU&m=0014&t=landscape", title: "JESU"}, 
-{path: "https://reportbase.com/home.html?p=GIMP&m=0079&t=landscape", title: "GIMP"}, 
-{path: "https://reportbase.com/home.html?p=NAVY&m=0060&t=landscape", title: "NAVY"}, 
-
-//Portraits
-{path: "https://reportbase.com/home.html?p=ROBE&m=0012&t=portrait", title: "ROBE"}, 
-{path: "https://reportbase.com/home.html?p=RAIN&m=0077&t=portrait", title: "RAIN"}, 
-{path: "https://reportbase.com/home.html?p=BIRD&m=0041&t=portrait", title: "BIRD"}, 
-{path: "https://reportbase.com/home.html?p=CITY&m=0037&t=portrait", title: "CITY"}, 
-{path: "https://reportbase.com/home.html?p=HOOD&m=0036&t=portrait", title: "HOOD"}, 
-{path: "https://reportbase.com/home.html?p=BALL&m=0026&t=portrait", title: "BALL"}, 
-{path: "https://reportbase.com/home.html?p=PUMP&m=0029&t=portrait", title: "PUMP"}, 
-{path: "https://reportbase.com/home.html?p=NATB&m=0026&t=portrait", title: "NATB"}, 
-{path: "https://reportbase.com/home.html?p=DAME&m=0056&t=portrait", title: "DAME"}, 
-{path: "https://reportbase.com/home.html?p=BOND&m=0075&t=portrait", title: "BOND"}, 
-{path: "https://reportbase.com/home.html?p=ANIM&m=0014&t=portrait", title: "ANIM"}, 
-{path: "https://reportbase.com/home.html?p=CRBE&m=0009&t=portrait", title: "CRBE"}, 
-{path: "https://reportbase.com/home.html?p=CRBT&m=0010&t=portrait", title: "CRBT"}, 
-{path: "https://reportbase.com/home.html?p=DOLL&m=0056&t=portrait", title: "DOLL"}, 
-{path: "https://reportbase.com/home.html?p=FABL&m=0027&t=portrait", title: "FABL"}, 
-{path: "https://reportbase.com/home.html?p=FAIR&m=0014&t=portrait", title: "FAIR"}, 
-{path: "https://reportbase.com/home.html?p=FASH&m=0007&t=portrait", title: "FASH"}, 
-{path: "https://reportbase.com/home.html?p=DOCS&m=0013&t=portrait", title: "DOCS"}, 
-{path: "https://reportbase.com/home.html?p=WALL&m=0043&t=portrait", title: "WALL"}, 
-{path: "https://reportbase.com/home.html?p=GIRL&m=0055&t=portrait", title: "GIRL"}, 
-{path: "https://reportbase.com/home.html?p=PORT&m=0053&t=portrait", title: "PORT"}, 
-{path: "https://reportbase.com/home.html?p=POST&m=0188&t=portrait", title: "POST"}, 
-{path: "https://reportbase.com/home.html?p=STOY&m=0020&t=portrait", title: "STOY"}, 
-{path: "https://reportbase.com/home.html?p=TALE&m=0010&t=portrait", title: "TALE"}, 
-{path: "https://reportbase.com/home.html?p=ZEUS&m=0034&t=portrait", title: "ZEUS"}, 
-{path: "https://reportbase.com/home.html?p=BUGS&m=0026&t=portrait", title: "BUGS"}, 
-{path: "https://reportbase.com/home.html?p=NATU&m=0050&t=portrait", title: "NATU"}, 
-{path: "https://reportbase.com/home.html?p=DRES&m=0012&t=portrait", title: "DRES"}, 
-{path: "https://reportbase.com/home.html?p=GREK&m=0017&t=portrait", title: "GREK"}, 
-{path: "https://reportbase.com/home.html?p=JAPN&m=0024&t=portrait", title: "JAPN"}, 
-{path: "https://reportbase.com/home.html?p=ROME&m=0021&t=portrait", title: "ROME"}, 
-{path: "https://reportbase.com/home.html?p=BAKE&m=0047&t=portrait", title: "BAKE"}, 
-{path: "https://reportbase.com/home.html?p=DECS&m=0011&t=portrait", title: "DECS"}, 
-{path: "https://reportbase.com/home.html?p=OSHI&m=0010&t=portrait", title: "OSHI"}, 
-{path: "https://reportbase.com/home.html?p=LITE&m=0052&t=portrait", title: "LITE"}, 
-{path: "https://reportbase.com/home.html?p=BOOK&m=0063&t=portrait", title: "BOOK"}, 
-{path: "https://reportbase.com/home.html?p=LION&m=0027&t=portrait", title: "LION"}, 
-{path: "https://reportbase.com/home.html?p=DASH&m=0206&t=portrait", title: "DASH"}, 
-
-//Tall
-{path: "https://reportbase.com/home.html?p=TALL&m=0004&t=tall", title: "TALL"}, 
-{path: "https://reportbase.com/home.html?p=SKIN&m=0008&t=tall", title: "SKIN"},
-
-//Comic
-{path: "https://reportbase.com/home.html?p=KAZA.0000.jpg&m=0063&t=comic", title: "KAZA"}, 
-{path: "https://reportbase.com/home.html?p=DAGG.0000.jpg&m=0063&t=comic", title: "DAGG"}, 
-{path: "https://reportbase.com/home.html?p=NERU.0000.jpg&m=0044&t=comic", title: "NEUR"}, 
-{path: "https://reportbase.com/home.html?p=INTR.0000.jpg&m=0062&t=comic", title: "INTR"}, 
-{path: "https://reportbase.com/home.html?p=TORM.0000.jpg&m=0079&t=comic", title: "TORM"}, 
-{path: "https://reportbase.com/home.html?p=AREN.0000.jpg&m=0050&t=comic", title: "AREN"}, 
-{path: "https://reportbase.com/home.html?p=AX.0000.jpg&m=0050&t=comic", title: "AX"}, 
-{path: "https://reportbase.com/home.html?p=ROGU.0000.jpg&m=0064&t=comic", title: "ROGU"}, 
-{path: "https://reportbase.com/home.html?p=LUST.0000.jpg&m=0051&t=comic", title: "LUST"}, 
-{path: "https://reportbase.com/home.html?p=HORN.0000.jpg&m=0064&t=comic", title: "HORN"}, 
-{path: "https://reportbase.com/home.html?p=SKUL.0000.jpg&m=0065&t=comic", title: "SKUL"}, 
-{path: "https://reportbase.com/home.html?p=ROGE.0000.jpg&m=0077&t=comic", title: "ROGE"}, 
-{path: "https://reportbase.com/home.html?p=SURF.0000.jpg&m=0077&t=comic", title: "SURF"}, 
-{path: "https://reportbase.com/home.html?p=SURF.0000.jpg&m=0077&t=comic", title: "SURF"}, 
-{path: "https://reportbase.com/home.html?p=GONE.0000.jpg&m=0068&t=comic", title: "GONE"}, 
-{path: "https://reportbase.com/home.html?p=RIOR.0000.jpg&m=0071&t=comic", title: "RIOR"}, 
-{path: "https://reportbase.com/home.html?p=SPIR.0000.jpg&m=0085&t=comic", title: "SPIR"}, 
-{path: "https://reportbase.com/home.html?p=WEID.0000.jpg&m=0066&t=comic", title: "WEID"}, 
-{path: "https://reportbase.com/home.html?p=FURY.0000.jpg&m=0065&t=comic", title: "FURY"}, 
-{path: "https://reportbase.com/home.html?p=KULL.0000.jpg&m=0066&t=comic", title: "KULL"}, 
-{path: "https://reportbase.com/home.html?p=SPID.0000.jpg&m=0063&t=comic", title: "SPID"}, 
-{path: "https://reportbase.com/home.html?p=JUDG.0000.jpg&m=0064&t=comic", title: "JUDG"}, 
-{path: "https://reportbase.com/home.html?p=SHAM.0000.jpg&m=0062&t=comic", title: "SHAM"}, 
-{path: "https://reportbase.com/home.html?p=MOOR.0000.jpg&m=0063&t=comic", title: "MOOR"}, 
-{path: "https://reportbase.com/home.html?p=DEAT.0000.jpg&m=0081&t=comic", title: "DEAT"}, 
-{path: "https://reportbase.com/home.html?p=DOOM.0000.jpg&m=0051&t=comic", title: "DOOM"}, 
-{path: "https://reportbase.com/home.html?p=BLOD.0000.jpg&m=0043&t=comic", title: "BLOD"}, 
-{path: "https://reportbase.com/home.html?p=SILV.0000.jpg&m=0043&t=comic", title: "SILV"}, 
-{path: "https://reportbase.com/home.html?p=DRWH.0000.jpg&m=0043&t=comic", title: "DRWH"}, 
-{path: "https://reportbase.com/home.html?p=HERC.0000.jpg&m=0080&t=comic", title: "HERC"}, 
-{path: "https://reportbase.com/home.html?p=DARE.0000.jpg&m=0063&t=comic", title: "DARE"}, 
-{path: "https://reportbase.com/home.html?p=ALAD.0000.jpg&m=0065&t=comic", title: "ALAD"}, 
-{path: "https://reportbase.com/home.html?p=TRAP&m=0083&t=comic", title: "TRAP"}, 
-{path: "https://reportbase.com/home.html?p=AGEN&m=0083&t=comic", title: "AGEN"}, 
-{path: "https://reportbase.com/home.html?p=DRAC&m=0081&t=comic", title: "DRAC"}, 
-{path: "https://reportbase.com/home.html?p=SAIL&m=0129&t=comic", title: "SAIL"}, 
-{path: "https://reportbase.com/home.html?p=GODL&m=0063&t=comic", title: "GODL"}, 
-{path: "https://reportbase.com/home.html?p=DAZZ&m=0064&t=comic", title: "DAZZ"}, 
-{path: "https://reportbase.com/home.html?p=WILL&m=0064&t=comic", title: "WILL"}, 
-{path: "https://reportbase.com/home.html?p=VOID&m=0046&t=comic", title: "VOID"}, 
-{path: "https://reportbase.com/home.html?p=DARK&m=0022&t=comic", title: "DARK"}, 
-{path: "https://reportbase.com/home.html?p=ULTR&m=0457&t=comic", title: "ULTR"}, 
-{path: "https://reportbase.com/home.html?p=HUSH&m=0298&t=comic", title: "HUSH"}, 
-{path: "https://reportbase.com/home.html?p=GOTH&m=0298&t=comic", title: "GOTH"}, 
-{path: "https://reportbase.com/home.html?p=KNIG&m=0197&t=comic", title: "KNIG"}, 
-{path: "https://reportbase.com/home.html?p=VIOL&m=0151&t=comic", title: "VIOL"}, 
-{path: "https://reportbase.com/home.html?p=MADB&m=0161&t=comic", title: "MADB"}, 
-{path: "https://reportbase.com/home.html?p=KILL&m=0064&t=comic", title: "KILL"}, 
-{path: "https://reportbase.com/home.html?p=DETC&m=0166&t=comic", title: "DETC"}, 
-{path: "https://reportbase.com/home.html?p=SECH&m=0460&t=comic", title: "SECH"}, 
-{path: "https://reportbase.com/home.html?p=SECI&m=0498&t=comic", title: "SECI"}, 
-{path: "https://reportbase.com/home.html?p=WALK&m=0433&t=comic", title: "WALK"}, 
-{path: "https://reportbase.com/home.html?p=SUIC&m=0409&t=comic", title: "SUIC"}, 
-{path: "https://reportbase.com/home.html?p=DMZ&&m=0283&t=comic", title: "DMZ"}, 
-{path: "https://reportbase.com/home.html?p=DMZA&&m=0128&t=comic", title: "DMZA"}, 
-{path: "ttps://reportbase.com/home.html?p=MANH&m=0027&t=comic", title: "MANH"},
-{path: "https://reportbase.com/home.html?p=MAD&m=084&t=comic", title: "MAD"},
-{path: "https://reportbase.com/home.html?p=COLD&m=066&t=comic", title: "COLD"},
-{path: "https://reportbase.com/home.html?p=VAMP&m=075&t=comic", title: "VAMP"},
-{path: "https://reportbase.com/home.html?p=BODY&m=059&t=comic", title: "BODY"},
-{path: "https://reportbase.com/home.html?p=RAVA&m=0061&t=comic", title: "RAVA"},
-{path: "https://reportbase.com/home.html?p=FEAR&m=0061&t=comic", title: "FEAR"},
-
-//Retired
-{path: "https://reportbase.com/home.html?p=DBAT&m=0360&t=comic", title: "DBAT"}, 
-{path: "https://reportbase.com/home.html?p=GRIM&m=0390&t=comic", title: "GRIM"}, 
-];
-
-demolst.sort((a, b) => (a.title > b.title) ? 1 : -1)
-
-var demoobj = new makeoption("DEMOS", demolst);
-
-function demo()
-{
-    menuhide();
-    location.href = this.path;
-}
 
 function promptFile() 
 {
@@ -1582,14 +1416,21 @@ var panlst =
     {
         var j = Math.max(context.virtualheight,rect.height);
         var s = context.timeobj.length()/j;
-        var k = 4*s;
+        var k = 6*s;
         context.timeobj.rotate(type=="pandown" ? k : -k);
 	},
- 	leftright: function (context, rect, x, y, type) { },
+ 	leftright: function (context, rect, x, y, type)
+    {
+	},
 	pan: function (context, rect, x, y, type) { },
     enabled : function() { return 1; },
-	panstart: function (context, rect, x, y) { },
-	panend: function (context, rect, x, y) { }
+	panstart: function (context, rect, x, y) 
+    { 
+    //    context.start = y;
+    },
+	panend: function (context, rect, x, y) 
+    { 
+    }
 },
 {
     name: "BOSS",
@@ -1599,29 +1440,24 @@ var panlst =
 	{
         if ( context.pinching )
              return;
-
         context.pantype = type;
-        if (!globalobj.vpan)
+        if (!url.vpan)
             y = rowobj.getcurrent()
-
-        var pt = context.getweightedpoint(x,y); 
-        if (!pt)
-            return;
 
         if (context.isthumbrect)
         {
-            context.hithumb(pt.x, globalobj.vpan?pt.y:undefined);
+            context.hithumb(x, url.vpan?y:undefined);
         }
         else if (type == "panleft" || type == "panright")
         {
-            context.panimage(type=="panright",pt.x,pt.y);
+            context.panimage(type=="panright",x,y);
         }
         else if (type == "panup" || type == "pandown")
         {
-            if (globalobj.vpan && zoomobj.getcurrent() > 0)
+            if (url.vpan)
             {
                 var h = rect.height*(1-zoomobj.getcurrent())*panyobj.getcurrent();
-                y = (pt.y/rect.height)*h;
+                y = (y/rect.height)*h;
                 var k = panvert(rowobj, h-y);
                 if (k == -1)
                     return;
@@ -1632,14 +1468,13 @@ var panlst =
             }
             else
             {
-                context.panimage(type=="panup",(pt.x/rect.width)*rect.height,(pt.y/rect.height)*rect.width);
+                context.panimage(type=="panup",(x/rect.width)*rect.height,(y/rect.height)*rect.width);
             }
         }
     },
 	panstart: function (context, rect, x, y)
 	{
         slideoff();
-        this.clearweights();
         context.hidepicture = 0;
         context.panning = 1;
         context.refresh();
@@ -1647,9 +1482,6 @@ var panlst =
     },
     panend: function (context, rect, x, y)
 	{
-        if (++context.drawcount > DRAWCOUNT)
-            location.reload();
-        contextobj.reset();
         context.pantype = 0;
         context.panning = 0;  
         context.refresh();
@@ -1745,29 +1577,26 @@ var presslst =
 
     press: function (context, rect, x, y)
     {
-        if (context.pinching)
-            return;
-
-        if (localobj.showthumb)
+        if (localobj.hide)
         {
+            context.hidehead = context.hidehead?0:1;
+            pageresize();
+            context.refresh();
+        }
+        else
+        {
+            context.hidehead = 0;
             var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
             var n = context.grid.hitest(x,y); 
-            if (isthumbrect || positobj.current() == n)
+            if (isthumbrect)
             {
-                context.togglepicture();
+                thumbobj.rotate();
             }
             else
             {
                 positobj.set(n);
                 context.refresh();
             }
-        }
-        else
-        {
-            localobj.hide = 0; 
-            localobj.showthumb = 1;
-            pageresize();
-            context.refresh();
         }
     }
 },
@@ -1777,17 +1606,23 @@ var swipelst =
 [
 {
     name: "DEFAULT",
-    swipeleftright: function (context, rect, x, y, evt) {},
-    swipeupdown: function (context, rect, x, y, evt) {},
+    swipeleftright: function (context, rect, x, y, evt)
+    {    
+    },
+    swipeupdown: function (context, rect, x, y, evt)
+    {
+    },
 },
 {
     name: "MENU",
-    swipeleftright: function (context, rect, x, y, evt) {},
+    swipeleftright: function (context, rect, x, y, evt)
+    {    
+        context.swipetype = evt.type;
+    },
     swipeupdown: function (context, rect, x, y, evt)
     {
         context.swipetype = evt.type;
-        var slidecount = (TIMEOBJ/window.innerHeight)*10;
-        context.slideshow = slidecount;
+        context.slideshow = 25;
         context.refresh();
     },
 },
@@ -1795,40 +1630,46 @@ var swipelst =
     name: "BOSS",
     swipeleftright: function (context, rect, x, y, evt)
     {
-        setTimeout(function()
-        {   
-            if (localobj.hide)
-            {
-                localobj.autodirect = evt.type == "swipeleft"?1:-1;
-                context.movepage(localobj.autodirect);
-            }
+        slideoff();
+        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+        if (isthumbrect)
+            context.swipetype = evt.type == "swipeleft"?"swiperight":"swipeleft";
+        else
+            context.swipetype = evt.type;
+        evt.preventDefault();
+        clearTimeout(globalobj.swipe);
+        globalobj.swipe = setTimeout(function()
+        {
+            if (context.swipetype == "swipeleft")
+                context.swipehard(0);
             else
-            {
-                var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
-                if (isthumbrect)
-                    localobj.autodirect = evt.type == "swipeleft"?1:-1;
-                else
-                    localobj.autodirect = evt.type == "swipeleft"?-1:1;
-                evt.preventDefault();
-                context.slideshow = globalobj.slidecount;
-                context.refresh();
-            }
-        }, SWIPETIME);
+                context.swipehard(1);
+            context.slideshow = url.slidecount;
+            context.refresh();
+        }, JULIETIME);
     },
 
     swipeupdown: function (context, rect, x, y, evt)
     {
-        if (globalobj.vpan && zoomobj.current() > 0)
+        slideoff();
+        if (url.vpan)
             return;
-
-        setTimeout(function()
+        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+        if (isthumbrect)
+            context.swipetype = evt.type == "swipeup"?"swipeleft":"swiperight";
+        else
+            context.swipetype = evt.type == "swipeup"?"swiperight":"swipeleft";
+        evt.preventDefault();
+        clearTimeout(context.timeswipe);
+        context.timeswipe = setTimeout(function()
         {
-            slideoff();
-            localobj.autodirect = evt.type == "swipeup"?1:-1;
-            evt.preventDefault();
-            context.slideshow = globalobj.slidecount;
+            if (context.swipetype == "swipeleft")
+                context.swipehard(0);
+            else
+                context.swipehard(1);
+            context.slideshow = url.slidecount;
             context.refresh();
-        }, SWIPETIME);
+        }, JULIETIME);
     },
 },
 ];
@@ -1866,9 +1707,6 @@ var keylst =
             context.refresh();
             evt.preventDefault();
         }
-    
-        var k = context.timeobj.current();
-        localStorage.setItem(url.path+context.id+".time", k);
 	}
 },
 {
@@ -1890,7 +1728,7 @@ var keylst =
         
         if (evt.key == "t")
         {
-            context.togglepicture();
+            thumbobj.rotate();
             evt.preventDefault();
         }
         else if (evt.key == "f")
@@ -1901,6 +1739,7 @@ var keylst =
         }
         else if (evt.key == " ")//space
         {
+            context.hideheader = 0;
             localobj.hide = localobj.hide?0:1;
             pageresize();
             context.refresh();
@@ -1908,12 +1747,12 @@ var keylst =
         }
         else if (evt.key == "Tab")
         {
-            localobj.autodirect = context.shifthit ? 1 : -1; 
-            _4cnvctx.slideshow = globalobj.slidecount;
+            _4cnvctx.swipetype = _4cnvctx.shifthit ? "swiperight" : "swipeleft";
+            _4cnvctx.slideshow = url.slidecount;
             _4cnvctx.refresh();
             evt.preventDefault();
         }
-        else if (evt.key == "b")
+        else if (evt.key == "o")
         {
             promptFile().then(function(files) { dropfiles(files); });
             evt.preventDefault();
@@ -1934,62 +1773,72 @@ var keylst =
         }
          else if (evt.key == "ArrowLeft" || evt.key == "h")
         {
-            localobj.autodirect = -1;
-            if (context.ctrlhit)
-                context.movepage(localobj.autodirect)
+            if (context.ctrlhit && url.cols > 1)
+            {
+                context.swipehard(0);
+            }
+            else if (context.ctrlhit)
+            {
+                context.movepage(-1);
+                context.refresh();
+            }
             else
-                context.timeobj.rotate(context.rvalue);
+            {
+                var j = window.innerWidth/context.virtualwidth;
+                var e = (j*context.timeobj.length())/32;
+                context.timeobj.rotate(e);
+            }
+
             evt.preventDefault();
         }
         else if (evt.key == "ArrowRight" || evt.key == "l")
         {
-            localobj.autodirect = 1;
-            if (context.ctrlhit)
-                context.movepage(localobj.autodirect)
+            if (context.ctrlhit && url.cols > 1)
+            {
+                context.swipehard(1);
+            }
+            else if (context.ctrlhit)
+            {
+                context.movepage(1)
+                context.refresh();
+            }
             else
-                context.timeobj.rotate(-context.rvalue);
+            {
+                var j = window.innerWidth/context.virtualwidth;
+                var e = (j*context.timeobj.length())/32;
+                context.timeobj.rotate(-e);
+            }
+
             evt.preventDefault();
         }
         else if (evt.key == "ArrowUp" || evt.key == "k")
         {
             if (context.ctrlhit)
-                rowobj.set(0);
+                context.pantop();
             else
-                rowobj.add(-rowobj.length()/25);
+                rowobj.addpercentage(-0.01);
+
             contextobj.reset();
             evt.preventDefault();
         }
         else if (evt.key == "ArrowDown" || evt.key == "j" )
         {
             if (context.ctrlhit)
-                rowobj.set(rowobj.length()-1);
+                context.panbottom();
             else
-                rowobj.add(rowobj.length()/25);
+                rowobj.addpercentage(0.01);
+
             contextobj.reset();
             evt.preventDefault();
         }
-        else if (evt.key == "Backspace")
+        else if (evt.key == "Pageup" || evt.key == "Backspace")
         {
-            localobj.autodirect = -1;
-            context.movepage(localobj.autodirect)
+            context.movepage(-1)
             evt.preventDefault();
         }
-        else if (evt.key == "Enter")
+        else if (evt.key == "Pagedown" || evt.key == "Enter")
         {
-            localobj.autodirect = 1;
-            context.movepage(localobj.autodirect)
-            evt.preventDefault();
-        }
-        else if (evt.key == "Pageup" || evt.key == "o")
-        {
-            rowobj.add(-rowobj.length()/8);
-            contextobj.reset();
-            evt.preventDefault();
-        }
-        else if (evt.key == "Pagedown" || evt.key == "p")
-        {
-            rowobj.add(rowobj.length()/8);
-            contextobj.reset();
+            context.movepage(1)
             evt.preventDefault();
         }
 	}
@@ -2009,72 +1858,18 @@ var keylst =
             var s = Math.min(window.innerHeight,context.visibles.length*BUTTONHEIGHT);
             var e = (s/context.virtualheight)*context.timeobj.length();
             var k = e*0.05;
-            context.timeobj.rotate(evt.key == "ArrowUp" ? k : -k);
+            context.timeobj.rotate(evt.key == "ArrowUp" ? -k : k);
 		}
  	}
 },
 ];
-
-CanvasRenderingContext2D.prototype.clearweights = function()
-{
-    this.x1 = this.x2 = this.x3 = 
-    this.x4 = this.x5 = this.x6 = this.x7 = 
-    this.x8 = this.x9 = this.x10 = this.x11 = 
-    this.y1 = this.y2 = this.y3 = this.y4 = 
-    this.y5 = this.y6 = this.y7 = this.y8  = 
-    this.y9 = this.y10 = this.y11 = 0;
-}
-
-CanvasRenderingContext2D.prototype.getweightedpoint = function(x,y)
-{
-    this.x11 = this.x10;
-    this.x10 = this.x9;
-    this.x9 = this.x8;
-    this.x8 = this.x7;
-    this.x7 = this.x6;
-    this.x6 = this.x5;
-    this.x5 = this.x4;
-    this.x4 = this.x3;
-    this.x3 = this.x2;
-    this.x2 = this.x1;
-    this.x1 = x;
-    this.y11 = this.y10;
-    this.y10 = this.y9;
-    this.y9 = this.y8;
-    this.y8 = this.y7;
-    this.y7 = this.y6;
-    this.y6 = this.y5;
-    this.y5 = this.y4;
-    this.y4 = this.y3;
-    this.y3 = this.y2;
-    this.y2 = this.y1;
-    this.y1 = y;
-    if (!this.x1 || !this.x2 || !this.x3 || 
-        !this.x4 || !this.x5 || !this.x6 || 
-        !this.x7 || !this.x8 || !this.x9 ||
-        !this.x10 || !this.x11)
-        return;
-    var k = 11+10+9+8+7+6+5+4+3+2+1;
-    x = (this.x1*11+this.x2*10+this.x3*9+this.x4*8+this.x5*7+
-        this.x6*6+this.x7*5+this.x8*4+this.x9*3+this.x10*2+this.x11*1)/k;
-    y = (this.y1*11+this.y2*10+this.y3*9+this.y4*8+this.y5*7+
-        this.y6*6+this.y7*5+this.y8*4+this.y9*3+this.y10*2+this.y11*1)/k;
-    return {x,y}
-}
-
-CanvasRenderingContext2D.prototype.togglepicture = function()
-{
-    localobj.picture = localobj.picture?0:1; 
-    pageresize();
-    this.refresh()            
-}
 
 CanvasRenderingContext2D.prototype.hithumb = function(x,y)
 {
     var rect = this.thumbrect;
     var c = (x-rect.x) % rect.width; 
     var b = c/rect.width;
-    var e = this.sliceobj.length();
+    var e = this.sliceobj.data_.length;
     var m = (1-b)*e;
     var j = DELAYCENTER/e;
     var time = j*m;
@@ -2138,9 +1933,35 @@ var taplst =
         slideoff();
         context.refresh();
 
-        if (context.menurect && context.menurect.hitest(x,y))
+        if (context.movetoprect && context.movetoprect.hitest(x,y))
+        {
+            context.moveup(1);
+        }
+        else if (context.movebottomrect && context.movebottomrect.hitest(x,y))
+        {
+            context.movedown(1);
+        }
+        else if (context.swipeleft && context.swipeleft.hitest(x,y))
+        {
+            context.swipehard(0)
+        }
+        else if (context.swiperight && context.swiperight.hitest(x,y))
+        {
+            context.swipehard(1);
+        }
+        else if (context.menurect && context.menurect.hitest(x,y))
         {
             menushow(_8cnvctx);
+        }
+        else if (context.moveprevrect && context.moveprevrect.hitest(x,y))
+        {
+            context.movepage(-1);
+            context.refresh();
+        }
+        else if (context.movenextrect && context.movenextrect.hitest(x,y))
+        {
+            context.movepage(1)
+            context.refresh();
         }
         else if (context.aboutrect && context.aboutrect.hitest(x,y))
         {
@@ -2170,9 +1991,14 @@ var taplst =
             zoomobj.add(1);
             contextobj.reset();
         }
+        else if (localobj.hide)
+        {
+            context.hidehead = context.hidehead?0:1;
+            pageresize();
+            context.refresh();
+        }
         else
         {
-            localobj.hide = localobj.hide?0:1;
         }
 
         pageresize();
@@ -2229,15 +2055,13 @@ var thumblst =
     draw: function (context, rect, user, time)
     {
         var th = heightobj.getcurrent().getcurrent();
-        var headers = MFRAME?0:ALIEXTENT*2; 
+        var headers = IFRAME?0:ALIEXTENT*2; 
         var width = rect.width-THUMBORDER*2;
         var height = rect.height-headers-THUMBORDER*2;
-        if (globalobj.maxheight)
-            height *= globalobj.maxheight/100;
         var r = calculateAspectRatioFit(photo.image.width, photo.image.height, width*th, height*th); 
         var h = r.height;
         var w = r.width;
-        var a = MFRAME?0:ALIEXTENT;
+        var a = IFRAME?0:ALIEXTENT;
         var pos = positobj.current();
         if (pos == 0)
         {
@@ -2291,7 +2115,7 @@ var thumblst =
 
         context.globalAlpha  =  1;
         context.thumbrect = new rectangle(x,y,w,h);
-        if (context.pinching || !localobj.picture || context.hidepicture)
+        if (context.pinching || !url.thumbpicture || context.hidepicture)
         {
             blackrect.draw(context, context.thumbrect, 0, 0);
         }
@@ -2312,7 +2136,6 @@ var thumblst =
         }
 
         whiterect.draw(context, context.thumbrect, 0, 0);
-        
         var berp = Math.berp(0,photo.image.height,context.nuby); 
         var yy = Math.lerp(0,h,berp);
         var s = context.sliceobj.data_.length;
@@ -2359,30 +2182,25 @@ var thumblst =
 ];
 
 var positobj = new makeoption("POSITION", 9);
-var thumbobj = new makeoption("THUMB", thumblst);
 
-var getmenufrompoint = function (context, x, y)
+var thumbobj = new makeoption("THUMB", thumblst);
+thumbobj.rotate = function()
 {
-	var lst = context.sliceobj.data();
-    
-	var k;
-    for (k = 0; k < lst.length; k++)
+    if (thumbobj.current() == 0 && url.thumbpicture)
     {
-		var hit = lst[k];
-		if (!hit.fitwidth || !hit.fitheight)
-			continue;
-		var w = hit.fitwidth + 20*2;
-		var h = hit.fitheight + 18*2;
-		var x1 = hit.center.x - w / 2;
-		var y1 = hit.center.y - h / 2;
-		var x2 = x1 + w;
-		var y2 = y1 + h;
-		if (x >= x1 && x < x2 &&
-			y >= y1 && y < y2)
-			break;
+        url.thumbpicture = 0;
+    }
+    else if (thumbobj.current() == 0 && !url.thumbpicture)
+    {
+        url.thumbpicture = 1;
+        thumbobj.set(1);
+    }
+    else 
+    {
+        thumbobj.set(0);
     }
 
-	return k<lst.length?k:-1;
+    _4cnvctx.refresh();
 }
 
 var drawlst = [
@@ -2395,20 +2213,34 @@ var drawlst = [
     draw: function (unused, rect, user, time)
     {
         var context = this;
-        rect.height = FONTHEIGHT;
+   		var w = context.fillwidth;
+		if (w > rect.width)
+			w = rect.width;     
+        rect.left = Math.floor((rect.width - w)/2);
+        rect.width = w;
         rect.width -= 40;
+        rect.height -= 40;
         var xt = -rect.width / 2;
         var yt = -rect.height / 2;
         context.translate(xt, yt);
+        if (rect.width > rect.height)
+            rect = calculateAspectRatioFit(rect.width, FONTHEIGHT, rect.width, rect.height);
+        else
+            rect = calculateAspectRatioFit(rect.width, FONTHEIGHT, rect.width, rect.height);
         user.fitwidth = rect.width;
         user.fitheight = rect.height;
-        var fillcolor = "rgba(0,0,0,0.5)";
+        var fillcolor = "black";
+        var fillselectcolor = "orange";
+        var fillmovecolor = "blue";
+        var filltapcolor = "orange"  
+        var fillstrokewidth = 2;
+        var strokewidth = 2;
         context.fillStyle = "white";
         var clr = fillcolor;
         var fclr = "white"
-        var tap = "rgba(0,0,150,0.75)";
-        var select = "rgba(0,0,50,0.75)";
-        var select2 = "rgba(50,0,500.75)";
+        var tap = "rgba(0,0,255,0.75)";
+        var select = "rgba(0,0,150,0.75)";
+        var select2 = "rgba(139,0,139,0.75)";
         var str = user.title;
         
         if (user.tap) 
@@ -2424,9 +2256,9 @@ var drawlst = [
             }
             else if (user.path == "THUMBNAIL")
             {
-                if (thumbobj.current() == 0 && localobj.picture)
+                if (thumbobj.current() == 0 && url.thumbpicture)
                     clr = select;
-                else if (thumbobj.current() == 0 && !localobj.picture)
+                else if (thumbobj.current() == 0 && !url.thumbpicture)
                     clr = select2;
             }
             else if (user.path == "FULLSCREEN")
@@ -2483,7 +2315,7 @@ function resetcanvas()
     }
 
     zoomrange[1] = 0.925;
-    zoomobj.split(zoomobj.current(), zoomrange.join("-"), OPTIONSIZE);
+    zoomobj.split2(zoomobj.current(), zoomrange.join("-"), OPTIONSIZE);
 
    /* AAPL 
     for (var n = 0; n < zoomobj.length(); ++n)
@@ -2511,7 +2343,7 @@ function resetcanvas()
     context.virtualwidth = context.virtualheight * imageaspect;
     context.virtualaspect = context.virtualwidth / context.virtualheight;
       
-    var slicewidth = 1.0;//Math.lerp(1.0,2.0,zoomobj.berp());
+    var slicewidth = Math.lerp(1,2,zoomobj.berp());
     var y = Math.clamp(0,context.canvas.height-1,context.canvas.height*rowobj.berp());
     context.nuby = Math.nub(y, context.canvas.height, context.imageheight, photo.image.height);  
     var ks = 0;
@@ -2537,15 +2369,14 @@ function resetcanvas()
     var slice = 0;
     context.sliceobj.data_ = []
 
-    for (var n = 0; n < canvaslst.length; ++n)
-        releaseCanvas(canvaslst[n]);
-    canvaslst = [] 
+    if (SAFARI)
+        for (var n = 0; n < canvaslst.length; ++n)
+            releaseCanvas(canvaslst[n]);
 
     var j = 0;
     for (var n = 0; n < canvaslen; ++n)
     {
-        var cnv = document.createElement("canvas");
-        canvaslst.push(cnv);
+        var cnv = canvaslst[n];
         if (cnv.height != context.canvas.height)
             cnv.height = context.canvas.height;
         if (cnv.width != context.bwidth)
@@ -2573,7 +2404,7 @@ function resetcanvas()
     }
 
     var slices = context.sliceobj.data_;
-    var cols = gridToRect(globalobj.cols, 1, 0, context.sliceobj.data_.length, 1)
+    var cols = gridToRect(url.cols, 1, 0, context.sliceobj.data_.length, 1)
     for (var n = 0; n < cols.length; ++n)
     {
         var col = cols[n]
@@ -2585,10 +2416,6 @@ function resetcanvas()
         slices[m+col.width-1].isright = 1;
         slices[m+Math.floor(col.width/2)].ismiddle = 1;
     }
-
-    var p = panxobj.getcurrent();
-    var s = context.timeobj.length()/context.virtualwidth;
-    context.rvalue = p*s;
 
     var k = window.innerHeight > window.innerWidth?0:1;
     heightobj.set(k);
@@ -2701,33 +2528,24 @@ var ContextObj = (function ()
 			context.fillText("  ", 0, 0);
 			context.font = "400 100px Source Code Pro";
 			context.fillText("  ", 0, 0);
-            context.drawcount = 0;  
 			context.lastime = 0;
             setevents(context, eventlst[n]);
+			context.swipetype = "swipeleft"
             context.sliceobj = new makeoption("", []);
             context.timeobj = new makeoption("", TIMEOBJ);
             context.describeobj = new makeoption("", 0);
-            context.columnobj = new makeoption("", globalobj.cols);
-            context.debugobj = new makeoption("", [projectobj, context.timeobj,  context.sliceobj, context.columnobj ]);
+            context.columnobj = new makeoption("", url.cols);
+            context.debugobj = new makeoption("", [ projectobj, context.sliceobj, context.timeobj, context.columnobj ]);
         }
 
-        var slices = _7cnvctx.sliceobj;
-        slices.data_= [];
-        var items = demoobj.length(); 
-        for (var n = 0; n < items; ++n)
-        {
-            slices.data_.push({index:n, title:demoobj.data_[n].title, path: demoobj.data_[n].path, func: demo})
-        }
-
-        _7cnvctx.delayinterval = DELAYCENTER / slices.data_.length;
-        _7cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
-
+        _4cnvctx.timeobj.set(url.time);
         var slices = _8cnvctx.sliceobj;
         slices.data_= [];
         var items = projectobj.length();
         for (var n = 0; n < items; ++n)
         {
-            slices.data_.push({index:n, title:(n+1)+"", path: "PROJECT", func: project})
+            var b = Math.floor(n);
+            slices.data_.push({index:b, title:(b+1)+"", path: "PROJECT", func: project})
         }
         
         _8cnvctx.delayinterval = DELAYCENTER / slices.data_.length;
@@ -2735,11 +2553,10 @@ var ContextObj = (function ()
 
         var slices = _9cnvctx.sliceobj;
         slices.data_= [];
-        slices.data_.push({title:"Refresh (F5)", path: "REFRESH", func: function(){location.reload()}})
-        slices.data_.push({title:"Thumbnail (T)", path: "THUMBNAIL", func: function(){localobj.picture=localobj.picture?0:1; _4cnvctx.refresh()}})
+        slices.data_.push({title:"Refresh (F5)", path: "REFRESH", func: function(){savelocal(); location.reload()}})
+        slices.data_.push({title:"Thumbnail (T)", path: "THUMBNAIL", func: function(){thumbobj.rotate()}})
         slices.data_.push({title:"Help", path: "HELP", func: function(){menuhide(); helpobj.getcurrent().draw(_4cnvctx, _4cnvctx.rect(), 0, 0);} })
-        slices.data_.push({title:"Open... (O)", path: "LOAD", func: function(){menuhide(); promptFile().then(function(files) { dropfiles(files); })}})
-        slices.data_.push({title:"Examples", path: "DEMOS", func: function(){ menushow(_7cnvctx); }})
+        slices.data_.push({title:"Open... (O)", path: "LOAD", func: function(){promptFile().then(function(files) { dropfiles(files); })}})
         slices.data_.push({title:"Screenshot", path: "SCREENSHOT", func: screenshot})
         slices.data_.push({title:"Original", path: "ORIGINAL", func: function(){window.open(photo.image.original, '_blank');}})
         if (!SAFARI)
@@ -2876,26 +2693,12 @@ var ContextObj = (function ()
                 else if (globalobj.promptedfile)
                     path = globalobj.promptedfile;   
               
-                seteventspanel(new Empty());
                 delete globalobj.promptedfile;
+                seteventspanel(new Empty());
                 photo.image = new Image();
                 photo.image.original = path;
                 photo.image.load(path);
-
-                photo.image.onerror = 
-                    photo.image.onabort = function()
-                {
-                    _4cnvctx.setcolumncomplete = 1;
-                   _localobj.autodirect = localobj.autodirect?-1:1; 
-                    _4cnvctx.movepage(localobj.autodirect);
-                    seteventspanel(new YollPanel());
-                    this.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAADK0lEQVRIS7WXWYiOURjH57VknzIXiiwXKBRXLpSMC9OIEDEhk5KdBs0wzQUxSVlmQskSRU0ulKWIUq4MTYkpe1kKRZIt+zqf3//rvF+fd87yynyn/p2v8yz/5zzvc55zvqjIMzKZTDfEvcBYgwHMGfACXAM3wccoir77/NhkkW0Rwi6sTwSLwDzQ2eH4K+snwFHQQgA/0wbQjhjSYoz3GMIeKR0pAJFvhPxdGpu/iCHti9EVMCqNsUXnKmuTIf8css8RQ6rdXf8P0pirGeLSfyHej/LKgMEn5ApWBecbDZBv8Clkd8xuxzFdAEq1a9xGsB38ApsDmVGVj4f8hstZBGlX47A6sIs6HO0wgVYyNwX0m9Bf6CNWFWs3gz2OfiNbh6N9hniKyZCP+w7C6dg8sSlpx0MRPHJ4UMp0NttALU4OGeJy5otA31wZU6NJjvcsVGBzyUU8G8FJi/A+ayq410DdqhUnDw1xf+YyoMBKgD7TcIuPSmyOu4hVySLIHyJahdFBm1FyjazNZO2MRXdFnKWkTKlezqKNYD1GjSmJl6B32KK7DB+29SIRT8XgvMXoi8nEM5Pqyzi5ZVI9hLkCqFUOBHUWe2VtPjbq5e2GiFXNT1PsrBonuw3xNOZzAZtXyOdg0+wi7o1APXaMx5GO0xqcZGuBYOOq9nG3IizH5o2LuBOCGrAzsIN6nGwxxKuZs2faMXT89qLvbEpxy9RtdBboTLuGzmwD0LneChSwa3xAMBJiPRisI/92UlNXL/Y5DCQlJ37MrxkQ30tDrFfGAbA0rfeAnh4Eu0AjAfxI6iYfAt1RqAe1HUSuotQdvxjyu/k+bU8f7XwuUFPpkzKAb+ipnY526GvHut2yx1HD+tiTgCPTj2kT0JnVDdYT6BGooQJT81ARqVXqflYj0cUxyBPsKWRrCeC5kzg2JgClXw+FYUAXgsZboB3qZZn7fujq+KjyfX71pisLEnuit4og1zU4KWC3oBDEyspLoHvaNY50OLGY2PUsptMe4m2FIpbfY8D25tKtNaIgxGbXqnKR539vHbsqCrIwqY5TTMrVByYA/enTSVDhPYC47Q+jAwjFRbnDLAAAAABJRU5ErkJggg==";
-                    resetcanvas(context);
-                    contextobj.resize(context);
-                    context.refresh();
-                    seteventspanel(new YollPanel());
-                }
-
+                photo.image.date = new Date();
                 photo.image.onload = function()
                 {
                     this.aspect = this.width/this.height; 
@@ -2906,21 +2709,57 @@ var ContextObj = (function ()
                     
                     contextobj.resize(context);
                     resetcanvas(context);
-                    context.refresh();
-
-                    if (globalobj.autostart)
-                        slideon();
-
-                    var k = projectobj.current();
-                    projectobj.rotate(localobj.autodirect);
-                    var path = "https://reportbase.com/data/" + url.fullpath();
-                    if (HOST == "Image.Vision")
-                        path = "https://d.img.vision/" + url.group + '/' + url.fullpath();
-                    var img = new Image();
-                    img.src = path;
-                    projectobj.set(k);
-                    
                     seteventspanel(new YollPanel());
+
+                    if (url.autostart)
+                    {
+                        slideon();
+                    }
+
+                    clearTimeout(globalobj.load);
+                    globalobj.load = setTimeout(function()
+                    {
+                        context.newimage = undefined;
+                        context.refresh();
+                        parent.postMessage( 
+                        { 
+                            title: document.title,
+                            extent: photo.image.extent,
+                            aspect: photo.image.aspect,
+                            originalpath: photo.image.original,
+                            project: projectobj.current(),
+                            extension: url.extension,
+                            path: url.path,
+                            projects: projectobj.length(),
+                            body: addressobj.body(),
+                            address: url.href,
+                        },"*");
+                    }, 50);
+
+                    var p = projectobj.current();
+                    var j = projectobj.length();
+                    var lst = [p+1,p-1];
+                    var start = 0;
+                    var end = j;
+                    for (var n = 0; n < lst.length; n++)
+                    {
+                        var b = lst[n];
+                        if (b > end)
+                            b = start;
+                        else if (b < start)
+                            b = end;
+                        var path = "https://reportbase.com/data/" + filename;
+                        if (HOST == "Image.Vision")
+                            path = "https://d.img.vision/" + url.group + '/' + filename;
+                        var img = new Image();
+                        img.src = path;
+                        img.onload = function()
+                        {
+                            var u = new URL(this.src).pathname;
+                            var filename = u.split("/");
+                            filename = filename[filename.length-1];
+                        } 
+                    }
                }
 			}
 
@@ -3454,6 +3293,30 @@ function rotate(pointX, pointY, originX, originY, angle)
 	return k;
 }
 
+var getmenufrompoint = function (context, x, y)
+{
+	var lst = context.sliceobj.data();
+    
+	var k;
+    for (k = 0; k < lst.length; k++)
+    {
+		var hit = lst[k];
+		if (!hit.fitwidth || !hit.fitheight)
+			continue;
+		var w = hit.fitwidth + 20*2;
+		var h = hit.fitheight + 18*2;
+		var x1 = hit.center.x - w / 2;
+		var y1 = hit.center.y - h / 2;
+		var x2 = x1 + w;
+		var y2 = y1 + h;
+		if (x >= x1 && x < x2 &&
+			y >= y1 && y < y2)
+			break;
+    }
+
+	return k<lst.length?k:-1;
+}
+
 var selectrotated = function (context, x, y)
 {
 	var t = context.sliceobj.data()[0];
@@ -3529,7 +3392,6 @@ function reset()
 
 function resize()
 {
-    _4cnvctx.drawcount = 0;
     menuhide();
     delete photo.cached;
     delete _4cnvctx.describe;
@@ -3569,7 +3431,7 @@ function escape()
     contextobj.reset();
 }
 
-function yoll()
+function yoll(context, rect, user, time)
 {
     if (!photo.image.complete || 
         photo.image.naturalHeight == 0)
@@ -3587,12 +3449,11 @@ function yoll()
 
         if (context.slideshow > 0)
         {
-            context.timeobj.rotate(localobj.autodirect*context.slideshow);
-            context.slideshow -= globalobj.slidereduce;
+            var k = (context.swipetype == "swipeleft")?-1:1;
+            context.timeobj.rotate(k*context.slideshow);
+            context.slideshow -= url.slidereduce;
         }
-
-        context.virtualpinch = context.virtualwidth*pinchobj.getcurrent();
-        context.virtualeft = (context.virtualpinch-window.innerWidth)/2;
+        
         var time = context.timeobj.getcurrent()/1000;
         var rect = context.rect();
         var sliceobj = context.sliceobj.data_;
@@ -3602,16 +3463,19 @@ function yoll()
         var r = calculateAspectRatioFit(context.colwidth,
             rect.height, context.canvas.width, rect.height);
         var xt = -rect.width / 2;
+        var yt = -rect.height / 2;
         let y = rect.height*0.5;
         context.save();
         context.translate(xt, 0);
         context.shadowOffsetX = 0;
         context.shadowOffsetY = 0;
+        var kv = context.virtualwidth*pinchobj.getcurrent();
+        var borderleft = (kv-context.canvas.width)/2;
         var m = context.getslicefirst()
         var msave = m;
         var j = time + slice.time;
         var b = Math.tan(j*VIRTCONST);
-        var first = Math.berp(-1, 1, b) * context.virtualpinch - context.virtualeft;
+        var first = Math.berp(-1, 1, b) * kv - borderleft;
         var firstx = DELAY;
         var count = 0;
         context.visibles1 = [];
@@ -3621,7 +3485,7 @@ function yoll()
             var slice = sliceobj[m];
             var j = time + slice.time;
             var b = Math.tan(j*VIRTCONST);
-            var x = Math.berp(-1, 1, b) * context.virtualpinch - context.virtualeft;
+            var x = Math.berp(-1, 1, b) * kv - borderleft;
 
             if (first < 0 && x >= width)
                 break;
@@ -3633,7 +3497,7 @@ function yoll()
             else if (x >= width)
                 continue;
 
-            context.visibles2.push({slice, x}); 
+            context.visibles2.push({m:m, x:x}); 
             if (x < firstx)
             {
                 firstx = x;
@@ -3652,7 +3516,7 @@ function yoll()
                 var slice = sliceobj[m];
                 var j = time + slice.time;
                 var b = Math.tan(j*VIRTCONST);
-                var x = Math.berp(-1, 1, b) * context.virtualpinch - context.virtualeft;
+                var x = Math.berp(-1, 1, b) * kv - borderleft;
 
                 if (first < 0 && x >= width)
                     break;
@@ -3664,7 +3528,7 @@ function yoll()
                 else if (x >= width)
                     continue;
                 
-                context.visibles1.push({slice, x}); 
+                context.visibles1.push({m:m, x:x}); 
             }
         }
 
@@ -3672,29 +3536,58 @@ function yoll()
         for (var m = 0; m < context.visibles1.length; ++m)
         {
             var j = context.visibles1[m]; 
-            var slice = j.slice;
+            var slice = sliceobj[j.m];
             var x = j.x;
+
             let pinchwidth = Math.max(context.visibles1[m+1]?context.visibles1[m+1].x-x:1,1); 
-            context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
-                x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height);
+            if (slice.isright && url.divider)
+            {
+                var a = new Fill(url.divider);
+                a.draw(context, new rectangle(x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height), 0, 0);
+            }
+            else
+            {
+                context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
+                    x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height);
+            }
         }
 
         for (var m = 0; m < context.visibles2.length; ++m)
         {
             var j = context.visibles2[m]; 
-            var slice = j.slice;
+            var slice = sliceobj[j.m];
             var x = j.x;
+
             let pinchwidth = Math.max(context.visibles2[m+1]?context.visibles2[m+1].x-x:1,1); 
-            context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
-                x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height);
+            if (slice.isright && url.divider)
+            {
+                var a = new Fill(url.divider);
+                a.draw(context, new rectangle(x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height), 0, 0);
+            }
+            else
+            {
+                context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
+                    x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height);
+            }
         }
 
         context.restore();
         context.save();
+        if (!context.setcolumncomplete)
+        {
+            context.setcolumncomplete = 1;
+        }
+
         context.thumbselect = [];
         context.grid = [];
         delete context.menurect;
+        delete context.moveprevrect;
+        delete context.movetoprect;
+        delete context.movenextrect;
         delete context.nohit;
+        delete context.movebottomrect;
+        delete context.swipeleft;
+        delete context.swiperight;
         delete context.aboutrect;
         delete context.fullscreen;
         delete context.zoominrect;
@@ -3728,14 +3621,9 @@ function yoll()
         var a = new Grid(3,3,0,new Rects(context.grid));
         a.draw(context, rect, 0, 0);
 
-        if (localobj.showthumb && !context.describe && !context.screenshot)
+        if (!IFRAME && !context.describe && !localobj.hide && !context.screenshot)
             thumbobj.getcurrent().draw(context, rect, 0, 0);
         
-        if (!context.setcolumncomplete)
-        {
-            context.setcolumncomplete = 1;
-        }
-
         if (!context.screenshot)
         {
             context.shadowOffsetX = 0;
@@ -3766,6 +3654,14 @@ function yoll()
             if (s > rect.width)
                 a.draw(context, new rectangle(0,0,c,BNUB), 0, 0);
         }
+
+        if (IFRAME)
+            parent.postMessage( 
+            { 
+                title: document.title,
+                address: url.href,
+                fullproject: projectobj.print(),
+            },"*");
     }
     
     var data = [_3cnvctx,  _5cnvctx, _6cnvctx, _7cnvctx, _8cnvctx, _9cnvctx, ];
@@ -3786,9 +3682,7 @@ function yoll()
         {
             var k = (context.swipetype == "swipeup")?-1:1;
             context.timeobj.rotate(k*context.slideshow);
-            var slidecount = (TIMEOBJ/window.innerWidth)*10;
-            var slidereduce = slidecount/10;
-            context.slideshow -= slidereduce
+            context.slideshow--;
         }
 
         var sliceobj = context.sliceobj;
@@ -3813,11 +3707,11 @@ function yoll()
             var x =  w/2;
             if (y < 0 || y >= window.innerHeight)
                 continue;
-            context.visibles.push({slice, x, y});
+            context.visibles.push({slice: slice, x:x, y:y});
             if (context.visibles.length*BUTTONHEIGHT > window.innnerHeight)
                 break;
         }
-       //todo 
+        
         for (var m = 0; m < context.visibles.length; ++m)
         {
             var j = context.visibles[m]; 
@@ -3837,6 +3731,9 @@ var YollPanel = function ()
 {
     this.draw = function (context, rect, user, time)
     {
+        yoll(context, rect, user, time);
+        clearInterval(globalobj.main);
+        globalobj.main = setInterval(function () { yoll(); }, TIMEMAIN);
     };
 
 	this.tap = function (context, rect, x, y, shift, ctrl)
@@ -3847,10 +3744,6 @@ var YollPanel = function ()
 
 	this.dblclick = function (context, x, y)
     {
-        localobj.hide = 0;
-        localobj.showthumb = 1;
-        pageresize();
-        context.refresh();
     };
 
     this.wheeldown = function (context, x, y, ctrl, shift)
@@ -3963,6 +3856,8 @@ var YollPanel = function ()
 	}
 };
 
+var linkobj = new makeoption("Links", []);
+
 function getyollplst(k)
 {
     var lst = function (k)
@@ -4013,40 +3908,25 @@ var headlst =
 		{
             if (context.page.hitest(x,y))
             {
+                var time = parseFloat(localStorage.getItem(url.path+_8cnvctx.id+".time"));
+                _8cnvctx.timeobj.set(time);
                 menushow(_8cnvctx);
             }
             else if (context.prevpage2.hitest(x,y) ||
                 context.prevpage.hitest(x,y))
             {
-                if (globalobj.auto)
-                {
-                    slideoff();
-                    _4cnvctx.refresh();
-                    return;
-                }
-
-                localobj.autodirect = -1
-                _4cnvctx.movepage(localobj.autodirect);
+                _4cnvctx.movepage(-1);
             }
             else if (context.reload.hitest(x,y))
             {
-                localobj.showthumb = localobj.showthumb?0:1;
-                helpobj.hide();
+                localobj.hide = localobj.hide?0:1;
                 pageresize();
                 _4cnvctx.refresh();
             }
             else if (context.nextpage2.hitest(x,y) ||
                     context.nextpage.hitest(x,y))
             {
-                if (globalobj.auto)
-                {
-                    slideoff();
-                    _4cnvctx.refresh();
-                    return;
-                }
-
-                localobj.autodirect = 1
-                _4cnvctx.movepage(localobj.autodirect);
+                _4cnvctx.movepage(1);
             }
             else if (context.option.hitest(x,y))
             {
@@ -4074,13 +3954,21 @@ var headlst =
             context.nextpage2 = new rectangle()
             context.reload = new rectangle()
 
-            var str = projectobj.print();
+            var columnobj = _4cnvctx.columnobj;
+            var timeobj = _4cnvctx.timeobj;
+            var sliceobj = _4cnvctx.sliceobj;
+            var a = timeobj.current() / timeobj.length();
+            columnobj.sett(a);
+            sliceobj.set(_4cnvctx.count);
+
+            var str = _4cnvctx.debugobj.getcurrent().print();
             var k = str.split("-");
             var project = k[0];
             var projects = k[1];
 
             var a = new Layer(
             [
+                //new Fill(HEADCOLOR),
                 new ColA([ALIEXTENT,0,ALIEXTENT,90,ALIEXTENT,0,ALIEXTENT],
                 [
                     (localobj.hide || projectobj.length() < 2) ? 0:new Layer(
@@ -4090,14 +3978,14 @@ var headlst =
                     ]),
                     new Layer(
                     [
+                        //new Rectangle(context.prevpage2),
                     ]),
                     new Row([BNUB,0,BNUB],
                     [
                         0,
                         new Layer(
                         [
-                            (_4cnvctx.movingpage == -1 ||
-                                globalobj.auto && localobj.autodirect == -1) ? new Fill(ARROWSELECT):new Fill(HEADCOLOR),
+                            (_4cnvctx.newimage == -1) ? new Fill(ARROWSELECT):new Fill(HEADCOLOR),
                             new Shrink(new Arrow(270),ARROWBORES,ARROWBORES-BNUB),
                             new Rectangle(context.prevpage),
                         ]),
@@ -4108,7 +3996,7 @@ var headlst =
                         0,
                         new Layer(
                         [
-                            new Fill(localobj.showthumb?ARROWSELECT:HEADCOLOR),
+                            new Fill(localobj.hide?HEADCOLOR:ARROWSELECT),
                             new Rectangle(context.reload),
                             new Text("white", "center", "middle",0,1,1),
                         ]),
@@ -4119,8 +4007,7 @@ var headlst =
                         0,
                         new Layer(
                         [
-                            (_4cnvctx.movingpage == 1 ||
-                                globalobj.auto && localobj.autodirect == 1) ? new Fill(ARROWSELECT):new Fill(HEADCOLOR),
+                            (_4cnvctx.newimage == 1) ? new Fill(ARROWSELECT):new Fill(HEADCOLOR),
                             new Shrink(new Arrow(90),ARROWBORES,ARROWBORES-BNUB),
                             new Rectangle(context.nextpage),
                         ]),
@@ -4128,6 +4015,7 @@ var headlst =
                     ]),
                     new Layer(
                     [
+                        //new Rectangle(context.nextpage2),
                     ]),
                     localobj.hide?0:new Layer(
                     [
@@ -4318,8 +4206,7 @@ var footobj = new makeoption("", footlst);
  
 function menushow(context)
 {
-    helpobj.hide();
-    slideoff();
+     slideoff();
     var enabled = context.enabled;
     _3cnvctx.hide();
     _5cnvctx.hide();
@@ -4444,14 +4331,64 @@ window.addEventListener("keydown", function (evt)
         return context.keydown_(evt);
 }, false);
 
+window.addEventListener('message', function(evt)
+{
+    if (evt.data == "fullscreen")
+        screenfull.toggle(IFRAME ? _4cnv : 0);
+    else if (evt.data == "load")
+        promptFile().then(function(files) { dropfiles(files); })
+    else if (evt.data == "refresh")
+        location.reload();
+    else if (evt.data == "help")
+        helpobj.getcurrent().draw(_4cnvctx, _4cnvctx.rect(), 0, 0);
+    else if (evt.data == "pantop")
+        _4cnvctx.pantop();
+    else if (evt.data == "panbottom")
+        _4cnvctx.panbottom();
+    else if (evt.data == "swipeleft")
+        _4cnvctx.swipehard(0);
+    else if (evt.data == "swiperight")
+        _4cnvctx.swipehard(1);
+    else if (evt.data == "swipeup")
+        _4cnvctx.moveup(1);
+    else if (evt.data == "swipedown")
+        _4cnvctx.movedown(1);
+    else if (evt.data == "moveleft")
+        _4cnvctx.movepage(-1);
+    else if (evt.data == "moveright")
+        _4cnvctx.movepage(1);
+    else if (evt.data == "pinchout")
+    {
+        pinchobj.add(5);
+        contextobj.reset();
+    }
+    else if (evt.data == "pinchin")
+    {
+        pinchobj.add(-5);
+        contextobj.reset();
+    }
+    else if (evt.data == "zoomin")
+    {
+        zoomobj.add(-5);
+        contextobj.reset();
+    }
+    else if (evt.data == "zoomout")
+    {
+        zoomobj.add(5);
+        contextobj.reset();
+    }
+
+    return true;
+});
+
 function pageresize()
 {
-    var h = (localobj.hide||_4cnvctx.hidehead||MFRAME)?0:ALIEXTENT;
+    var h = (_4cnvctx.hidehead||IFRAME)?0:ALIEXTENT;
     var y = 0;
     headcnvctx.show(0,y,window.innerWidth,h);
     headobj.set(0);
     headham.panel = headobj.getcurrent();
-    var h = (localobj.hide||localobj.hide||MFRAME)?0:ALIEXTENT;
+    var h = (localobj.hide||IFRAME)?0:ALIEXTENT;
     footcnvctx.show(0,window.innerHeight-ALIEXTENT, window.innerWidth, h);
     footobj.set(0);
     footham.panel = footobj.getcurrent();
@@ -4566,13 +4503,12 @@ var helplst =
     setevents(context, eventlst[n])
 
         context.describe =
-           `High Resolution Images
+           `High Resolution Image Viewer
             Interactive Panoramas
-            Slideshows 
 
-            Contact
-            Tom Brinkman
-            repba@proton.me
+            Topographic maps, drone and satellite photos, maps, action photography, digital art, panoramas, comics and cartoons, portraits, landscapes, cityscapes, infographics, real estate, automobiles, and vintage paintings
+
+            Contact the developers at repba@proton.me
 
             Mauris non auctor nibh, nec convallis metus. Nullam eu gravida nunc. Nulla pellentesque augue feugiat elit interdum, ac ornare eros sodales. Vivamus sed ante velit. Mauris non turpis sit amet nunc auctor accumsan eget mattis turpis. Nunc hendrerit suscipit tellus, eget rhoncus augue varius vitae. Proin vel purus malesuada, vehicula nunc et, ullamcorper purus. Integer gravida quam iaculis urna hendrerit, ut fringilla erat dignissim. Cras eget lacus mattis, convallis nisi eget, facilisis massa. Nulla vel libero eu elit venenatis egestas commodo ac ligula.
 
@@ -4606,7 +4542,11 @@ var helplst =
         var n = eventlst.findIndex(function(a){return a.name == "describe";})
         setevents(context, eventlst[n])
         context.describe =
-           `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec porttitor dapibus tellus nec bibendum. Vivamus a lorem at arcu tristique dignissim. Aliquam eu lorem dapibus est placerat commodo vel vel risus. Nam mattis faucibus lectus, at luctus libero mattis gravida. Suspendisse tempus mauris ac neque placerat fringilla ut nec leo. Cras placerat nulla id eros suscipit, vel accumsan purus dapibus. Morbi vitae lorem faucibus erat convallis sollicitudin ultrices vel tortor. In hac habitasse platea dictumst. Duis vel lorem diam. Mauris consectetur ac turpis suscipit faucibus.
+           `Developer\nTom Brinkman
+            Contact\nrepba@proton.me
+            Website\nhttps://reportbase.com
+                
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec porttitor dapibus tellus nec bibendum. Vivamus a lorem at arcu tristique dignissim. Aliquam eu lorem dapibus est placerat commodo vel vel risus. Nam mattis faucibus lectus, at luctus libero mattis gravida. Suspendisse tempus mauris ac neque placerat fringilla ut nec leo. Cras placerat nulla id eros suscipit, vel accumsan purus dapibus. Morbi vitae lorem faucibus erat convallis sollicitudin ultrices vel tortor. In hac habitasse platea dictumst. Duis vel lorem diam. Mauris consectetur ac turpis suscipit faucibus.
 
             Ut blandit leo a luctus elementum. Maecenas nec nulla id lectus vulputate vulputate. Ut auctor tellus sed ultricies efficitur. Donec sodales velit non massa suscipit ullamcorper. Vestibulum nunc diam, ultricies ut eros vitae, consectetur venenatis quam. Aliquam ultrices est ipsum, sed bibendum mauris rhoncus sit amet. Nam eleifend eros purus, at posuere massa ornare nec. Duis tempor turpis ut sem accumsan maximus. Aliquam augue quam, vulputate in tristique et, consectetur in lectus. In varius purus nisi, ac placerat orci euismod eget. Etiam at ligula dignissim, malesuada felis a, accumsan dolor. Integer eu porta purus. Quisque euismod leo sit amet tellus pellentesque, eget condimentum nibh scelerisque. Nulla ac nisl eget nisi congue pulvinar ac at mi.
 
@@ -4633,7 +4573,6 @@ var helplst =
             Gallery\n${url.path}\n
             Image\n${projectobj.current().pad(4)}\n
             Extension\n${url.extension}\n
-            Canvas Count\n${canvaslst.length}\n
             Photo Width\n${photo.image.width}\n
             Photo Height\n${photo.image.height}\n
             Photo Aspect\n${photo.image.aspect.toFixed(2)}\n
@@ -4643,7 +4582,6 @@ var helplst =
             Window Width\n${window.innerWidth}\n
             Window Height\n${window.innerHeight}\n
             Window Aspect\n${(window.innerWidth/window.innerHeight).toFixed(2)}\n
-            userAgent\n${navigator.userAgent}\n
             `;
 
         var k = helpobj.getcurrent().index?helpobj.getcurrent().index:0;
@@ -4667,19 +4605,16 @@ function slideon()
 {
     menuhide();
     clearInterval(globalobj.auto)
-//    if (!_4cnvctx.panning)
-//        _4cnvctx.movepage(localobj.autodirect);
     globalobj.auto = setInterval(function()
     {
         if (_4cnvctx.panning)
             return;
-        _4cnvctx.movepage(localobj.autodirect);
-    }, globalobj.autopage);
+        _4cnvctx.movepage(_4cnvctx.swipetype == "swipeleft" ? 1 : -1);
+    }, url.autopage);
 }
 
 function slideoff()
 {
-    _4cnvctx.slideshow = 0;
     clearInterval(globalobj.auto)
     globalobj.auto = 0;
 }
@@ -4707,6 +4642,8 @@ function fullscreen()
 
 function project()
 {
+    var k = _8cnvctx.timeobj.current();
+    localStorage.setItem(url.path+_8cnvctx.id+".time", k);
     projectobj.set(this.index);
     var s = addressobj.full();
     window.open(s,"_self");
@@ -4731,16 +4668,15 @@ window.addEventListener("load", async () =>
 
     seteventspanel(new YollPanel());
     _4cnvctx.enabled = 1;
-    globalobj.main = setInterval(function () { yoll(); }, TIMEMAIN);
+    _1ham.panel.draw(_1cnvctx, _1cnvctx.rect(), 0);
 
     try
     {
         var obj = JSON.parse(localStorage.getItem(url.path));
         if (obj)
-        {
-            localobj = {...localobj, ...obj};
-        }
-
+            localobj = obj;
+        if (typeof localobj.hide === "undefined")
+            localobj.hide = url.hide;
         if (typeof localobj.current === "undefined")
             localobj.current = {} 
         if (typeof localobj.timers === "undefined")
@@ -4756,16 +4692,17 @@ window.addEventListener("load", async () =>
 
         for (var n = 0; n < contextlst.length; ++n)
         {
-            var context = contextlst[n];
+            var j = contextlst[n];
             var k = localobj.timers[n]?localobj.timers[n]:TIMEOBJ/2;
-            context.timeobj.set(k);
+            j.timeobj.set(k);
+            localobj.timers[n] = k;
         }
             
-        pinchobj.split(Number(localobj.current.pinch), PINCHRANGE, OPTIONSIZE);
-        panxobj.split(Number(localobj.current.panx), PANXRANGE, OPTIONSIZE);
-        panyobj.split(Number(localobj.current.pany), PANYRANGE, OPTIONSIZE);
-        traitobj.split(Number(localobj.current.trait), HEIGHTRANGE, OPTIONSIZE);
-        scapeobj.split(Number(localobj.current.scape), HEIGHTRANGE, OPTIONSIZE);
+        pinchobj.split2(Number(localobj.current.pinch), PINCHRANGE, OPTIONSIZE);
+        panxobj.split2(Number(localobj.current.panx), PANXRANGE, OPTIONSIZE);
+        panyobj.split2(Number(localobj.current.pany), PANYRANGE, OPTIONSIZE);
+        traitobj.split2(Number(localobj.current.trait), HEIGHTRANGE, OPTIONSIZE);
+        scapeobj.split2(Number(localobj.current.scape), HEIGHTRANGE, OPTIONSIZE);
     }
     catch(error)
     {
@@ -4773,32 +4710,32 @@ window.addEventListener("load", async () =>
 
     pageresize(); 
     reset();
-    _4cnvctx.refresh()
 });
 
+var localobj = {}
 var localst = 
 [
     {obj:thumbobj,def:0},
-    {obj:positobj,def:globalobj.position},
-    {obj:pinchobj,def:globalobj.pinchbegin},
-    {obj:panyobj,def:globalobj.panybegin},
-    {obj:panxobj,def:globalobj.panxbegin},
-    {obj:traitobj,def:globalobj.trait},
-    {obj:scapeobj,def:globalobj.scape},
-    {obj:zoomobj,def:globalobj.zoombegin},
-    {obj:rowobj,def:globalobj.rowbegin},
+    {obj:positobj,def:1},
+    {obj:pinchobj,def:50},
+    {obj:panyobj,def:50},
+    {obj:panxobj,def:50},
+    {obj:traitobj,def:url.trait},
+    {obj:scapeobj,def:url.scape},
+    {obj:zoomobj,def:50},
+    {obj:rowobj,def:50},
 ];
 
 function savelocal()
 {
     localobj.current = {};
+    localobj.timers = [];
     for (var n = 0; n < localst.length; ++n)
     {
         var j = localst[n].obj;
         localobj.current[j.title] = j.current()
     }
-
-    localobj.timers = [];
+        
     for (var n = 0; n < contextlst.length; ++n)
     {
         var j = contextlst[n];
@@ -4820,16 +4757,6 @@ window.addEventListener("visibilitychange", (evt) =>
         for (var n = 0; n < canvaslst.length; ++n)
             releaseCanvas(canvaslst[n]);
         savelocal();
-        clearInterval(globalobj.main);
-    }
-    else
-    {
-        globalobj.main = setInterval(function () { yoll(); }, TIMEMAIN);
-        if (globalobj.autostart)
-            slideon()
-        contextobj.reset();
-        pageresize();
-        _4cnvctx.refresh();
     }
 });
 

@@ -1,0 +1,332 @@
+<meta name="Keywords" content="Topographic Maps, Aerial Photos, Satellite Photos, World Atlas, Sports Photography, Digital Art, 360 Panoramas, VR Projections, Political Cartoons, Comic Books, Portraits, Landscapes, Cityscapes, Infographics, Real Estate, Automobiles, Anime and Vintage Paintings."/>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="icon" href="res/favicon.ico" type="image/x-icon" />
+<style>
+html 
+{
+   font-family: monospace;
+	font-size: 150%; /* 2 */
+	line-height: 1.6; /* 3 */
+	-webkit-text-size-adjust: 150%; /* 4 */
+	word-break: break-word; /* 5 */
+}
+
+a:link { text-decoration: none; } 
+a:hover { text-decoration: none; background-color:yellow; }
+a:active { text-decoration: none; color: black; }
+a:visited { text-decoration: none; color: purple; }
+
+body 
+{
+  #touch-action: pan-x pan-y;
+  margin: 0; 
+  padding: 0;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+  background: #FFF;
+  color: #000;
+}
+
+div 
+{
+    word-wrap: break-word;
+}
+
+iframe
+{ 
+  border:0;
+    top:0px; 
+    left:0px; 
+    bottom:0px; 
+    right:0px; 
+    width:100%; 
+    height:70%; 
+}
+
+button 
+{
+    background-color: transparent;
+    color: black;
+    vertical-align: middle;
+   font-family: monospace;
+  font-weight: bold; 
+    font-size: 2vh;
+    border:none; 
+    cursor: pointer;
+}
+
+gallery
+{
+    color: black;
+    font-weight: bold; 
+  font-size: 2.0vh;
+    border:none; 
+   font-family: monospace;
+	line-height: 1.5; 
+}
+
+span
+{
+  display: inline-block;
+}
+
+section 
+{
+    border: 2px solid rgba(000,000,000,0.8);
+    border-radius: 10px;
+    font-size: 2.0vw; 
+    font-weight: bold; 
+    margin: 20;
+    padding-top: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
+}
+</style>
+<head>
+  <title>reportbase.com</title>
+</head>
+<center>
+<iframe seamless id=pano></iframe>
+
+<section>
+  <span id=images></span>
+</section>
+
+<section>
+  <a onclick="load(); return false;" href="javascript:void(0);">Open-image</a> / 
+  <a onclick="refresh(); return false;" href="javascript:void(0);">Refresh</a> / 
+  <a onclick="zoomin(); return false;" href="javascript:void(0);">Zoom-in</a> / 
+  <a onclick="zoomout(); return false;" href="javascript:void(0);">Zoom-out</a> / 
+  <a onclick="original(); return false;" href="javascript:void(0);">Original</a> / 
+  <a onclick="fullscreen(); return false;" href="javascript:void(0);">Full-screen</a> / 
+  <a onclick="newindow(); return false;" href="javascript:void(0);">New-Window</a>
+</section>
+<section>
+<center>
+<a onclick="pan.src='https://reportbase.com/home.html?p=RAIN&m=0077&t=fastslide'; finish(); return false;" href="javascript:void(0);">RAIN</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BIRD&m=0041&t=fastslide'; finish(); return false;" href="javascript:void(0);">BIRD</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=CITY&m=0037&t=fastslide'; finish(); return false;" href="javascript:void(0);">CITY</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=HOPE&m=0076&t=fastslide'; finish(); return false;" href="javascript:void(0);">HOPE</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GOAT&m=0097&t=fastslide'; finish(); return false;" href="javascript:void(0);">GOAT</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=HOOD&m=0036&t=fastslide'; finish(); return false;" href="javascript:void(0);">HOOD</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BOAT&m=0090&t=fastslide'; finish(); return false;" href="javascript:void(0);">BOAT</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BALL&m=0009&t=fastslide'; finish(); return false;" href="javascript:void(0);">BALL</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BELL&m=0015&t=fastslide'; finish(); return false;" href="javascript:void(0);">BELL</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ASPO&m=0029&t=fastslide'; finish(); return false;" href="javascript:void(0);">ASPO</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GOLF&m=0020&t=fastslide'; finish(); return false;" href="javascript:void(0);">GOLF</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=PUCK&m=0058&t=fastslide'; finish(); return false;" href="javascript:void(0);">PUCK</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=PUMP&m=0029&t=fastslide'; finish(); return false;" href="javascript:void(0);">PUMP</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=NATB&m=0026&t=fastslide'; finish(); return false;" href="javascript:void(0);">NATB</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DISH&m=0016&t=fastslide'; finish(); return false;" href="javascript:void(0);">DISH</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DAME&m=0056&t=fastslide'; finish(); return false;" href="javascript:void(0);">DAME</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BOND&m=0075&t=fastslide'; finish(); return false;" href="javascript:void(0);">BOND</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ANIM&m=0014&t=fastslide'; finish(); return false;" href="javascript:void(0);">ANIM</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=CRBE&m=0009&t=fastslide'; finish(); return false;" href="javascript:void(0);">CRBE</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=CRBT&m=0010&t=fastslide'; finish(); return false;" href="javascript:void(0);">CRBT</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=JESU&m=0014&t=fastslide'; finish(); return false;" href="javascript:void(0);">JESU</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DOLL&m=0056&t=fastslide'; finish(); return false;" href="javascript:void(0);">DOLL</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=FABL&m=0027&t=fastslide'; finish(); return false;" href="javascript:void(0);">FABL</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=FAIR&m=0014&t=fastslide'; finish(); return false;" href="javascript:void(0);">FAIR</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=FASH&m=0007&t=fastslide'; finish(); return false;" href="javascript:void(0);">FASH</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DOCS&m=0013&t=fastslide'; finish(); return false;" href="javascript:void(0);">DOCS</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GIRL&m=0031&t=fastslide'; finish(); return false;" href="javascript:void(0);">GIRL</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GIMP&m=0077&t=fastslide'; finish(); return false;" href="javascript:void(0);">GIMP</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=PORT&m=0049&t=fastslide'; finish(); return false;" href="javascript:void(0);">PORT</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=POST&m=0084&t=fastslide'; finish(); return false;" href="javascript:void(0);">POST</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=STOY&m=0020&t=fastslide'; finish(); return false;" href="javascript:void(0);">STOY</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=TALE&m=0010&t=fastslide'; finish(); return false;" href="javascript:void(0);">TALE</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ZEUS&m=0034&t=fastslide'; finish(); return false;" href="javascript:void(0);">ZEUS</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BUGS&m=0026&t=fastslide'; finish(); return false;" href="javascript:void(0);">BUGS</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=NATU&m=0050&t=fastslide'; finish(); return false;" href="javascript:void(0);">NATU</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DRES&m=0012&t=fastslide'; finish(); return false;" href="javascript:void(0);">DRES</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GREK&m=0017&t=fastslide'; finish(); return false;" href="javascript:void(0);">GREK</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=JAPN&m=0024&t=fastslide'; finish(); return false;" href="javascript:void(0);">JAPN</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ROME&m=0021&t=fastslide'; finish(); return false;" href="javascript:void(0);">ROME</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BAKE&m=0032&t=fastslide'; finish(); return false;" href="javascript:void(0);">BAKE</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DECS&m=0011&t=fastslide'; finish(); return false;" href="javascript:void(0);">DECS</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=OSHI&m=0010&t=fastslide'; finish(); return false;" href="javascript:void(0);">OSHI</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=BOOK&m=0063&t=fastslide'; finish(); return false;" href="javascript:void(0);">BOOK</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=LITE&m=0053&t=fastslide'; finish(); return false;" href="javascript:void(0);">LITE</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=NAVY&m=0027&t=fastslide'; finish(); return false;" href="javascript:void(0);">NAVY</a>
+
+<a onclick="pan.src='https://reportbase.com/home.html?p=TALL&m=0004&t=tall'; finish(); return false;" href="javascript:void(0);">TALL</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SKIN&m=0004&t=tall'; finish(); return false;" href="javascript:void(0);">SKIN</a>
+
+mv BOLD* BILD* BALD* BULD* BELD* BMLD* BNLD* BSLD* BKLD* BYLD* BXLD* BTLD* BWLD* ../compile
+
+<a onclick="pan.src='https://reportbase.com/home.html?p=HUPE&m=0004&t=plain'; finish(); return false;" href="javascript:void(0);">HUPE</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GOUT&m=0005&t=plain'; finish(); return false;" href="javascript:void(0);">GOUT</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=CORN&m=0004&t=plain'; finish(); return false;" href="javascript:void(0);">CORN</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ARMY&m=0005&t=plain'; finish(); return false;" href="javascript:void(0);">ARMY</a>
+
+<a onclick="pan.src='https://reportbase.com/home.html?p=DARK&m=0022&t=comic'; finish(); return false;" href="javascript:void(0);">DARK</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SAGA&m=0044&t=comic'; finish(); return false;" href="javascript:void(0);">SAGA</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=ULTR&m=0457&t=comic'; finish(); return false;" href="javascript:void(0);">ULTR</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=HUSH&m=0298&t=comic'; finish(); return false;" href="javascript:void(0);">HUSH</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GOTH&m=0298&t=comic'; finish(); return false;" href="javascript:void(0);">GOTH</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DBAT&m=0360&t=comic'; finish(); return false;" href="javascript:void(0);">DBAT</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=KNIG&m=0197&t=comic'; finish(); return false;" href="javascript:void(0);">KNIG</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=VIOL&m=0151&t=comic'; finish(); return false;" href="javascript:void(0);">VIOL</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=MADB&m=0161&t=comic'; finish(); return false;" href="javascript:void(0);">MADB</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=KILL&m=0064&t=comic'; finish(); return false;" href="javascript:void(0);">KILL</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DETC&m=0166&t=comic'; finish(); return false;" href="javascript:void(0);">DETC</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SECH&m=0460&t=comic'; finish(); return false;" href="javascript:void(0);">SECH</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SECI&m=0498&t=comic'; finish(); return false;" href="javascript:void(0);">SECI</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=WALK&m=0433&t=comic'; finish(); return false;" href="javascript:void(0);">WALK</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=GRIM&m=0390&t=comic'; finish(); return false;" href="javascript:void(0);">GRIM</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=SUIC&m=0409&t=comic'; finish(); return false;" href="javascript:void(0);">SUIC</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=DMZ&&m=0283&t=comic'; finish(); return false;" href="javascript:void(0);">DMZ</a>
+<a onclick="pan.src='https://reportbase.com/home.html?p=MANH&m=0027&t=comic'; finish(); return false;" href="javascript:void(0);">MANH</a>
+</section>
+<section>
+  <h2>
+    <div id="address"></div>
+  </h2>
+</section>
+<section>
+  <h2>
+    High Resolution Image Viewer<br>
+    Interactive Panoramas<br>
+    Slideshows<br>
+    https://reportbase.com<br>
+    repba@proton.me<br>
+    Tom Brinkman
+  </h2>
+</section>
+
+<script>
+var pan = document.getElementById('pano');
+var pano = pan.contentWindow;
+var path = document.getElementById('path');
+var address = document.getElementById('address');
+
+function load() { pano.postMessage("load", '*'); finish();}
+function refresh() { pano.postMessage("refresh", '*'); finish();}
+function zoomin() { pano.postMessage("zoomin", '*'); finish();}
+function zoomout() { pano.postMessage("zoomout", '*'); finish();}
+function thumbnail() { pano.postMessage("thumbnail", '*');  finish();}
+function full() { pano.postMessage("fullscreen", '*'); }
+function newindow(a) { window.open(addrestr, '_blank').focus(); }
+function original() { window.open(originalpath, '_blank'); }
+
+function fullscreen() 
+{
+    if (SAFARI)
+      window.open(addrestr, '_blank').focus();
+    else
+      pano.postMessage("fullscreen", '*'); 
+}
+
+window.addEventListener("message", (event) => 
+{
+    if (event.type == "message")
+    {
+        var data = event.data;
+        if (data.fullproject)
+        {
+            var url = new URL(data.address);
+            //window.history.replaceState(0, document.title, url.href);
+            var k = data.fullproject.split("-");
+            projectag.innerHTML = k[0]; 
+            projectstag.innerHTML = k[1];
+            addrestr = data.address;
+            document.title = data.title; 
+         }
+        else if (data.address)
+        {
+            document.title = data.title; 
+            originalpath = data.originalpath;
+            addrestr = data.address;
+            
+            while (address.firstChild) 
+              address.removeChild(address.firstChild);
+
+            let anchor = document.createElement('a');
+            let link = document.createTextNode(data.address);
+            anchor.appendChild(link);
+            anchor.href = data.address;
+            anchor.target = "_blank";
+            address.appendChild(anchor);
+
+            while (images.firstChild) 
+              images.removeChild(images.firstChild);
+            
+            for (var project = 0; project < data.projects; ++project)
+            {
+                var cols = 1;//data.movepage ? 1 : data.cols; 
+                for (var col = 0; col < cols; ++col)
+                {
+                    let anchor = document.createElement('a');
+                    var image = data.movepage ? cols*project + col : project;
+                    var t = cols*project + col;
+                    let link = document.createTextNode((t+1).pad(2));
+                    anchor.appendChild(link);
+                    anchor.href = "javascript:void(0);"
+                    var onclick = function(i, c)
+                    {
+                        this.go = function ()
+                        {
+                          var src="https://reportbase.com/home.html?p="+
+                            data.path+"."+
+                            i.pad(4)+"."+
+                            data.extension+
+                            data.body+
+                            "&c="+c;
+                          pan.src = src;
+                          pan.scrollIntoView(); 
+                          pan.focus(); 
+                        }
+                    }
+                     
+                    var k = new onclick(image, col);
+                    anchor.onclick = k.go;
+                    images.appendChild(anchor);
+                    let txt = document.createTextNode(" ");
+                    images.appendChild(txt);
+                }
+            }
+        }
+    }
+}, false);
+
+ const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+document.addEventListener('dblclick', function(event) 
+{
+    event.preventDefault(); 
+}, { passive: false });
+
+  Number.prototype.pad = function(size)
+{
+    var s = String(this);
+    while (s.length < (size || 2)) {s = "0" + s;}
+	    return s;
+}
+
+
+window.addEventListener("load", function (evt) 
+{ 
+    var url = new URL(window.location.href);
+    if (url.search)
+      pan.src="https://reportbase.com/home.html"+url.search;
+    else
+      pan.src="https://reportbase.com/home.html?p=NATB&m=0026&t=fastslide";
+  });
+
+function finish()
+{
+    pan.scrollIntoView(); 
+    pan.focus();
+    var url = new URL(pan.src);
+    if (0)//url.search)
+    {
+        var src="https://reportbase.com/home.html"+url.search;
+        window.history.replaceState(0, document.title, src);
+    }
+}
+
+</script>
+
