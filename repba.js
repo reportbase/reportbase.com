@@ -115,9 +115,10 @@ globalobj.slidereduce = globalobj.slidecount/10;
 
 if (globalobj.template == "comic")
 {
-    globalobj.rowbegin = 10;
+    globalobj.rowbegin = 0;
     globalobj.rowreset = 1;
     globalobj.zoombegin = MOBILE?50:25;
+    localobj.picture = 1;
 }
 else if (globalobj.template == "wide")
 {
@@ -651,7 +652,7 @@ var Help = function()
                 0, 
                 [
                     0,
-                    "reportbase.com",
+                    url.origin,
                     '\u{2716}'
                 ],
                 [
@@ -771,7 +772,7 @@ addressobj.body = function ()
 
  addressobj.full = function ()
 {
-    var out ="https://reportbase.com/home.html?p="+url.fullpath();
+    var out =url.origin+"/home.html?p="+url.fullpath();
     out += addressobj.body();
     return out;
 };
@@ -1451,6 +1452,8 @@ var demolst =
 {path: "https://reportbase.com/home.html?p=HERC.0000.jpg&m=0080&t=comic", title: "HERC"}, 
 {path: "https://reportbase.com/home.html?p=DARE.0000.jpg&m=0063&t=comic", title: "DARE"}, 
 {path: "https://reportbase.com/home.html?p=ALAD.0000.jpg&m=0065&t=comic", title: "ALAD"}, 
+{path: "https://reportbase.us/home.html?p=DBAT&m=0360&t=comic", title: "DBAT"}, 
+{path: "https://reportbase.us/home.html?p=GRIM&m=0390&t=comic", title: "GRIM"}, 
 {path: "https://reportbase.com/home.html?p=TRAP&m=0083&t=comic", title: "TRAP"}, 
 {path: "https://reportbase.com/home.html?p=AGEN&m=0083&t=comic", title: "AGEN"}, 
 {path: "https://reportbase.com/home.html?p=DRAC&m=0081&t=comic", title: "DRAC"}, 
@@ -1481,10 +1484,6 @@ var demolst =
 {path: "https://reportbase.com/home.html?p=BODY&m=059&t=comic", title: "BODY"},
 {path: "https://reportbase.com/home.html?p=RAVA&m=0061&t=comic", title: "RAVA"},
 {path: "https://reportbase.com/home.html?p=FEAR&m=0061&t=comic", title: "FEAR"},
-
-//Retired
-{path: "https://reportbase.com/home.html?p=DBAT&m=0360&t=comic", title: "DBAT"}, 
-{path: "https://reportbase.com/home.html?p=GRIM&m=0390&t=comic", title: "GRIM"}, 
 ];
 
 demolst.sort((a, b) => (a.title > b.title) ? 1 : -1)
@@ -2846,7 +2845,7 @@ var ContextObj = (function ()
             }
             else if (url.path)
             {
-                var path = "https://reportbase.com/data/" + url.fullpath();
+                var path = url.origin + "/data/" + url.fullpath();
                 if (HOST == "Image.Vision")
                     path = "https://d.img.vision/" + url.group + '/' + url.fullpath();
                 else if (globalobj.promptedfile)
@@ -2887,7 +2886,7 @@ var ContextObj = (function ()
 
                     var k = projectobj.current();
                     projectobj.rotate(localobj.autodirect);
-                    var path = "https://reportbase.com/data/" + url.fullpath();
+                    var path = url.origin + "/data/" + url.fullpath();
                     if (HOST == "Image.Vision")
                         path = "https://d.img.vision/" + url.group + '/' + url.fullpath();
                     var img = new Image();

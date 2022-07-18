@@ -1,59 +1,31 @@
 sudo certbot renew
+mkdir -p /srv/http/reportbase.us/.well-known/acme-challenge
+sudo certbot certonly --dry-run --email reportbase@gmail.com --webroot --webroot-path /srv/http/reportbase.us  -d reportbase.us
 
-#https://wiki.archlinux.org/index.php/Let%E2%80%99s_Encrypt
-#/etc/letsencrypt/renewal
-#https://www.ssllabs.com/ssltest/analyze.html?d=reportbase.com
+Automated certificate renewal
+Create the file /etc/systemd/system/certbot.service:
 
-mkdir -p /var/lib/letsencrypt/.well-known
-chgrp http /var/lib/letsencrypt
-chmod g+s /var/lib/letsencrypt
-
---staging
-sudo certbot certonly   --email reportbase@gmail.com --webroot -w /var/lib/letsencrypt/ -d blissfactor.app
-wget http://reportbase.com/.well-known/acme-challenge/a.jpg
-wget https://blissfactor.app/.well-known/acme-challenge/a.jpg
-
-########################
-#certbot.service
 [Unit]
-Description=Encrypt renewal
-After=network.target
+Description=Let's Encrypt renewal
 
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/certbot renew --quiet --agree-tos
-ExecStartPost=/bin/systemctl reload nginx.service
+Create the file /etc/systemd/system/certbot.timer:
 
-[Install]
-WantedBy=default.target
-
-######################
-#certbot.timer
 [Unit]
-Description=Runs certbot every 24 hours
+Description=Twice daily renewal of Let's Encrypt's certificates
 
 [Timer]
-OnBootSec=10min
-OnUnitActiveSec=24hr
-Unit=certbot.service
+OnCalendar=0/12:00:00
+RandomizedDelaySec=1h
+Persistent=true
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=timers.target
+Now run:
 
-#####################
-#reportbase.com.conf
-# renew_before_expiry = 30 days
-version = 0.18.1
-archive_dir = /etc/letsencrypt/archive/reportbase.com
-cert = /etc/letsencrypt/live/reportbase.com/cert.pem
-privkey = /etc/letsencrypt/live/reportbase.com/privkey.pem
-chain = /etc/letsencrypt/live/reportbase.com/chain.pem
-fullchain = /etc/letsencrypt/live/reportbase.com/fullchain.pem
-
-# Options used in the renewal process
-[renewalparams]
-authenticator = webroot
-installer = None
-account = 74f43f88696303e4e85aa1777aa18114
-[[webroot_map]]
-reportbase.com = /srv/http/reportbase.com
+sudo systemctl enable certbot.timer
+sudo systemctl start certbot.timer
+sudo systemctl list-timers
+Everyday between 23:00-01:00 and between 11:00-13:00 all Let’s Encrypt certificates will be updated if necessary, as well as on reboot if a timer event was missed while the system was offline.
