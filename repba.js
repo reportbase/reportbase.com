@@ -9,7 +9,9 @@ const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
 const MFRAME = MOBILE && IFRAME;
-const MAXVIRTUALWIDTH = 7680;//SAFARI?5760:5760*2; 
+const MAXVIRTUALWIDTH = SAFARI?5760:5760*2; 
+const TIMEMAIN = SAFARI?12:1;
+const SLICEWIDTH = SAFARI?2.0:2.0;
 const DRAWCOUNT = 16;
 const SWIPETIME = 60;
 const TIMERELOAD = 30000;
@@ -43,7 +45,6 @@ const FONTHEIGHT = 16;
 const BUTTONHEIGHT = 38; 
 const ROWHEIGHT = FONTHEIGHT*2;
 const QUALITY = 0.65;
-const TIMEMAIN = 1;
 const ZOOMADJ = 0.01;
 const PINCHRANGE = "0.35-1.1";
 const HEIGHTRANGE = "0.10-1.0";
@@ -1005,16 +1006,6 @@ var makehammer = function (context, v)
    	    evt.preventDefault();
     }, false);
 
-    ham.element.addEventListener('dblclick', function(evt) 
-    {
-   	    evt.preventDefault();
-        var x = evt.x;
-        var y = evt.y;
-        if (typeof (ham.panel.dblclick) !== "function")
-            return;
-        ham.panel.dblclick(context, x, y);
-    }, false);
-
     ham.element.addEventListener("drop", function (evt)
     {
    	    evt.preventDefault();
@@ -1287,7 +1278,7 @@ var pinchlst =
             return;
         scale = pt.x;
 
-        if (localobj.hide)
+        if (localobj.showthumb)
         {
             var obj = heightobj.getcurrent();
             var data = obj.data_; 
@@ -1413,7 +1404,7 @@ var demolst =
 {path: "https://reportbase.com/home.html?p=FABL&m=0027&t=portrait", title: "FABL"}, 
 {path: "https://reportbase.com/home.html?p=FAIR&m=0014&t=portrait", title: "FAIR"}, 
 {path: "https://reportbase.com/home.html?p=FASH&m=0007&t=portrait", title: "FASH"}, 
-{path: "https://reportbase.com/home.html?p=DOCS&m=0013&t=portrait", title: "DOCS"}, 
+{path: "https://reportbase.com/home.html?p=DOCS&m=0009&t=portrait", title: "DOCS"}, 
 {path: "https://reportbase.com/home.html?p=WALL&m=0043&t=portrait", title: "WALL"}, 
 {path: "https://reportbase.com/home.html?p=GIRL&m=0055&t=portrait", title: "GIRL"}, 
 {path: "https://reportbase.com/home.html?p=PORT&m=0053&t=portrait", title: "PORT"}, 
@@ -1748,24 +1739,17 @@ var presslst =
         if (context.pinching)
             return;
 
-        if (localobj.showthumb)
+        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+        var n = context.grid.hitest(x,y); 
+        if (isthumbrect || positobj.current() == n)
         {
-            var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
-            var n = context.grid.hitest(x,y); 
-            if (isthumbrect || positobj.current() == n)
-            {
-                context.togglepicture();
-            }
-            else
-            {
-                positobj.set(n);
-                context.refresh();
-            }
+            context.togglepicture();
         }
         else
         {
-            localobj.hide = 0; 
-            localobj.showthumb = 1;
+            //positobj.set(n);
+            //context.refresh();
+            localobj.showthumb = localobj.showthumb?0:1;
             pageresize();
             context.refresh();
         }
@@ -1797,37 +1781,20 @@ var swipelst =
     {
         setTimeout(function()
         {   
-            if (localobj.hide)
-            {
-                localobj.autodirect = evt.type == "swipeleft"?1:-1;
-                context.movepage(localobj.autodirect);
-            }
-            else
-            {
-                var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
-                if (isthumbrect)
-                    localobj.autodirect = evt.type == "swipeleft"?1:-1;
-                else
-                    localobj.autodirect = evt.type == "swipeleft"?-1:1;
-                evt.preventDefault();
-                context.slideshow = globalobj.slidecount;
-                context.refresh();
-            }
+            var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+            localobj.autodirect = evt.type == "swipeleft"?-1:1;
+            evt.preventDefault();
+            context.slideshow = globalobj.slidecount;
+            context.refresh();
         }, SWIPETIME);
     },
 
     swipeupdown: function (context, rect, x, y, evt)
     {
-        if (globalobj.vpan && zoomobj.current() > 0)
-            return;
-
         setTimeout(function()
         {
-            slideoff();
             localobj.autodirect = evt.type == "swipeup"?1:-1;
-            evt.preventDefault();
-            context.slideshow = globalobj.slidecount;
-            context.refresh();
+            context.movepage(localobj.autodirect);
         }, SWIPETIME);
     },
 },
@@ -2371,7 +2338,7 @@ var getmenufrompoint = function (context, x, y)
 		var hit = lst[k];
 		if (!hit.fitwidth || !hit.fitheight)
 			continue;
-		var w = hit.fitwidth + 20*2;
+		var w = hit.fitwidth;
 		var h = hit.fitheight + 18*2;
 		var x1 = hit.center.x - w / 2;
 		var y1 = hit.center.y - h / 2;
@@ -2388,24 +2355,19 @@ var getmenufrompoint = function (context, x, y)
 var drawlst = [
 {
     name: "DEFAULT",
-    draw: 0,
+    draw: function (context, rect, user, time){}
 },
 {
     name: "MENU",
-    draw: function (unused, rect, user, time)
+    draw: function (context, rect, user, time)
     {
-        var context = this;
+        context.save();
         rect.height = FONTHEIGHT;
         rect.width -= 40;
-        var xt = -rect.width / 2;
-        var yt = -rect.height / 2;
-        context.translate(xt, yt);
+        context.translate(-rect.width/2, -rect.height/2);
         user.fitwidth = rect.width;
         user.fitheight = rect.height;
-        var fillcolor = "rgba(0,0,0,0.5)";
-        context.fillStyle = "white";
-        var clr = fillcolor;
-        var fclr = "white"
+        var clr = "rgba(0,0,0,0.5)";
         var tap = "rgba(0,0,150,0.75)";
         var select = "rgba(0,0,50,0.75)";
         var select2 = "rgba(50,0,500.75)";
@@ -2436,16 +2398,14 @@ var drawlst = [
             }
         }
 
-        var h = FONTHEIGHT+8;
-        var j = rect.width-20;
-        var f = 1;
         var a = new Layer(
         [
             new Expand(new Rounded(clr, 2, "white", 8, 8), 0, 18),
-            new Shrink(new WrapsPanel(fclr, h, 0), 20, 0),
+            new Shrink(new Text("white", "center", "middle",0,1,1),20,0),
         ]); 
      
         a.draw(context, rect, str+"", time);
+        context.restore();
     }
 },
 {
@@ -2511,7 +2471,6 @@ function resetcanvas()
     context.virtualwidth = context.virtualheight * imageaspect;
     context.virtualaspect = context.virtualwidth / context.virtualheight;
       
-    var slicewidth = 1.0;//Math.lerp(1.0,2.0,zoomobj.berp());
     var y = Math.clamp(0,context.canvas.height-1,context.canvas.height*rowobj.berp());
     context.nuby = Math.nub(y, context.canvas.height, context.imageheight, photo.image.height);  
     var ks = 0;
@@ -2519,7 +2478,7 @@ function resetcanvas()
     {
         var k = slicelst[n];
         var fw = context.virtualwidth / k.slices;
-        if (fw < slicewidth)
+        if (fw < SLICEWIDTH)
             continue;
         ks = n;
         break;
@@ -2736,7 +2695,6 @@ var ContextObj = (function ()
         var slices = _9cnvctx.sliceobj;
         slices.data_= [];
         slices.data_.push({title:"Refresh (F5)", path: "REFRESH", func: function(){location.reload()}})
-        slices.data_.push({title:"Thumbnail (T)", path: "THUMBNAIL", func: function(){localobj.picture=localobj.picture?0:1; _4cnvctx.refresh()}})
         slices.data_.push({title:"Help", path: "HELP", func: function(){menuhide(); helpobj.getcurrent().draw(_4cnvctx, _4cnvctx.rect(), 0, 0);} })
         slices.data_.push({title:"Open... (O)", path: "LOAD", func: function(){menuhide(); promptFile().then(function(files) { dropfiles(files); })}})
         slices.data_.push({title:"Examples", path: "DEMOS", func: function(){ menushow(_7cnvctx); }})
@@ -2886,8 +2844,7 @@ var ContextObj = (function ()
                     photo.image.onabort = function()
                 {
                     _4cnvctx.setcolumncomplete = 1;
-                   _localobj.autodirect = localobj.autodirect?-1:1; 
-                    _4cnvctx.movepage(localobj.autodirect);
+                    _4cnvctx.movepage(-1);
                     seteventspanel(new YollPanel());
                     this.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAADK0lEQVRIS7WXWYiOURjH57VknzIXiiwXKBRXLpSMC9OIEDEhk5KdBs0wzQUxSVlmQskSRU0ulKWIUq4MTYkpe1kKRZIt+zqf3//rvF+fd87yynyn/p2v8yz/5zzvc55zvqjIMzKZTDfEvcBYgwHMGfACXAM3wccoir77/NhkkW0Rwi6sTwSLwDzQ2eH4K+snwFHQQgA/0wbQjhjSYoz3GMIeKR0pAJFvhPxdGpu/iCHti9EVMCqNsUXnKmuTIf8css8RQ6rdXf8P0pirGeLSfyHej/LKgMEn5ApWBecbDZBv8Clkd8xuxzFdAEq1a9xGsB38ApsDmVGVj4f8hstZBGlX47A6sIs6HO0wgVYyNwX0m9Bf6CNWFWs3gz2OfiNbh6N9hniKyZCP+w7C6dg8sSlpx0MRPHJ4UMp0NttALU4OGeJy5otA31wZU6NJjvcsVGBzyUU8G8FJi/A+ayq410DdqhUnDw1xf+YyoMBKgD7TcIuPSmyOu4hVySLIHyJahdFBm1FyjazNZO2MRXdFnKWkTKlezqKNYD1GjSmJl6B32KK7DB+29SIRT8XgvMXoi8nEM5Pqyzi5ZVI9hLkCqFUOBHUWe2VtPjbq5e2GiFXNT1PsrBonuw3xNOZzAZtXyOdg0+wi7o1APXaMx5GO0xqcZGuBYOOq9nG3IizH5o2LuBOCGrAzsIN6nGwxxKuZs2faMXT89qLvbEpxy9RtdBboTLuGzmwD0LneChSwa3xAMBJiPRisI/92UlNXL/Y5DCQlJ37MrxkQ30tDrFfGAbA0rfeAnh4Eu0AjAfxI6iYfAt1RqAe1HUSuotQdvxjyu/k+bU8f7XwuUFPpkzKAb+ipnY526GvHut2yx1HD+tiTgCPTj2kT0JnVDdYT6BGooQJT81ARqVXqflYj0cUxyBPsKWRrCeC5kzg2JgClXw+FYUAXgsZboB3qZZn7fujq+KjyfX71pisLEnuit4og1zU4KWC3oBDEyspLoHvaNY50OLGY2PUsptMe4m2FIpbfY8D25tKtNaIgxGbXqnKR539vHbsqCrIwqY5TTMrVByYA/enTSVDhPYC47Q+jAwjFRbnDLAAAAABJRU5ErkJggg==";
                     resetcanvas(context);
@@ -3454,43 +3411,6 @@ function rotate(pointX, pointY, originX, originY, angle)
 	return k;
 }
 
-var selectrotated = function (context, x, y)
-{
-	var t = context.sliceobj.data()[0];
-	var lst = Array.isArray(t[0]) ? t[0] : t;
-
-	var k;
-    for (k = lst.length - 1; k >= 0; --k)
-    {
-		var hit = lst[k];
-		if (!hit.fitscale || !hit.fitwidth || !hit.fitheight)
-			continue;
-
-		var w = hit.fitscale * hit.fitwidth;
-		var h = hit.fitscale * hit.fitheight;
-		var x1 = hit.center.x - w / 2;
-		var y1 = hit.center.y - h / 2;
-		var x2 = x1 + w;
-		var y2 = y1 + h;
-
-		var rt = 0;
-		var pt1 = rotate(x1, y1, hit.center.x, hit.center.y, rt);
-		var pt2 = rotate(x2, y1, hit.center.x, hit.center.y, rt);
-		var pt3 = rotate(x2, y2, hit.center.x, hit.center.y, rt);
-		var pt4 = rotate(x1, y2, hit.center.x, hit.center.y, rt);
-		var path = new Path2D();
-		path.moveTo(pt1.x, pt1.y);
-		path.lineTo(pt2.x, pt2.y);
-		path.lineTo(pt3.x, pt3.y);
-		path.lineTo(pt4.x, pt4.y);
-		path.closePath();
-		if (context.isPointInPath(path, x, y))
-			break;
-    }
-
-	return k>=0?k:-1;
-}
-
 function menuvisible()
 {
     var k = _5cnv.height || _6cnv.height || _7cnv.height ||
@@ -3574,6 +3494,7 @@ function yoll()
     if (!photo.image.complete || 
         photo.image.naturalHeight == 0)
         return;
+
     for (var n = 0; n < 1; n++)
     {
         var context = _4cnvctx;
@@ -3791,8 +3712,7 @@ function yoll()
             context.slideshow -= slidereduce
         }
 
-        var sliceobj = context.sliceobj;
-        var slices = sliceobj.data();
+        var slices =  context.sliceobj.data();
         var r = context.rect();
         var w = r.width;
         var h = r.height;
@@ -3801,6 +3721,13 @@ function yoll()
         context.fillStyle = MENUCOLOR;
         context.fillRect(0, 0, context.canvas.width, context.canvas.height);
         context.visibles = [];
+
+        for (var m = 0; m < slices.length; ++m)
+        {
+            var slice = slices[m];
+            slice.fitwidth = 0;
+            slice.fitheight = 0;
+        }
 
         for (var m = 0; m < slices.length; ++m)
         {
@@ -3817,12 +3744,11 @@ function yoll()
             if (context.visibles.length*BUTTONHEIGHT > window.innnerHeight)
                 break;
         }
-       //todo 
+        
         for (var m = 0; m < context.visibles.length; ++m)
         {
             var j = context.visibles[m]; 
             j.slice.center = {x: j.x, y: j.y};
-            j.slice.fitscale = 0;
             j.slice.fitwidth = 0;
             j.slice.fitheight = 0;
             context.save();
@@ -3844,14 +3770,6 @@ var YollPanel = function ()
         if (context.tap_)
     		context.tap_(context, rect, x, y, shift, ctrl);
 	};
-
-	this.dblclick = function (context, x, y)
-    {
-        localobj.hide = 0;
-        localobj.showthumb = 1;
-        pageresize();
-        context.refresh();
-    };
 
     this.wheeldown = function (context, x, y, ctrl, shift)
     {
