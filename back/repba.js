@@ -3,13 +3,14 @@ Copyright 2017 Tom Brinkman
 http://www.reportbase.com 
 */
 
-const CACHEDEBUG = 0;
 const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
-const MFRAME = MOBILE && IFRAME;
-const MAXVIRTUALWIDTH = 7680;//SAFARI?5760:5760*2; 
+const MOBFRAME = MOBILE && IFRAME;
+const MAXVIRTUAL = SAFARI?5760:5760*2; 
+const TIMEMAIN = SAFARI?12:1;
+const SLICEWIDTH = SAFARI?2.0:2.0;
 const DRAWCOUNT = 16;
 const SWIPETIME = 60;
 const TIMERELOAD = 30000;
@@ -20,7 +21,6 @@ const THUMBLINE = 1;
 const THUMBLINEIN = 2.5;
 const THUMBLINEOUT = 4.0;
 const JULIETIME = 100; 
-const GUIDEHEIGHT = 60; 
 const DELAY = 10000000;
 const HNUB = 9;
 const YNUB = 6;
@@ -42,17 +42,11 @@ const TIMEOBJ = 3926;
 const FONTHEIGHT = 16;
 const BUTTONHEIGHT = 38; 
 const ROWHEIGHT = FONTHEIGHT*2;
-const QUALITY = 0.65;
-const TIMEMAIN = 1;
-const ZOOMADJ = 0.01;
 const PINCHRANGE = "0.35-1.1";
 const HEIGHTRANGE = "0.10-1.0";
 const PANXRANGE = "3-15";
 const PANYRANGE = "1.0-6.0";
 const CANVASMAX = 30;
-const MAXCANVASWIDTH = 32767;
-const MAXCANVASIZE = SAFARI?16777216:32777216;
-const MAXVIRTUALSIZE = SAFARI?12000000:24000000;
 const MENUCOLOR = "rgba(0,0,0,0.50)";
 const HEADCOLOR = "rgba(0,0,0,0.40)";
 const HEADLIGHT = "rgba(0,0,0,0.50)";
@@ -69,8 +63,8 @@ localobj = {}
 
 var url = new URL(window.location.href);
 url.group = url.searchParams.has("u") ? url.searchParams.get("u") : "reportbase";
-url.projects = url.searchParams.has("m") ? url.searchParams.get("m") : "0000";
-var filename = url.searchParams.get("p");
+url.projects = url.searchParams.has("m") ? url.searchParams.get("m") : "0006";
+var filename = url.searchParams.has("p") ? url.searchParams.get("p") : "GAMP.0000.webp";
 filename = filename.split(".");
 if (filename.length == 3)
 {
@@ -87,16 +81,16 @@ else
 
 url.fullpath = function() { return url.path + "." + projectobj.current().pad(4) + "." + url.extension; }
 
-globalobj.template = url.searchParams.has("t") ? url.searchParams.get("t") : "";
+globalobj.template = url.searchParams.has("t") ? url.searchParams.get("t") : "7x1";
 localobj.hide = 1;
 localobj.picture = 0;
 localobj.autodirect = 1;
 localobj.showthumb = 1;
+localobj.position = 7;
 globalobj.divider = "rgba(0,0,0,0)";
 globalobj.timebegin = TIMEOBJ/2;
 globalobj.autostart = 0;
 globalobj.autopage = 1500;
-globalobj.position = 1;
 globalobj.cols = 1;
 globalobj.rows = 5;
 globalobj.vpan = 1;
@@ -114,15 +108,14 @@ globalobj.slidereduce = globalobj.slidecount/10;
 
 if (globalobj.template == "comic")
 {
-    globalobj.position = 7;
-    globalobj.rowbegin = 15;
+    globalobj.rowbegin = 0;
     globalobj.rowreset = 1;
     globalobj.zoombegin = MOBILE?50:25;
+    localobj.picture = 1;
 }
 else if (globalobj.template == "wide")
 {
-    globalobj.position = 7;
-    globalobj.maxheight = 35;
+    globalobj.maxheight = 50;
     globalobj.rows = 1;
     globalobj.vpan = 0;
     globalobj.trait = 100;
@@ -133,7 +126,6 @@ else if (globalobj.template == "wide")
 }
 else if (globalobj.template == "portrait")
 {
-    globalobj.position = 7;
     globalobj.trait = 75;
     globalobj.scape = 75;
     globalobj.autostart = 1;
@@ -142,7 +134,6 @@ else if (globalobj.template == "portrait")
 }
 else if (globalobj.template == "landscape")
 {
-    globalobj.position = 7;
     localobj.picture = 1;
     globalobj.trait = 100;
     globalobj.scape = 100;
@@ -151,7 +142,6 @@ else if (globalobj.template == "landscape")
 }
 else if (globalobj.template == "tall")
 {
-    globalobj.position = 5;
     globalobj.rows = 1;
     globalobj.cols = 1;
     globalobj.autostart = 1;
@@ -159,24 +149,21 @@ else if (globalobj.template == "tall")
 }
 else if (globalobj.template == "1x5")
 {
-    globalobj.position = 5;
+    localobj.position = 5;
     globalobj.cols = 1;
     globalobj.rows = 5;
     globalobj.trait = 25;
     globalobj.scape = 100;
     globalobj.zoombegin = 0;
     globalobj.autostart = 0;
-    globalobj.autopage = 4000;
 }
 else if (globalobj.template == "7x1")
 {
-    globalobj.maxheight = 35;
-    globalobj.position = 7;
+    globalobj.maxheight = 50;
     globalobj.cols = 7;
     globalobj.trait = 100;
     globalobj.scape = 100;
     globalobj.autostart = 0;
-    globalobj.autopage = 5000;
     globalobj.zoombegin = 0;
 }
 
@@ -313,6 +300,67 @@ var makeoption = function (title, data)
         return this.data_[j];
     }
 };
+
+var cachelst = 
+[
+    {
+        title:"Register", path: "REGISTER", func: function()
+        {
+            if ("serviceWorker" in navigator)
+                navigator.serviceWorker.register("sw.js");
+        }
+    },
+    {
+        title:"Delete Caches", path: "DELCACH", func: function()
+        {
+             caches.keys().then(function(names) 
+             {
+                 for (let name of names)
+                     caches.delete(name);
+             });
+        }
+    },
+    {
+        title:"Delete Service Workers", path: "DELSERVWORK", func: function()
+        {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) 
+            {
+                for (let registration of registrations) 
+                    registration.unregister()
+            })
+        }
+    },
+    {
+        title:"Update Service Workers", path: "DELSERVWORK", func: function()
+        {
+            navigator.serviceWorker.getRegistration('/').then(function(registration) 
+            {
+                registration.update();
+            });
+        }
+    },
+    {
+        title:"List Cache", path: "LISTCACHE", func: function()
+        {
+            function cacheList(Items)
+            {   
+                for(var i = 0; i < Items.length; i++)
+                    console.log('Items: '+Items[i]);
+            }
+
+            var url = [];
+            caches.open("/").then(function (cache)
+            {
+                cache.keys().then(function(keys)
+                {
+                    return Promise.all( keys.map(function(k){url.push(k.url); return k.url} ))
+                }).then(function(u){ cacheList(url);})
+            })
+        }
+    }
+];
+
+var cacheobj = new makeoption("", cachelst);
 
 const opts = {synchronized: true, };
 let _1cnv = document.getElementById("_1");
@@ -658,7 +706,7 @@ var Help = function()
                 0, 
                 [
                     0,
-                    "reportbase.com",
+                    url.origin,
                     '\u{2716}'
                 ],
                 [
@@ -778,29 +826,24 @@ addressobj.body = function ()
 
  addressobj.full = function ()
 {
-    var out ="https://reportbase.com/home.html?p="+url.fullpath();
+    var out =url.origin+"/?p="+url.fullpath();
     out += addressobj.body();
     return out;
 };
 
-CanvasRenderingContext2D.prototype.moveup = function(p)
+CanvasRenderingContext2D.prototype.moveup = function()
 {
-    if (projectobj.length()==1)
-        return;
-
     var context = this;
     var k = rowobj.berp()*100-1;
     var index = SLIDELST.findLastIndex(a=>{return a < k;})
     if (index == -1)
     {
-        context.hidehead = context.hidehead?0:1;
-        pageresize();
+        context.movepage(-1);
         return;
     }
 
     var j = (SLIDELST[index]/100)*rowobj.length();
     rowobj.set(j);
-    contextobj.reset();
 }
 
 CanvasRenderingContext2D.prototype.getx = function(k)
@@ -828,24 +871,19 @@ CanvasRenderingContext2D.prototype.getslicefirst = function()
     return mid;
 }
 
-CanvasRenderingContext2D.prototype.movedown = function(p)
+CanvasRenderingContext2D.prototype.movedown = function()
 {
-    if (projectobj.length()==1)
-        return;
-
     var context = this;
     var k = rowobj.berp()*100;
     var index = SLIDELST.findIndex(a=>{return a > k;})
     if (index == -1)
     {
-        context.hidehead = context.hidehead?0:1;
-        pageresize();
+        context.movepage(1);
         return;
     }
 
     var j = (SLIDELST[index]/100)*rowobj.length();
     rowobj.set(j);
-    contextobj.reset();
 }
 
 CanvasRenderingContext2D.prototype.movepage = function(j)
@@ -863,7 +901,7 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
             _4cnvctx.slidecomplete = 0;
             _4cnvctx.setcolumncomplete = 0;
             if (globalobj.rowreset)
-                rowobj.set(globalobj.rowbegin);
+                rowobj.set((globalobj.rowbegin/100)*rowobj.length());
             _4cnvctx.timeobj.set(globalobj.timebegin);
             projectobj.rotate(j);
             var str = addressobj.full();
@@ -1003,16 +1041,6 @@ var makehammer = function (context, v)
     ham.element.addEventListener("dragover", function (evt)
     {
    	    evt.preventDefault();
-    }, false);
-
-    ham.element.addEventListener('dblclick', function(evt) 
-    {
-   	    evt.preventDefault();
-        var x = evt.x;
-        var y = evt.y;
-        if (typeof (ham.panel.dblclick) !== "function")
-            return;
-        ham.panel.dblclick(context, x, y);
     }, false);
 
     ham.element.addEventListener("drop", function (evt)
@@ -1287,7 +1315,7 @@ var pinchlst =
             return;
         scale = pt.x;
 
-        if (localobj.hide)
+        if (localobj.showthumb)
         {
             var obj = heightobj.getcurrent();
             var data = obj.data_; 
@@ -1344,7 +1372,6 @@ var pinchlst =
 ];
 
 var rowobj = new makeoption("ROW", window.innerHeight);
-rowobj.set(window.innerHeight/2);
 var pinchobj = new makeoption("PINCH", pinchlst);
 var panxobj = new makeoption("PANX", OPTIONSIZE); 
 var panyobj = new makeoption("PANY", OPTIONSIZE); 
@@ -1356,156 +1383,158 @@ var heightobj = new makeoption("HEIGHT", [traitobj,scapeobj]);
 var demolst =
 [
 //1x6
-{path: "https://reportbase.com/home.html?p=HUPE&m=0004&t=1x5", title: "HUPE"},
-{path: "https://reportbase.com/home.html?p=GOUT&m=0005&t=1x5", title: "GOUT"}, 
-{path: "https://reportbase.com/home.html?p=CORN&m=0004&t=1x5", title: "CORN"}, 
-{path: "https://reportbase.com/home.html?p=ARMY&m=0005&t=1x5", title: "ARMY"},
+{path: "https://reportbase.com/?p=HUPE&m=0004&t=1x5", func: demo, title: "HUPE"},
+{path: "https://reportbase.com/?p=GOUT&m=0005&t=1x5", func: demo, title: "GOUT"}, 
+{path: "https://reportbase.com/?p=CORN&m=0004&t=1x5", func: demo, title: "CORN"}, 
+{path: "https://reportbase.com/?p=ARMY&m=0005&t=1x5", func: demo, title: "ARMY"},
 
 //7x1
-{path: "https://reportbase.com/home.html?p=REIN&m=0006&t=7x1", title: "REIN"},
-{path: "https://reportbase.com/home.html?p=GAMP&m=0006&t=7x1", title: "GAMP"},
-{path: "https://reportbase.com/home.html?p=NETA&m=0003&t=7x1", title: "NETA"},
-{path: "https://reportbase.com/home.html?p=NATA&m=0006&t=7x1", title: "NATA"},
-{path: "https://reportbase.com/home.html?p=GARL&m=0003&t=7x1", title: "GARL"},
-{path: "https://reportbase.com/home.html?p=WED8&m=0000&t=7x1", title: "WED8"},
-{path: "https://reportbase.com/home.html?p=PEN7&m=0000&t=7x1", title: "PEN7"},
-{path: "https://reportbase.com/home.html?p=GAL5&m=0000&t=7x1", title: "GAL5"},
-{path: "https://reportbase.com/home.html?p=HAN7&m=0000&t=7x1", title: "HAN7"},
-{path: "https://reportbase.com/home.html?p=BDR5&m=0000&t=7x1", title: "BDR5"},
-{path: "https://reportbase.com/home.html?p=GRO6&m=0000&t=7x1", title: "GRO6"},
-{path: "https://reportbase.com/home.html?p=MUS8&m=0000&t=7x1", title: "MUS8"},
+{path: "https://reportbase.com/?p=REIN&m=0006&t=7x1", func: demo, title: "REIN"},
+{path: "https://reportbase.com/?p=GAMP&m=0006&t=7x1", func: demo, title: "GAMP"},
+{path: "https://reportbase.com/?p=NETA&m=0003&t=7x1", func: demo, title: "NETA"},
+{path: "https://reportbase.com/?p=NATA&m=0006&t=7x1", func: demo, title: "NATA"},
+{path: "https://reportbase.com/?p=GARL&m=0003&t=7x1", func: demo, title: "GARL"},
+{path: "https://reportbase.com/?p=WED8&m=0000&t=7x1", func: demo, title: "WED8"},
+{path: "https://reportbase.com/?p=PEN7&m=0000&t=7x1", func: demo, title: "PEN7"},
+{path: "https://reportbase.com/?p=GAL5&m=0000&t=7x1", func: demo, title: "GAL5"},
+{path: "https://reportbase.com/?p=HAN7&m=0000&t=7x1", func: demo, title: "HAN7"},
+{path: "https://reportbase.com/?p=BDR5&m=0000&t=7x1", func: demo, title: "BDR5"},
+{path: "https://reportbase.com/?p=GRO6&m=0000&t=7x1", func: demo, title: "GRO6"},
+{path: "https://reportbase.com/?p=MUS8&m=0000&t=7x1", func: demo, title: "MUS8"},
 
 //Wide Images
-{path: "https://reportbase.com/home.html?p=PENO&m=0073&t=wide", title: "PENO"},                                                                                            
-{path: "https://reportbase.com/home.html?p=PUNO&m=0086&t=wide", title: "PUNO"},
-{path: "https://reportbase.com/home.html?p=PANO&m=0045&t=wide", title: "PANO"},
-{path: "https://reportbase.com/home.html?p=PINO&m=0029&t=wide", title: "PINO"},
-{path: "https://reportbase.com/home.html?p=WIDE&m=0029&t=wide", title: "WIDE"},
+{path: "https://reportbase.com/?p=PENO&m=0073&t=wide", func: demo, title: "PENO"},                                                                                            
+{path: "https://reportbase.com/?p=PUNO&m=0086&t=wide", func: demo, title: "PUNO"},
+{path: "https://reportbase.com/?p=PANO&m=0045&t=wide", func: demo, title: "PANO"},
+{path: "https://reportbase.com/?p=PINO&m=0029&t=wide", func: demo, title: "PINO"},
+{path: "https://reportbase.com/?p=WIDE&m=0029&t=wide", func: demo, title: "WIDE"},
 
 //Landscapes
-{path: "https://reportbase.com/home.html?p=HOPE&m=0076&t=landscape", title: "HOPE"}, 
-{path: "https://reportbase.com/home.html?p=GOAT&m=0097&t=landscape", title: "GOAT"}, 
-{path: "https://reportbase.com/home.html?p=BOAT&m=0101&t=landscape", title: "BOAT"}, 
-{path: "https://reportbase.com/home.html?p=BELL&m=0015&t=landscape", title: "BELL"}, 
-{path: "https://reportbase.com/home.html?p=ASPO&m=0029&t=landscape", title: "ASPO"}, 
-{path: "https://reportbase.com/home.html?p=GOLF&m=0020&t=landscape", title: "GOLF"}, 
-{path: "https://reportbase.com/home.html?p=PUCK&m=0058&t=landscape", title: "PUCK"}, 
-{path: "https://reportbase.com/home.html?p=DISH&m=0016&t=landscape", title: "DISH"},
-{path: "https://reportbase.com/home.html?p=JESU&m=0014&t=landscape", title: "JESU"}, 
-{path: "https://reportbase.com/home.html?p=GIMP&m=0079&t=landscape", title: "GIMP"}, 
-{path: "https://reportbase.com/home.html?p=NAVY&m=0060&t=landscape", title: "NAVY"}, 
+{path: "https://reportbase.com/?p=HOPE&m=0076&t=landscape", func: demo, title: "HOPE"}, 
+{path: "https://reportbase.com/?p=GOAT&m=0097&t=landscape", func: demo, title: "GOAT"}, 
+{path: "https://reportbase.com/?p=BOAT&m=0101&t=landscape", func: demo, title: "BOAT"}, 
+{path: "https://reportbase.com/?p=BELL&m=0015&t=landscape", func: demo, title: "BELL"}, 
+{path: "https://reportbase.com/?p=ASPO&m=0029&t=landscape", func: demo, title: "ASPO"}, 
+{path: "https://reportbase.com/?p=GOLF&m=0020&t=landscape", func: demo, title: "GOLF"}, 
+{path: "https://reportbase.com/?p=PUCK&m=0058&t=landscape", func: demo, title: "PUCK"}, 
+{path: "https://reportbase.com/?p=DISH&m=0016&t=landscape", func: demo, title: "DISH"},
+{path: "https://reportbase.com/?p=JESU&m=0014&t=landscape", func: demo, title: "JESU"}, 
+{path: "https://reportbase.com/?p=GIMP&m=0079&t=landscape", func: demo, title: "GIMP"}, 
+{path: "https://reportbase.com/?p=NAVY&m=0060&t=landscape", func: demo, title: "NAVY"}, 
 
 //Portraits
-{path: "https://reportbase.com/home.html?p=ROBE&m=0012&t=portrait", title: "ROBE"}, 
-{path: "https://reportbase.com/home.html?p=RAIN&m=0077&t=portrait", title: "RAIN"}, 
-{path: "https://reportbase.com/home.html?p=BIRD&m=0041&t=portrait", title: "BIRD"}, 
-{path: "https://reportbase.com/home.html?p=CITY&m=0037&t=portrait", title: "CITY"}, 
-{path: "https://reportbase.com/home.html?p=HOOD&m=0036&t=portrait", title: "HOOD"}, 
-{path: "https://reportbase.com/home.html?p=BALL&m=0026&t=portrait", title: "BALL"}, 
-{path: "https://reportbase.com/home.html?p=PUMP&m=0029&t=portrait", title: "PUMP"}, 
-{path: "https://reportbase.com/home.html?p=NATB&m=0026&t=portrait", title: "NATB"}, 
-{path: "https://reportbase.com/home.html?p=DAME&m=0056&t=portrait", title: "DAME"}, 
-{path: "https://reportbase.com/home.html?p=BOND&m=0075&t=portrait", title: "BOND"}, 
-{path: "https://reportbase.com/home.html?p=ANIM&m=0014&t=portrait", title: "ANIM"}, 
-{path: "https://reportbase.com/home.html?p=CRBE&m=0009&t=portrait", title: "CRBE"}, 
-{path: "https://reportbase.com/home.html?p=CRBT&m=0010&t=portrait", title: "CRBT"}, 
-{path: "https://reportbase.com/home.html?p=DOLL&m=0056&t=portrait", title: "DOLL"}, 
-{path: "https://reportbase.com/home.html?p=FABL&m=0027&t=portrait", title: "FABL"}, 
-{path: "https://reportbase.com/home.html?p=FAIR&m=0014&t=portrait", title: "FAIR"}, 
-{path: "https://reportbase.com/home.html?p=FASH&m=0007&t=portrait", title: "FASH"}, 
-{path: "https://reportbase.com/home.html?p=DOCS&m=0013&t=portrait", title: "DOCS"}, 
-{path: "https://reportbase.com/home.html?p=WALL&m=0043&t=portrait", title: "WALL"}, 
-{path: "https://reportbase.com/home.html?p=GIRL&m=0055&t=portrait", title: "GIRL"}, 
-{path: "https://reportbase.com/home.html?p=PORT&m=0053&t=portrait", title: "PORT"}, 
-{path: "https://reportbase.com/home.html?p=POST&m=0188&t=portrait", title: "POST"}, 
-{path: "https://reportbase.com/home.html?p=STOY&m=0020&t=portrait", title: "STOY"}, 
-{path: "https://reportbase.com/home.html?p=TALE&m=0010&t=portrait", title: "TALE"}, 
-{path: "https://reportbase.com/home.html?p=ZEUS&m=0034&t=portrait", title: "ZEUS"}, 
-{path: "https://reportbase.com/home.html?p=BUGS&m=0026&t=portrait", title: "BUGS"}, 
-{path: "https://reportbase.com/home.html?p=NATU&m=0050&t=portrait", title: "NATU"}, 
-{path: "https://reportbase.com/home.html?p=DRES&m=0012&t=portrait", title: "DRES"}, 
-{path: "https://reportbase.com/home.html?p=GREK&m=0017&t=portrait", title: "GREK"}, 
-{path: "https://reportbase.com/home.html?p=JAPN&m=0024&t=portrait", title: "JAPN"}, 
-{path: "https://reportbase.com/home.html?p=ROME&m=0021&t=portrait", title: "ROME"}, 
-{path: "https://reportbase.com/home.html?p=BAKE&m=0047&t=portrait", title: "BAKE"}, 
-{path: "https://reportbase.com/home.html?p=DECS&m=0011&t=portrait", title: "DECS"}, 
-{path: "https://reportbase.com/home.html?p=OSHI&m=0010&t=portrait", title: "OSHI"}, 
-{path: "https://reportbase.com/home.html?p=LITE&m=0052&t=portrait", title: "LITE"}, 
-{path: "https://reportbase.com/home.html?p=BOOK&m=0063&t=portrait", title: "BOOK"}, 
-{path: "https://reportbase.com/home.html?p=LION&m=0027&t=portrait", title: "LION"}, 
-{path: "https://reportbase.com/home.html?p=DASH&m=0206&t=portrait", title: "DASH"}, 
+{path: "https://reportbase.com/?p=ROBE&m=0012&t=portrait", func: demo, title: "ROBE"}, 
+{path: "https://reportbase.com/?p=RAIN&m=0077&t=portrait", func: demo, title: "RAIN"}, 
+{path: "https://reportbase.com/?p=BIRD&m=0041&t=portrait", func: demo, title: "BIRD"}, 
+{path: "https://reportbase.com/?p=CITY&m=0037&t=portrait", func: demo, title: "CITY"}, 
+{path: "https://reportbase.com/?p=HOOD&m=0036&t=portrait", func: demo, title: "HOOD"}, 
+{path: "https://reportbase.com/?p=BALL&m=0026&t=portrait", func: demo, title: "BALL"}, 
+{path: "https://reportbase.com/?p=PUMP&m=0029&t=portrait", func: demo, title: "PUMP"}, 
+{path: "https://reportbase.com/?p=NATB&m=0026&t=portrait", func: demo, title: "NATB"}, 
+{path: "https://reportbase.com/?p=DAME&m=0056&t=portrait", func: demo, title: "DAME"}, 
+{path: "https://reportbase.com/?p=BOND&m=0075&t=portrait", func: demo, title: "BOND"}, 
+{path: "https://reportbase.com/?p=ANIM&m=0014&t=portrait", func: demo, title: "ANIM"}, 
+{path: "https://reportbase.com/?p=CRBE&m=0009&t=portrait", func: demo, title: "CRBE"}, 
+{path: "https://reportbase.com/?p=CRBT&m=0010&t=portrait", func: demo, title: "CRBT"}, 
+{path: "https://reportbase.com/?p=DOLL&m=0056&t=portrait", func: demo, title: "DOLL"}, 
+{path: "https://reportbase.com/?p=FABL&m=0027&t=portrait", func: demo, title: "FABL"}, 
+{path: "https://reportbase.com/?p=FAIR&m=0014&t=portrait", func: demo, title: "FAIR"}, 
+{path: "https://reportbase.com/?p=FASH&m=0007&t=portrait", func: demo, title: "FASH"}, 
+{path: "https://reportbase.com/?p=DOCS&m=0009&t=portrait", func: demo, title: "DOCS"}, 
+{path: "https://reportbase.com/?p=WALL&m=0043&t=portrait", func: demo, title: "WALL"}, 
+{path: "https://reportbase.com/?p=GIRL&m=0055&t=portrait", func: demo, title: "GIRL"}, 
+{path: "https://reportbase.com/?p=PORT&m=0053&t=portrait", func: demo, title: "PORT"}, 
+{path: "https://reportbase.com/?p=POST&m=0188&t=portrait", func: demo, title: "POST"}, 
+{path: "https://reportbase.com/?p=STOY&m=0020&t=portrait", func: demo, title: "STOY"}, 
+{path: "https://reportbase.com/?p=TALE&m=0010&t=portrait", func: demo, title: "TALE"}, 
+{path: "https://reportbase.com/?p=ZEUS&m=0034&t=portrait", func: demo, title: "ZEUS"}, 
+{path: "https://reportbase.com/?p=BUGS&m=0026&t=portrait", func: demo, title: "BUGS"}, 
+{path: "https://reportbase.com/?p=NATU&m=0050&t=portrait", func: demo, title: "NATU"}, 
+{path: "https://reportbase.com/?p=DRES&m=0012&t=portrait", func: demo, title: "DRES"}, 
+{path: "https://reportbase.com/?p=GREK&m=0017&t=portrait", func: demo, title: "GREK"}, 
+{path: "https://reportbase.com/?p=JAPN&m=0024&t=portrait", func: demo, title: "JAPN"}, 
+{path: "https://reportbase.com/?p=ROME&m=0021&t=portrait", func: demo, title: "ROME"}, 
+{path: "https://reportbase.com/?p=BAKE&m=0047&t=portrait", func: demo, title: "BAKE"}, 
+{path: "https://reportbase.com/?p=DECS&m=0011&t=portrait", func: demo, title: "DECS"}, 
+{path: "https://reportbase.com/?p=OSHI&m=0010&t=portrait", func: demo, title: "OSHI"}, 
+{path: "https://reportbase.com/?p=LITE&m=0052&t=portrait", func: demo, title: "LITE"}, 
+{path: "https://reportbase.com/?p=BOOK&m=0063&t=portrait", func: demo, title: "BOOK"}, 
+{path: "https://reportbase.com/?p=LION&m=0027&t=portrait", func: demo, title: "LION"}, 
+{path: "https://reportbase.com/?p=DASH&m=0206&t=portrait", func: demo, title: "DASH"}, 
 
 //Tall
-{path: "https://reportbase.com/home.html?p=TALL&m=0004&t=tall", title: "TALL"}, 
-{path: "https://reportbase.com/home.html?p=SKIN&m=0008&t=tall", title: "SKIN"},
+{path: "https://reportbase.com/?p=TALL&m=0004&t=tall", func: demo, title: "TALL"}, 
+{path: "https://reportbase.com/?p=SKIN&m=0008&t=tall", func: demo, title: "SKIN"},
 
 //Comic
-{path: "https://reportbase.com/home.html?p=KAZA.0000.jpg&m=0063&t=comic", title: "KAZA"}, 
-{path: "https://reportbase.com/home.html?p=DAGG.0000.jpg&m=0063&t=comic", title: "DAGG"}, 
-{path: "https://reportbase.com/home.html?p=NERU.0000.jpg&m=0044&t=comic", title: "NEUR"}, 
-{path: "https://reportbase.com/home.html?p=INTR.0000.jpg&m=0062&t=comic", title: "INTR"}, 
-{path: "https://reportbase.com/home.html?p=TORM.0000.jpg&m=0079&t=comic", title: "TORM"}, 
-{path: "https://reportbase.com/home.html?p=AREN.0000.jpg&m=0050&t=comic", title: "AREN"}, 
-{path: "https://reportbase.com/home.html?p=AX.0000.jpg&m=0050&t=comic", title: "AX"}, 
-{path: "https://reportbase.com/home.html?p=ROGU.0000.jpg&m=0064&t=comic", title: "ROGU"}, 
-{path: "https://reportbase.com/home.html?p=LUST.0000.jpg&m=0051&t=comic", title: "LUST"}, 
-{path: "https://reportbase.com/home.html?p=HORN.0000.jpg&m=0064&t=comic", title: "HORN"}, 
-{path: "https://reportbase.com/home.html?p=SKUL.0000.jpg&m=0065&t=comic", title: "SKUL"}, 
-{path: "https://reportbase.com/home.html?p=ROGE.0000.jpg&m=0077&t=comic", title: "ROGE"}, 
-{path: "https://reportbase.com/home.html?p=SURF.0000.jpg&m=0077&t=comic", title: "SURF"}, 
-{path: "https://reportbase.com/home.html?p=SURF.0000.jpg&m=0077&t=comic", title: "SURF"}, 
-{path: "https://reportbase.com/home.html?p=GONE.0000.jpg&m=0068&t=comic", title: "GONE"}, 
-{path: "https://reportbase.com/home.html?p=RIOR.0000.jpg&m=0071&t=comic", title: "RIOR"}, 
-{path: "https://reportbase.com/home.html?p=SPIR.0000.jpg&m=0085&t=comic", title: "SPIR"}, 
-{path: "https://reportbase.com/home.html?p=WEID.0000.jpg&m=0066&t=comic", title: "WEID"}, 
-{path: "https://reportbase.com/home.html?p=FURY.0000.jpg&m=0065&t=comic", title: "FURY"}, 
-{path: "https://reportbase.com/home.html?p=KULL.0000.jpg&m=0066&t=comic", title: "KULL"}, 
-{path: "https://reportbase.com/home.html?p=SPID.0000.jpg&m=0063&t=comic", title: "SPID"}, 
-{path: "https://reportbase.com/home.html?p=JUDG.0000.jpg&m=0064&t=comic", title: "JUDG"}, 
-{path: "https://reportbase.com/home.html?p=SHAM.0000.jpg&m=0062&t=comic", title: "SHAM"}, 
-{path: "https://reportbase.com/home.html?p=MOOR.0000.jpg&m=0063&t=comic", title: "MOOR"}, 
-{path: "https://reportbase.com/home.html?p=DEAT.0000.jpg&m=0081&t=comic", title: "DEAT"}, 
-{path: "https://reportbase.com/home.html?p=DOOM.0000.jpg&m=0051&t=comic", title: "DOOM"}, 
-{path: "https://reportbase.com/home.html?p=BLOD.0000.jpg&m=0043&t=comic", title: "BLOD"}, 
-{path: "https://reportbase.com/home.html?p=SILV.0000.jpg&m=0043&t=comic", title: "SILV"}, 
-{path: "https://reportbase.com/home.html?p=DRWH.0000.jpg&m=0043&t=comic", title: "DRWH"}, 
-{path: "https://reportbase.com/home.html?p=HERC.0000.jpg&m=0080&t=comic", title: "HERC"}, 
-{path: "https://reportbase.com/home.html?p=DARE.0000.jpg&m=0063&t=comic", title: "DARE"}, 
-{path: "https://reportbase.com/home.html?p=ALAD.0000.jpg&m=0065&t=comic", title: "ALAD"}, 
-{path: "https://reportbase.com/home.html?p=TRAP&m=0083&t=comic", title: "TRAP"}, 
-{path: "https://reportbase.com/home.html?p=AGEN&m=0083&t=comic", title: "AGEN"}, 
-{path: "https://reportbase.com/home.html?p=DRAC&m=0081&t=comic", title: "DRAC"}, 
-{path: "https://reportbase.com/home.html?p=SAIL&m=0129&t=comic", title: "SAIL"}, 
-{path: "https://reportbase.com/home.html?p=GODL&m=0063&t=comic", title: "GODL"}, 
-{path: "https://reportbase.com/home.html?p=DAZZ&m=0064&t=comic", title: "DAZZ"}, 
-{path: "https://reportbase.com/home.html?p=WILL&m=0064&t=comic", title: "WILL"}, 
-{path: "https://reportbase.com/home.html?p=VOID&m=0046&t=comic", title: "VOID"}, 
-{path: "https://reportbase.com/home.html?p=DARK&m=0022&t=comic", title: "DARK"}, 
-{path: "https://reportbase.com/home.html?p=ULTR&m=0457&t=comic", title: "ULTR"}, 
-{path: "https://reportbase.com/home.html?p=HUSH&m=0298&t=comic", title: "HUSH"}, 
-{path: "https://reportbase.com/home.html?p=GOTH&m=0298&t=comic", title: "GOTH"}, 
-{path: "https://reportbase.com/home.html?p=KNIG&m=0197&t=comic", title: "KNIG"}, 
-{path: "https://reportbase.com/home.html?p=VIOL&m=0151&t=comic", title: "VIOL"}, 
-{path: "https://reportbase.com/home.html?p=MADB&m=0161&t=comic", title: "MADB"}, 
-{path: "https://reportbase.com/home.html?p=KILL&m=0064&t=comic", title: "KILL"}, 
-{path: "https://reportbase.com/home.html?p=DETC&m=0166&t=comic", title: "DETC"}, 
-{path: "https://reportbase.com/home.html?p=SECH&m=0460&t=comic", title: "SECH"}, 
-{path: "https://reportbase.com/home.html?p=SECI&m=0498&t=comic", title: "SECI"}, 
-{path: "https://reportbase.com/home.html?p=WALK&m=0433&t=comic", title: "WALK"}, 
-{path: "https://reportbase.com/home.html?p=SUIC&m=0409&t=comic", title: "SUIC"}, 
-{path: "https://reportbase.com/home.html?p=DMZ&&m=0283&t=comic", title: "DMZ"}, 
-{path: "https://reportbase.com/home.html?p=DMZA&&m=0128&t=comic", title: "DMZA"}, 
-{path: "ttps://reportbase.com/home.html?p=MANH&m=0027&t=comic", title: "MANH"},
-{path: "https://reportbase.com/home.html?p=MAD&m=084&t=comic", title: "MAD"},
-{path: "https://reportbase.com/home.html?p=COLD&m=066&t=comic", title: "COLD"},
-{path: "https://reportbase.com/home.html?p=VAMP&m=075&t=comic", title: "VAMP"},
-{path: "https://reportbase.com/home.html?p=BODY&m=059&t=comic", title: "BODY"},
-{path: "https://reportbase.com/home.html?p=RAVA&m=0061&t=comic", title: "RAVA"},
-{path: "https://reportbase.com/home.html?p=FEAR&m=0061&t=comic", title: "FEAR"},
-
-//Retired
-{path: "https://reportbase.com/home.html?p=DBAT&m=0360&t=comic", title: "DBAT"}, 
-{path: "https://reportbase.com/home.html?p=GRIM&m=0390&t=comic", title: "GRIM"}, 
+{path: "https://reportbase.com/?p=FRAM.0000.jpg&m=0050&t=comic", func: demo, title: "FRAM"}, 
+{path: "https://reportbase.com/?p=GUIL.0000.jpg&m=0064&t=comic", func: demo, title: "GUIL"}, 
+{path: "https://reportbase.com/?p=IRON.0000.jpg&m=0072&t=comic", func: demo, title: "IRON"}, 
+{path: "https://reportbase.com/?p=REAV.0000.jpg&m=0062&t=comic", func: demo, title: "REAV"}, 
+{path: "https://reportbase.com/?p=KAZA.0000.jpg&m=0063&t=comic", func: demo, title: "KAZA"}, 
+{path: "https://reportbase.com/?p=DAGG.0000.jpg&m=0063&t=comic", func: demo, title: "DAGG"}, 
+{path: "https://reportbase.com/?p=NERU.0000.jpg&m=0044&t=comic", func: demo, title: "NEUR"}, 
+{path: "https://reportbase.com/?p=INTR.0000.jpg&m=0062&t=comic", func: demo, title: "INTR"}, 
+{path: "https://reportbase.com/?p=TORM.0000.jpg&m=0079&t=comic", func: demo, title: "TORM"}, 
+{path: "https://reportbase.com/?p=AREN.0000.jpg&m=0050&t=comic", func: demo, title: "AREN"}, 
+{path: "https://reportbase.com/?p=AX.0000.jpg&m=0050&t=comic", func: demo, title: "AX"}, 
+{path: "https://reportbase.com/?p=ROGU.0000.jpg&m=0064&t=comic", func: demo, title: "ROGU"}, 
+{path: "https://reportbase.com/?p=LUST.0000.jpg&m=0051&t=comic", func: demo, title: "LUST"}, 
+{path: "https://reportbase.com/?p=HORN.0000.jpg&m=0064&t=comic", func: demo, title: "HORN"}, 
+{path: "https://reportbase.com/?p=SKUL.0000.jpg&m=0065&t=comic", func: demo, title: "SKUL"}, 
+{path: "https://reportbase.com/?p=ROGE.0000.jpg&m=0077&t=comic", func: demo, title: "ROGE"}, 
+{path: "https://reportbase.com/?p=SURF.0000.jpg&m=0077&t=comic", func: demo, title: "SURF"}, 
+{path: "https://reportbase.com/?p=SURF.0000.jpg&m=0077&t=comic", func: demo, title: "SURF"}, 
+{path: "https://reportbase.com/?p=GONE.0000.jpg&m=0068&t=comic", func: demo, title: "GONE"}, 
+{path: "https://reportbase.com/?p=RIOR.0000.jpg&m=0071&t=comic", func: demo, title: "RIOR"}, 
+{path: "https://reportbase.com/?p=SPIR.0000.jpg&m=0085&t=comic", func: demo, title: "SPIR"}, 
+{path: "https://reportbase.com/?p=WEID.0000.jpg&m=0066&t=comic", func: demo, title: "WEID"}, 
+{path: "https://reportbase.com/?p=FURY.0000.jpg&m=0065&t=comic", func: demo, title: "FURY"}, 
+{path: "https://reportbase.com/?p=KULL.0000.jpg&m=0066&t=comic", func: demo, title: "KULL"}, 
+{path: "https://reportbase.com/?p=SPID.0000.jpg&m=0063&t=comic", func: demo, title: "SPID"}, 
+{path: "https://reportbase.com/?p=JUDG.0000.jpg&m=0064&t=comic", func: demo, title: "JUDG"}, 
+{path: "https://reportbase.com/?p=SHAM.0000.jpg&m=0062&t=comic", func: demo, title: "SHAM"}, 
+{path: "https://reportbase.com/?p=MOOR.0000.jpg&m=0063&t=comic", func: demo, title: "MOOR"}, 
+{path: "https://reportbase.com/?p=DEAT.0000.jpg&m=0081&t=comic", func: demo, title: "DEAT"}, 
+{path: "https://reportbase.com/?p=DOOM.0000.jpg&m=0051&t=comic", func: demo, title: "DOOM"}, 
+{path: "https://reportbase.com/?p=BLOD.0000.jpg&m=0043&t=comic", func: demo, title: "BLOD"}, 
+{path: "https://reportbase.com/?p=SILV.0000.jpg&m=0043&t=comic", func: demo, title: "SILV"}, 
+{path: "https://reportbase.com/?p=DRWH.0000.jpg&m=0043&t=comic", func: demo, title: "DRWH"}, 
+{path: "https://reportbase.com/?p=HERC.0000.jpg&m=0080&t=comic", func: demo, title: "HERC"}, 
+{path: "https://reportbase.com/?p=DARE.0000.jpg&m=0063&t=comic", func: demo, title: "DARE"}, 
+{path: "https://reportbase.com/?p=ALAD.0000.jpg&m=0065&t=comic", func: demo, title: "ALAD"}, 
+{path: "https://reportbase.us/?p=DBAT&m=0360&t=comic", func: demo, title: "DBAT"}, 
+{path: "https://reportbase.us/?p=GRIM&m=0390&t=comic", func: demo, title: "GRIM"}, 
+{path: "https://reportbase.com/?p=TRAP&m=0083&t=comic", func: demo, title: "TRAP"}, 
+{path: "https://reportbase.com/?p=AGEN&m=0083&t=comic", func: demo, title: "AGEN"}, 
+{path: "https://reportbase.com/?p=DRAC&m=0081&t=comic", func: demo, title: "DRAC"}, 
+{path: "https://reportbase.com/?p=SAIL&m=0129&t=comic", func: demo, title: "SAIL"}, 
+{path: "https://reportbase.com/?p=GODL&m=0063&t=comic", func: demo, title: "GODL"}, 
+{path: "https://reportbase.com/?p=DAZZ&m=0064&t=comic", func: demo, title: "DAZZ"}, 
+{path: "https://reportbase.com/?p=WILL&m=0064&t=comic", func: demo, title: "WILL"}, 
+{path: "https://reportbase.com/?p=VOID&m=0046&t=comic", func: demo, title: "VOID"}, 
+{path: "https://reportbase.com/?p=DARK&m=0022&t=comic", func: demo, title: "DARK"}, 
+{path: "https://reportbase.com/?p=ULTR&m=0457&t=comic", func: demo, title: "ULTR"}, 
+{path: "https://reportbase.com/?p=HUSH&m=0298&t=comic", func: demo, title: "HUSH"}, 
+{path: "https://reportbase.com/?p=GOTH&m=0298&t=comic", func: demo, title: "GOTH"}, 
+{path: "https://reportbase.com/?p=KNIG&m=0197&t=comic", func: demo, title: "KNIG"}, 
+{path: "https://reportbase.com/?p=VIOL&m=0151&t=comic", func: demo, title: "VIOL"}, 
+{path: "https://reportbase.com/?p=MADB&m=0161&t=comic", func: demo, title: "MADB"}, 
+{path: "https://reportbase.com/?p=KILL&m=0064&t=comic", func: demo, title: "KILL"}, 
+{path: "https://reportbase.com/?p=DETC&m=0166&t=comic", func: demo, title: "DETC"}, 
+{path: "https://reportbase.com/?p=SECH&m=0460&t=comic", func: demo, title: "SECH"}, 
+{path: "https://reportbase.com/?p=SECI&m=0498&t=comic", func: demo, title: "SECI"}, 
+{path: "https://reportbase.com/?p=WALK&m=0433&t=comic", func: demo, title: "WALK"}, 
+{path: "https://reportbase.com/?p=SUIC&m=0409&t=comic", func: demo, title: "SUIC"}, 
+{path: "https://reportbase.com/?p=DMZ&&m=0283&t=comic", func: demo, title: "DMZ"}, 
+{path: "https://reportbase.com/?p=DMZA&&m=0128&t=comic", func: demo, title: "DMZA"}, 
+{path: "https://reportbase.com/?p=MANH&m=0027&t=comic", func: demo, title: "MANH"},
+{path: "https://reportbase.com/?p=MAD&m=084&t=comic", func: demo, title: "MAD"},
+{path: "https://reportbase.com/?p=COLD&m=066&t=comic", func: demo, title: "COLD"},
+{path: "https://reportbase.com/?p=VAMP&m=075&t=comic", func: demo, title: "VAMP"},
+{path: "https://reportbase.com/?p=BODY&m=059&t=comic", func: demo, title: "BODY"},
+{path: "https://reportbase.com/?p=RAVA&m=0061&t=comic", func: demo, title: "RAVA"},
+{path: "https://reportbase.com/?p=FEAR&m=0061&t=comic",func: demo, title: "FEAR"},
 ];
 
 demolst.sort((a, b) => (a.title > b.title) ? 1 : -1)
@@ -1584,6 +1613,7 @@ var panlst =
         var s = context.timeobj.length()/j;
         var k = 4*s;
         context.timeobj.rotate(type=="pandown" ? k : -k);
+        localStorage.setItem(context.id, context.timeobj.current());
 	},
  	leftright: function (context, rect, x, y, type) { },
 	pan: function (context, rect, x, y, type) { },
@@ -1748,24 +1778,19 @@ var presslst =
         if (context.pinching)
             return;
 
-        if (localobj.showthumb)
+        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+        var n = context.grid.hitest(x,y); 
+        if (isthumbrect || positobj.current() == n)
         {
-            var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
-            var n = context.grid.hitest(x,y); 
-            if (isthumbrect || positobj.current() == n)
-            {
-                context.togglepicture();
-            }
-            else
-            {
-                positobj.set(n);
-                context.refresh();
-            }
+            localobj.picture = localobj.picture?0:1; 
+            pageresize();
+            context.refresh()            
         }
         else
         {
-            localobj.hide = 0; 
-            localobj.showthumb = 1;
+            //positobj.set(n);
+            //context.refresh();
+            localobj.showthumb = localobj.showthumb?0:1;
             pageresize();
             context.refresh();
         }
@@ -1797,37 +1822,23 @@ var swipelst =
     {
         setTimeout(function()
         {   
-            if (localobj.hide)
-            {
-                localobj.autodirect = evt.type == "swipeleft"?1:-1;
-                context.movepage(localobj.autodirect);
-            }
-            else
-            {
-                var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
-                if (isthumbrect)
-                    localobj.autodirect = evt.type == "swipeleft"?1:-1;
-                else
-                    localobj.autodirect = evt.type == "swipeleft"?-1:1;
-                evt.preventDefault();
-                context.slideshow = globalobj.slidecount;
-                context.refresh();
-            }
+            var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+            localobj.autodirect = evt.type == "swipeleft"?-1:1;
+            evt.preventDefault();
+            context.slideshow = globalobj.slidecount;
+            context.refresh();
         }, SWIPETIME);
     },
 
     swipeupdown: function (context, rect, x, y, evt)
     {
-        if (globalobj.vpan && zoomobj.current() > 0)
-            return;
-
         setTimeout(function()
         {
-            slideoff();
-            localobj.autodirect = evt.type == "swipeup"?1:-1;
-            evt.preventDefault();
-            context.slideshow = globalobj.slidecount;
-            context.refresh();
+            if (evt.type == "swipedown")
+                context.moveup()
+            else 
+                context.movedown()
+            contextobj.reset();
         }, SWIPETIME);
     },
 },
@@ -1888,9 +1899,24 @@ var keylst =
         if (evt.shiftKey)
             context.shifthit = 1;
         
-        if (evt.key == "t")
+        if (evt.key != " " && isFinite(evt.key))
         {
-            context.togglepicture();
+            positobj.set(evt.key-1);
+            context.refresh();
+            evt.preventDefault();
+            return false;
+        }
+        else if (evt.key == "t")
+        {
+            localobj.picture = localobj.picture?0:1; 
+            pageresize();
+            context.refresh()            
+            evt.preventDefault();
+        }
+        else if (evt.key == "r")
+        {
+            localobj.showthumb = localobj.showthumb?0:1; 
+            context.refresh()            
             evt.preventDefault();
         }
         else if (evt.key == "f")
@@ -1908,6 +1934,7 @@ var keylst =
         }
         else if (evt.key == "Tab")
         {
+            slideoff();
             localobj.autodirect = context.shifthit ? 1 : -1; 
             _4cnvctx.slideshow = globalobj.slidecount;
             _4cnvctx.refresh();
@@ -1968,27 +1995,42 @@ var keylst =
             contextobj.reset();
             evt.preventDefault();
         }
-        else if (evt.key == "Backspace")
+        else if (evt.key == "Pageup" || evt.key == "o")
         {
             localobj.autodirect = -1;
             context.movepage(localobj.autodirect)
             evt.preventDefault();
         }
-        else if (evt.key == "Enter")
+        else if (evt.key == "Pagedown" || evt.key == "p")
         {
             localobj.autodirect = 1;
             context.movepage(localobj.autodirect)
             evt.preventDefault();
         }
-        else if (evt.key == "Pageup" || evt.key == "o")
+        else if (evt.key == "Enter")
         {
-            rowobj.add(-rowobj.length()/8);
-            contextobj.reset();
-            evt.preventDefault();
-        }
-        else if (evt.key == "Pagedown" || evt.key == "p")
-        {
-            rowobj.add(rowobj.length()/8);
+            slideoff();
+            if (context.shifthit)
+            {
+                localobj.autodirect = -1;
+                if (!zoomobj.current())
+                    context.movepage(localobj.autodirect);
+                else if (url.rows == 1)
+                    rowobj.add(-rowobj.length()/12);
+                else
+                    context.moveup();
+            }
+            else
+            {
+                localobj.autodirect = 1;
+                if (!zoomobj.current())
+                    context.movepage(localobj.autodirect);
+                else if (url.rows == 1)
+                    rowobj.add(rowobj.length()/12);
+                else
+                    context.movedown();
+            }
+
             contextobj.reset();
             evt.preventDefault();
         }
@@ -2060,13 +2102,6 @@ CanvasRenderingContext2D.prototype.getweightedpoint = function(x,y)
     y = (this.y1*11+this.y2*10+this.y3*9+this.y4*8+this.y5*7+
         this.y6*6+this.y7*5+this.y8*4+this.y9*3+this.y10*2+this.y11*1)/k;
     return {x,y}
-}
-
-CanvasRenderingContext2D.prototype.togglepicture = function()
-{
-    localobj.picture = localobj.picture?0:1; 
-    pageresize();
-    this.refresh()            
 }
 
 CanvasRenderingContext2D.prototype.hithumb = function(x,y)
@@ -2229,7 +2264,7 @@ var thumblst =
     draw: function (context, rect, user, time)
     {
         var th = heightobj.getcurrent().getcurrent();
-        var headers = MFRAME?0:ALIEXTENT*2; 
+        var headers = MOBFRAME?0:ALIEXTENT*2; 
         var width = rect.width-THUMBORDER*2;
         var height = rect.height-headers-THUMBORDER*2;
         if (globalobj.maxheight)
@@ -2237,7 +2272,7 @@ var thumblst =
         var r = calculateAspectRatioFit(photo.image.width, photo.image.height, width*th, height*th); 
         var h = r.height;
         var w = r.width;
-        var a = MFRAME?0:ALIEXTENT;
+        var a = MOBFRAME?0:ALIEXTENT;
         var pos = positobj.current();
         if (pos == 0)
         {
@@ -2371,7 +2406,7 @@ var getmenufrompoint = function (context, x, y)
 		var hit = lst[k];
 		if (!hit.fitwidth || !hit.fitheight)
 			continue;
-		var w = hit.fitwidth + 20*2;
+		var w = hit.fitwidth;
 		var h = hit.fitheight + 18*2;
 		var x1 = hit.center.x - w / 2;
 		var y1 = hit.center.y - h / 2;
@@ -2388,24 +2423,19 @@ var getmenufrompoint = function (context, x, y)
 var drawlst = [
 {
     name: "DEFAULT",
-    draw: 0,
+    draw: function (context, rect, user, time){}
 },
 {
     name: "MENU",
-    draw: function (unused, rect, user, time)
+    draw: function (context, rect, user, time)
     {
-        var context = this;
+        context.save();
         rect.height = FONTHEIGHT;
         rect.width -= 40;
-        var xt = -rect.width / 2;
-        var yt = -rect.height / 2;
-        context.translate(xt, yt);
+        context.translate(-rect.width/2, -rect.height/2);
         user.fitwidth = rect.width;
         user.fitheight = rect.height;
-        var fillcolor = "rgba(0,0,0,0.5)";
-        context.fillStyle = "white";
-        var clr = fillcolor;
-        var fclr = "white"
+        var clr = "rgba(0,0,0,0.5)";
         var tap = "rgba(0,0,150,0.75)";
         var select = "rgba(0,0,50,0.75)";
         var select2 = "rgba(50,0,500.75)";
@@ -2436,16 +2466,14 @@ var drawlst = [
             }
         }
 
-        var h = FONTHEIGHT+8;
-        var j = rect.width-20;
-        var f = 1;
         var a = new Layer(
         [
             new Expand(new Rounded(clr, 2, "white", 8, 8), 0, 18),
-            new Shrink(new WrapsPanel(fclr, h, 0), 20, 0),
+            new Shrink(new Text("white", "center", "middle",0, 0, 1),20,0),
         ]); 
      
         a.draw(context, rect, str+"", time);
+        context.restore();
     }
 },
 {
@@ -2485,7 +2513,7 @@ function resetcanvas()
     zoomrange[1] = 0.925;
     zoomobj.split(zoomobj.current(), zoomrange.join("-"), OPTIONSIZE);
 
-   /* AAPL 
+    /* AAPL 
     for (var n = 0; n < zoomobj.length(); ++n)
     {
         var k = zoomobj.data()[n];
@@ -2495,6 +2523,7 @@ function resetcanvas()
         var j = photo.image.width/h;
         var vh = context.canvas.height;
         var vw = vh * j;
+        const MAXVIRTUALSIZE = SAFARI?12000000:24000000;
         if (vw*vh < MAXVIRTUALSIZE)
             continue;
         zoomobj.data_.length = n+1;
@@ -2511,7 +2540,6 @@ function resetcanvas()
     context.virtualwidth = context.virtualheight * imageaspect;
     context.virtualaspect = context.virtualwidth / context.virtualheight;
       
-    var slicewidth = 1.0;//Math.lerp(1.0,2.0,zoomobj.berp());
     var y = Math.clamp(0,context.canvas.height-1,context.canvas.height*rowobj.berp());
     context.nuby = Math.nub(y, context.canvas.height, context.imageheight, photo.image.height);  
     var ks = 0;
@@ -2519,13 +2547,13 @@ function resetcanvas()
     {
         var k = slicelst[n];
         var fw = context.virtualwidth / k.slices;
-        if (fw < slicewidth)
+        if (fw < SLICEWIDTH)
             continue;
         ks = n;
         break;
     }
 
-    var canvaslen = Math.ceil(context.virtualwidth/MAXVIRTUALWIDTH);
+    var canvaslen = Math.ceil(context.virtualwidth/MAXVIRTUAL);
     var e = slicelst[ks];
     var delay = e.delay;
     var slices = Math.ceil(e.slices/canvaslen);
@@ -2603,10 +2631,10 @@ var eventlst =
     {name: "_3cnvctx", mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
     {name: "_4cnvctx", mouse: "BOSS", guide: "GUIDE", thumb: "BOSS",  tap: "BOSS", pan: "BOSS", swipe: "BOSS", draw: "BOSS", wheel: "BOSS", drop: "BOSS", key: "BOSS", press: "BOSS", pinch: "BOSS", fillwidth: 0}, 
     {name: "_5cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
-    {name: "_6cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210}, 
+    {name: "_6cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 320}, 
     {name: "_7cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
     {name: "_8cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 240}, 
-    {name: "_9cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 360}, 
+    {name: "_9cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 320}, 
     {name: "describe", mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "DESCRIBE", pan: "DESCRIBE", swipe: "DEFAULT", draw: "DEFAULT", wheel: "DESCRIBE", drop: "DEFAULT", key: "DESCRIBE", press: "DEFAULT", pinch: "DESCRIBE", fillwidth: 0},
 ];
 
@@ -2711,13 +2739,14 @@ var ContextObj = (function ()
             context.debugobj = new makeoption("", [projectobj, context.timeobj,  context.sliceobj, context.columnobj ]);
         }
 
+        var slices = _6cnvctx.sliceobj;
+        slices.data_= cachelst;
+
+        _6cnvctx.delayinterval = DELAYCENTER / slices.data_.length;
+        _6cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
+
         var slices = _7cnvctx.sliceobj;
-        slices.data_= [];
-        var items = demoobj.length(); 
-        for (var n = 0; n < items; ++n)
-        {
-            slices.data_.push({index:n, title:demoobj.data_[n].title, path: demoobj.data_[n].path, func: demo})
-        }
+        slices.data_= demolst;
 
         _7cnvctx.delayinterval = DELAYCENTER / slices.data_.length;
         _7cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
@@ -2726,9 +2755,7 @@ var ContextObj = (function ()
         slices.data_= [];
         var items = projectobj.length();
         for (var n = 0; n < items; ++n)
-        {
             slices.data_.push({index:n, title:(n+1)+"", path: "PROJECT", func: project})
-        }
         
         _8cnvctx.delayinterval = DELAYCENTER / slices.data_.length;
         _8cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
@@ -2736,67 +2763,14 @@ var ContextObj = (function ()
         var slices = _9cnvctx.sliceobj;
         slices.data_= [];
         slices.data_.push({title:"Refresh (F5)", path: "REFRESH", func: function(){location.reload()}})
-        slices.data_.push({title:"Thumbnail (T)", path: "THUMBNAIL", func: function(){localobj.picture=localobj.picture?0:1; _4cnvctx.refresh()}})
         slices.data_.push({title:"Help", path: "HELP", func: function(){menuhide(); helpobj.getcurrent().draw(_4cnvctx, _4cnvctx.rect(), 0, 0);} })
         slices.data_.push({title:"Open... (O)", path: "LOAD", func: function(){menuhide(); promptFile().then(function(files) { dropfiles(files); })}})
+        slices.data_.push({title:"Debug", path: "DEBUG", func: function(){ menushow(_6cnvctx); }})
         slices.data_.push({title:"Examples", path: "DEMOS", func: function(){ menushow(_7cnvctx); }})
         slices.data_.push({title:"Screenshot", path: "SCREENSHOT", func: screenshot})
         slices.data_.push({title:"Original", path: "ORIGINAL", func: function(){window.open(photo.image.original, '_blank');}})
         if (!SAFARI)
             slices.data_.push({title:"Fullscreen (F)", path: "FULLSCREEN", func: fullscreen})
-
-        if (CACHEDEBUG)
-        {
-            slices.data_.push({title:"Delete Caches", path: "DELCACH", func: function()
-            {
-                 caches.keys().then(function(names) 
-                 {
-                     for (let name of names)
-                         caches.delete(name);
-                 });
-            }});
-            
-            slices.data_.push({title:"Delete Service Workers", path: "DELSERVWORK", func: function()
-            {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) 
-                {
-                    for (let registration of registrations) 
-                    {
-                        registration.unregister()
-                    } 
-                })
-            }});
-            
-            slices.data_.push({title:"Delete Service Workers", path: "DELSERVWORK", func: function()
-            {
-                navigator.serviceWorker.getRegistration('/').then(function(registration) 
-                {
-                    registration.update();
-                });
-             
-            }});
-            
-            slices.data_.push({title:"List Cache", path: "LISTCACHE", func: function()
-            {
-                function cacheList(Items)
-                {   
-                    for(var i = 0; i < Items.length; i++)
-                    {
-                        console.log('Items: '+Items[i]);
-                    }
-                }
-
-                var url = [];
-                caches.open('cache-v3').then(function (cache)
-                {
-                    cache.keys().then(function(keys){
-                        return Promise.all(
-                                keys.map(function(k){url.push(k.url); return k.url} )
-                            )
-                    }).then(function(u){ cacheList(url);})
-                })
-            }});
-        }
 
         _9cnvctx.delayinterval = DELAYCENTER / slices.data_.length;
         _9cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
@@ -2870,7 +2844,7 @@ var ContextObj = (function ()
             }
             else if (url.path)
             {
-                var path = "https://reportbase.com/data/" + url.fullpath();
+                var path = url.origin + "/data/" + url.fullpath();
                 if (HOST == "Image.Vision")
                     path = "https://d.img.vision/" + url.group + '/' + url.fullpath();
                 else if (globalobj.promptedfile)
@@ -2886,8 +2860,6 @@ var ContextObj = (function ()
                     photo.image.onabort = function()
                 {
                     _4cnvctx.setcolumncomplete = 1;
-                   _localobj.autodirect = localobj.autodirect?-1:1; 
-                    _4cnvctx.movepage(localobj.autodirect);
                     seteventspanel(new YollPanel());
                     this.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAADK0lEQVRIS7WXWYiOURjH57VknzIXiiwXKBRXLpSMC9OIEDEhk5KdBs0wzQUxSVlmQskSRU0ulKWIUq4MTYkpe1kKRZIt+zqf3//rvF+fd87yynyn/p2v8yz/5zzvc55zvqjIMzKZTDfEvcBYgwHMGfACXAM3wccoir77/NhkkW0Rwi6sTwSLwDzQ2eH4K+snwFHQQgA/0wbQjhjSYoz3GMIeKR0pAJFvhPxdGpu/iCHti9EVMCqNsUXnKmuTIf8css8RQ6rdXf8P0pirGeLSfyHej/LKgMEn5ApWBecbDZBv8Clkd8xuxzFdAEq1a9xGsB38ApsDmVGVj4f8hstZBGlX47A6sIs6HO0wgVYyNwX0m9Bf6CNWFWs3gz2OfiNbh6N9hniKyZCP+w7C6dg8sSlpx0MRPHJ4UMp0NttALU4OGeJy5otA31wZU6NJjvcsVGBzyUU8G8FJi/A+ayq410DdqhUnDw1xf+YyoMBKgD7TcIuPSmyOu4hVySLIHyJahdFBm1FyjazNZO2MRXdFnKWkTKlezqKNYD1GjSmJl6B32KK7DB+29SIRT8XgvMXoi8nEM5Pqyzi5ZVI9hLkCqFUOBHUWe2VtPjbq5e2GiFXNT1PsrBonuw3xNOZzAZtXyOdg0+wi7o1APXaMx5GO0xqcZGuBYOOq9nG3IizH5o2LuBOCGrAzsIN6nGwxxKuZs2faMXT89qLvbEpxy9RtdBboTLuGzmwD0LneChSwa3xAMBJiPRisI/92UlNXL/Y5DCQlJ37MrxkQ30tDrFfGAbA0rfeAnh4Eu0AjAfxI6iYfAt1RqAe1HUSuotQdvxjyu/k+bU8f7XwuUFPpkzKAb+ipnY526GvHut2yx1HD+tiTgCPTj2kT0JnVDdYT6BGooQJT81ARqVXqflYj0cUxyBPsKWRrCeC5kzg2JgClXw+FYUAXgsZboB3qZZn7fujq+KjyfX71pisLEnuit4og1zU4KWC3oBDEyspLoHvaNY50OLGY2PUsptMe4m2FIpbfY8D25tKtNaIgxGbXqnKR539vHbsqCrIwqY5TTMrVByYA/enTSVDhPYC47Q+jAwjFRbnDLAAAAABJRU5ErkJggg==";
                     resetcanvas(context);
@@ -2913,7 +2885,7 @@ var ContextObj = (function ()
 
                     var k = projectobj.current();
                     projectobj.rotate(localobj.autodirect);
-                    var path = "https://reportbase.com/data/" + url.fullpath();
+                    var path = url.origin + "/data/" + url.fullpath();
                     if (HOST == "Image.Vision")
                         path = "https://d.img.vision/" + url.group + '/' + url.fullpath();
                     var img = new Image();
@@ -3454,43 +3426,6 @@ function rotate(pointX, pointY, originX, originY, angle)
 	return k;
 }
 
-var selectrotated = function (context, x, y)
-{
-	var t = context.sliceobj.data()[0];
-	var lst = Array.isArray(t[0]) ? t[0] : t;
-
-	var k;
-    for (k = lst.length - 1; k >= 0; --k)
-    {
-		var hit = lst[k];
-		if (!hit.fitscale || !hit.fitwidth || !hit.fitheight)
-			continue;
-
-		var w = hit.fitscale * hit.fitwidth;
-		var h = hit.fitscale * hit.fitheight;
-		var x1 = hit.center.x - w / 2;
-		var y1 = hit.center.y - h / 2;
-		var x2 = x1 + w;
-		var y2 = y1 + h;
-
-		var rt = 0;
-		var pt1 = rotate(x1, y1, hit.center.x, hit.center.y, rt);
-		var pt2 = rotate(x2, y1, hit.center.x, hit.center.y, rt);
-		var pt3 = rotate(x2, y2, hit.center.x, hit.center.y, rt);
-		var pt4 = rotate(x1, y2, hit.center.x, hit.center.y, rt);
-		var path = new Path2D();
-		path.moveTo(pt1.x, pt1.y);
-		path.lineTo(pt2.x, pt2.y);
-		path.lineTo(pt3.x, pt3.y);
-		path.lineTo(pt4.x, pt4.y);
-		path.closePath();
-		if (context.isPointInPath(path, x, y))
-			break;
-    }
-
-	return k>=0?k:-1;
-}
-
 function menuvisible()
 {
     var k = _5cnv.height || _6cnv.height || _7cnv.height ||
@@ -3574,6 +3509,7 @@ function yoll()
     if (!photo.image.complete || 
         photo.image.naturalHeight == 0)
         return;
+
     for (var n = 0; n < 1; n++)
     {
         var context = _4cnvctx;
@@ -3742,7 +3678,7 @@ function yoll()
             context.shadowOffsetY = 0;
             var a = new Fill("black");
             a.draw(context, new rectangle(rect.width-HNUB,0,HNUB,rect.height), 0, 0);
-            var a = new CurrentVPanel(new Fill("white"),ALIEXTENT*2);
+            var a = new CurrentVPanel(new Fill("white"),(1-zoomobj.getcurrent())*rowobj.length());
             a.draw(context, new rectangle(rect.width-HNUB,YNUB,HNUB,rect.height-YNUB), rowobj, 0);
             var s = context.sliceobj.data_.length;
             var e = context.slicefirst/s;
@@ -3791,8 +3727,7 @@ function yoll()
             context.slideshow -= slidereduce
         }
 
-        var sliceobj = context.sliceobj;
-        var slices = sliceobj.data();
+        var slices =  context.sliceobj.data();
         var r = context.rect();
         var w = r.width;
         var h = r.height;
@@ -3801,6 +3736,13 @@ function yoll()
         context.fillStyle = MENUCOLOR;
         context.fillRect(0, 0, context.canvas.width, context.canvas.height);
         context.visibles = [];
+
+        for (var m = 0; m < slices.length; ++m)
+        {
+            var slice = slices[m];
+            slice.fitwidth = 0;
+            slice.fitheight = 0;
+        }
 
         for (var m = 0; m < slices.length; ++m)
         {
@@ -3817,12 +3759,11 @@ function yoll()
             if (context.visibles.length*BUTTONHEIGHT > window.innnerHeight)
                 break;
         }
-       //todo 
+        
         for (var m = 0; m < context.visibles.length; ++m)
         {
             var j = context.visibles[m]; 
             j.slice.center = {x: j.x, y: j.y};
-            j.slice.fitscale = 0;
             j.slice.fitwidth = 0;
             j.slice.fitheight = 0;
             context.save();
@@ -3844,14 +3785,6 @@ var YollPanel = function ()
         if (context.tap_)
     		context.tap_(context, rect, x, y, shift, ctrl);
 	};
-
-	this.dblclick = function (context, x, y)
-    {
-        localobj.hide = 0;
-        localobj.showthumb = 1;
-        pageresize();
-        context.refresh();
-    };
 
     this.wheeldown = function (context, x, y, ctrl, shift)
     {
@@ -4446,12 +4379,12 @@ window.addEventListener("keydown", function (evt)
 
 function pageresize()
 {
-    var h = (localobj.hide||_4cnvctx.hidehead||MFRAME)?0:ALIEXTENT;
+    var h = (localobj.hide||_4cnvctx.hidehead||MOBFRAME)?0:ALIEXTENT;
     var y = 0;
     headcnvctx.show(0,y,window.innerWidth,h);
     headobj.set(0);
     headham.panel = headobj.getcurrent();
-    var h = (localobj.hide||localobj.hide||MFRAME)?0:ALIEXTENT;
+    var h = (localobj.hide||localobj.hide||MOBFRAME)?0:ALIEXTENT;
     footcnvctx.show(0,window.innerHeight-ALIEXTENT, window.innerWidth, h);
     footobj.set(0);
     footham.panel = footobj.getcurrent();
@@ -4721,20 +4654,13 @@ window.addEventListener("load", async () =>
 {
     try
     {
-//todo: release mode
-//        if ("serviceWorker" in navigator)
-//            await navigator.serviceWorker.register("sw.js");
-    }
-    catch(error)
-    {
-    }
+        if ("serviceWorker" in navigator)
+           navigator.serviceWorker.register("sw.js");
 
-    seteventspanel(new YollPanel());
-    _4cnvctx.enabled = 1;
-    globalobj.main = setInterval(function () { yoll(); }, TIMEMAIN);
+        seteventspanel(new YollPanel());
+        _4cnvctx.enabled = 1;
+        globalobj.main = setInterval(function () { yoll(); }, TIMEMAIN);
 
-    try
-    {
         var obj = JSON.parse(localStorage.getItem(url.path));
         if (obj)
         {
@@ -4760,7 +4686,15 @@ window.addEventListener("load", async () =>
             var k = localobj.timers[n]?localobj.timers[n]:TIMEOBJ/2;
             context.timeobj.set(k);
         }
-            
+        
+        var timers = JSON.parse(localStorage.getItem("TIMERS"));
+        if (timers)
+        {
+            _6cnvctx.timeobj.set(timers[5]);
+            _7cnvctx.timeobj.set(timers[6]);
+            _9cnvctx.timeobj.set(timers[8]);
+        }
+
         pinchobj.split(Number(localobj.current.pinch), PINCHRANGE, OPTIONSIZE);
         panxobj.split(Number(localobj.current.panx), PANXRANGE, OPTIONSIZE);
         panyobj.split(Number(localobj.current.pany), PANYRANGE, OPTIONSIZE);
@@ -4779,7 +4713,7 @@ window.addEventListener("load", async () =>
 var localst = 
 [
     {obj:thumbobj,def:0},
-    {obj:positobj,def:globalobj.position},
+    {obj:positobj,def:localobj.position},
     {obj:pinchobj,def:globalobj.pinchbegin},
     {obj:panyobj,def:globalobj.panybegin},
     {obj:panxobj,def:globalobj.panxbegin},
@@ -4806,7 +4740,16 @@ function savelocal()
     }
     
     localStorage.setItem(url.path, JSON.stringify(localobj));
-}
+
+    var timers = [];
+    for (var n = 0; n < contextlst.length; ++n)
+    {
+        var j = contextlst[n];
+        timers.push(j.timeobj.current());
+    }
+    
+    localStorage.setItem("TIMERS", JSON.stringify(timers));
+ }
 
 window.addEventListener("unload", (evt) => 
 {

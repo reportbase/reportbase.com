@@ -3,16 +3,13 @@ Copyright 2017 Tom Brinkman
 http://www.reportbase.com 
 */
 
-const CACHEDEBUG = 0;
 const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
-const MFRAME = MOBILE && IFRAME;
-const MAXVIRTUALWIDTH = SAFARI?5760:5760*2; 
-const TIMEMAIN = SAFARI?12:1;
-const SLICEWIDTH = SAFARI?2.0:2.0;
-const DRAWCOUNT = 16;
+const MOBFRAME = MOBILE && IFRAME;
+const MAXVIRTUAL = SAFARI?5760:5760*2; 
+const DRAWCOUNT = 25;
 const SWIPETIME = 60;
 const TIMERELOAD = 30000;
 const REFRESHEADER = 1000;
@@ -22,7 +19,6 @@ const THUMBLINE = 1;
 const THUMBLINEIN = 2.5;
 const THUMBLINEOUT = 4.0;
 const JULIETIME = 100; 
-const GUIDEHEIGHT = 60; 
 const DELAY = 10000000;
 const HNUB = 9;
 const YNUB = 6;
@@ -44,16 +40,11 @@ const TIMEOBJ = 3926;
 const FONTHEIGHT = 16;
 const BUTTONHEIGHT = 38; 
 const ROWHEIGHT = FONTHEIGHT*2;
-const QUALITY = 0.65;
-const ZOOMADJ = 0.01;
 const PINCHRANGE = "0.35-1.1";
 const HEIGHTRANGE = "0.10-1.0";
 const PANXRANGE = "3-15";
 const PANYRANGE = "1.0-6.0";
 const CANVASMAX = 30;
-const MAXCANVASWIDTH = 32767;
-const MAXCANVASIZE = SAFARI?16777216:32777216;
-const MAXVIRTUALSIZE = SAFARI?12000000:24000000;
 const MENUCOLOR = "rgba(0,0,0,0.50)";
 const HEADCOLOR = "rgba(0,0,0,0.40)";
 const HEADLIGHT = "rgba(0,0,0,0.50)";
@@ -70,8 +61,8 @@ localobj = {}
 
 var url = new URL(window.location.href);
 url.group = url.searchParams.has("u") ? url.searchParams.get("u") : "reportbase";
-url.projects = url.searchParams.has("m") ? url.searchParams.get("m") : "0000";
-var filename = url.searchParams.get("p");
+url.projects = url.searchParams.has("m") ? url.searchParams.get("m") : "0006";
+var filename = url.searchParams.has("p") ? url.searchParams.get("p") : "GAMP.0000.webp";
 filename = filename.split(".");
 if (filename.length == 3)
 {
@@ -88,12 +79,14 @@ else
 
 url.fullpath = function() { return url.path + "." + projectobj.current().pad(4) + "." + url.extension; }
 
-globalobj.template = url.searchParams.has("t") ? url.searchParams.get("t") : "";
+globalobj.template = url.searchParams.has("t") ? url.searchParams.get("t") : "7x1";
 localobj.hide = 1;
 localobj.picture = 0;
 localobj.autodirect = 1;
 localobj.showthumb = 1;
-localobj.position = 1;
+localobj.position = 7;
+globalobj.timemain = SAFARI?12:1;
+globalobj.slicewidth = 2.5;
 globalobj.divider = "rgba(0,0,0,0)";
 globalobj.timebegin = TIMEOBJ/2;
 globalobj.autostart = 0;
@@ -108,15 +101,14 @@ globalobj.panxbegin = 50;
 globalobj.pinchbegin = 50;
 globalobj.maxheight = 0;
 globalobj.zoombegin = MOBILE?50:40;
-globalobj.rowreset = 0;
-globalobj.rowbegin = window.innerHeight/2;
-globalobj.slidecount = (TIMEOBJ/window.innerWidth)*10;
-globalobj.slidereduce = globalobj.slidecount/10;
+globalobj.rowreset = 1;
+globalobj.rowbegin = 50;
+globalobj.slidecount = (TIMEOBJ/window.innerWidth)*5;
+globalobj.slidereduce = globalobj.slidecount/25;
 
 if (globalobj.template == "comic")
 {
     globalobj.rowbegin = 0;
-    globalobj.rowreset = 1;
     globalobj.zoombegin = MOBILE?50:25;
     localobj.picture = 1;
 }
@@ -131,7 +123,7 @@ else if (globalobj.template == "wide")
     globalobj.autostart = 1;
     globalobj.autopage = 3000;
 }
-else if (globalobj.template == "portrait")
+else if (globalobj.template == "portrait" || globalobj.template == "portrait-fast")
 {
     globalobj.trait = 75;
     globalobj.scape = 75;
@@ -307,6 +299,67 @@ var makeoption = function (title, data)
         return this.data_[j];
     }
 };
+
+var cachelst = 
+[
+    {
+        title:"Register", path: "REGISTER", func: function()
+        {
+            if ("serviceWorker" in navigator)
+                navigator.serviceWorker.register("sw.js");
+        }
+    },
+    {
+        title:"Delete Caches", path: "DELCACH", func: function()
+        {
+             caches.keys().then(function(names) 
+             {
+                 for (let name of names)
+                     caches.delete(name);
+             });
+        }
+    },
+    {
+        title:"Delete Service Workers", path: "DELSERVWORK", func: function()
+        {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) 
+            {
+                for (let registration of registrations) 
+                    registration.unregister()
+            })
+        }
+    },
+    {
+        title:"Update Service Workers", path: "DELSERVWORK", func: function()
+        {
+            navigator.serviceWorker.getRegistration('/').then(function(registration) 
+            {
+                registration.update();
+            });
+        }
+    },
+    {
+        title:"List Cache", path: "LISTCACHE", func: function()
+        {
+            function cacheList(Items)
+            {   
+                for(var i = 0; i < Items.length; i++)
+                    console.log('Items: '+Items[i]);
+            }
+
+            var url = [];
+            caches.open("/").then(function (cache)
+            {
+                cache.keys().then(function(keys)
+                {
+                    return Promise.all( keys.map(function(k){url.push(k.url); return k.url} ))
+                }).then(function(u){ cacheList(url);})
+            })
+        }
+    }
+];
+
+var cacheobj = new makeoption("", cachelst);
 
 const opts = {synchronized: true, };
 let _1cnv = document.getElementById("_1");
@@ -772,25 +825,10 @@ addressobj.body = function ()
 
  addressobj.full = function ()
 {
-    var out =url.origin+"/home.html?p="+url.fullpath();
+    var out = url.origin+"/?p="+url.fullpath();
     out += addressobj.body();
     return out;
 };
-
-CanvasRenderingContext2D.prototype.moveup = function()
-{
-    var context = this;
-    var k = rowobj.berp()*100-1;
-    var index = SLIDELST.findLastIndex(a=>{return a < k;})
-    if (index == -1)
-    {
-        context.movepage(-1);
-        return;
-    }
-
-    var j = (SLIDELST[index]/100)*rowobj.length();
-    rowobj.set(j);
-}
 
 CanvasRenderingContext2D.prototype.getx = function(k)
 {
@@ -817,6 +855,22 @@ CanvasRenderingContext2D.prototype.getslicefirst = function()
     return mid;
 }
 
+CanvasRenderingContext2D.prototype.moveup = function()
+{
+    var context = this;
+    var k = rowobj.berp()*100-1;
+    var index = SLIDELST.findLastIndex(a=>{return a < k;})
+    if (index == -1)
+    {
+        context.movepage(-1);
+        return;
+    }
+
+    slideoff();
+    var j = (SLIDELST[index]/100)*rowobj.length();
+    rowobj.set(j);
+}
+
 CanvasRenderingContext2D.prototype.movedown = function()
 {
     var context = this;
@@ -828,6 +882,7 @@ CanvasRenderingContext2D.prototype.movedown = function()
         return;
     }
 
+    slideoff();
     var j = (SLIDELST[index]/100)*rowobj.length();
     rowobj.set(j);
 }
@@ -1318,7 +1373,6 @@ var pinchlst =
 ];
 
 var rowobj = new makeoption("ROW", window.innerHeight);
-rowobj.set(window.innerHeight/2);
 var pinchobj = new makeoption("PINCH", pinchlst);
 var panxobj = new makeoption("PANX", OPTIONSIZE); 
 var panyobj = new makeoption("PANY", OPTIONSIZE); 
@@ -1330,160 +1384,158 @@ var heightobj = new makeoption("HEIGHT", [traitobj,scapeobj]);
 var demolst =
 [
 //1x6
-{path: "https://reportbase.com/home.html?p=HUPE&m=0004&t=1x5", title: "HUPE"},
-{path: "https://reportbase.com/home.html?p=GOUT&m=0005&t=1x5", title: "GOUT"}, 
-{path: "https://reportbase.com/home.html?p=CORN&m=0004&t=1x5", title: "CORN"}, 
-{path: "https://reportbase.com/home.html?p=ARMY&m=0005&t=1x5", title: "ARMY"},
+{path: "https://reportbase.com/?p=HUPE&m=0004&t=1x5", func: demo, title: "HUPE"},
+{path: "https://reportbase.com/?p=GOUT&m=0005&t=1x5", func: demo, title: "GOUT"}, 
+{path: "https://reportbase.com/?p=CORN&m=0004&t=1x5", func: demo, title: "CORN"}, 
+{path: "https://reportbase.com/?p=ARMY&m=0005&t=1x5", func: demo, title: "ARMY"},
 
 //7x1
-{path: "https://reportbase.com/home.html?p=REIN&m=0006&t=7x1", title: "REIN"},
-{path: "https://reportbase.com/home.html?p=GAMP&m=0006&t=7x1", title: "GAMP"},
-{path: "https://reportbase.com/home.html?p=NETA&m=0003&t=7x1", title: "NETA"},
-{path: "https://reportbase.com/home.html?p=NATA&m=0006&t=7x1", title: "NATA"},
-{path: "https://reportbase.com/home.html?p=GARL&m=0003&t=7x1", title: "GARL"},
-{path: "https://reportbase.com/home.html?p=WED8&m=0000&t=7x1", title: "WED8"},
-{path: "https://reportbase.com/home.html?p=PEN7&m=0000&t=7x1", title: "PEN7"},
-{path: "https://reportbase.com/home.html?p=GAL5&m=0000&t=7x1", title: "GAL5"},
-{path: "https://reportbase.com/home.html?p=HAN7&m=0000&t=7x1", title: "HAN7"},
-{path: "https://reportbase.com/home.html?p=BDR5&m=0000&t=7x1", title: "BDR5"},
-{path: "https://reportbase.com/home.html?p=GRO6&m=0000&t=7x1", title: "GRO6"},
-{path: "https://reportbase.com/home.html?p=MUS8&m=0000&t=7x1", title: "MUS8"},
+{path: "https://reportbase.com/?p=REIN&m=0006&t=7x1", func: demo, title: "REIN"},
+{path: "https://reportbase.com/?p=GAMP&m=0006&t=7x1", func: demo, title: "GAMP"},
+{path: "https://reportbase.com/?p=NETA&m=0003&t=7x1", func: demo, title: "NETA"},
+{path: "https://reportbase.com/?p=NATA&m=0006&t=7x1", func: demo, title: "NATA"},
+{path: "https://reportbase.com/?p=GARL&m=0003&t=7x1", func: demo, title: "GARL"},
+{path: "https://reportbase.com/?p=WED8&m=0000&t=7x1", func: demo, title: "WED8"},
+{path: "https://reportbase.com/?p=PEN7&m=0000&t=7x1", func: demo, title: "PEN7"},
+{path: "https://reportbase.com/?p=GAL5&m=0000&t=7x1", func: demo, title: "GAL5"},
+{path: "https://reportbase.com/?p=HAN7&m=0000&t=7x1", func: demo, title: "HAN7"},
+{path: "https://reportbase.com/?p=BDR5&m=0000&t=7x1", func: demo, title: "BDR5"},
+{path: "https://reportbase.com/?p=GRO6&m=0000&t=7x1", func: demo, title: "GRO6"},
+{path: "https://reportbase.com/?p=MUS8&m=0000&t=7x1", func: demo, title: "MUS8"},
 
 //Wide Images
-{path: "https://reportbase.com/home.html?p=PENO&m=0073&t=wide", title: "PENO"},                                                                                            
-{path: "https://reportbase.com/home.html?p=PUNO&m=0086&t=wide", title: "PUNO"},
-{path: "https://reportbase.com/home.html?p=PANO&m=0045&t=wide", title: "PANO"},
-{path: "https://reportbase.com/home.html?p=PINO&m=0029&t=wide", title: "PINO"},
-{path: "https://reportbase.com/home.html?p=WIDE&m=0029&t=wide", title: "WIDE"},
+{path: "https://reportbase.com/?p=PENO&m=0073&t=wide", func: demo, title: "PENO"},                                                                                            
+{path: "https://reportbase.com/?p=PUNO&m=0086&t=wide", func: demo, title: "PUNO"},
+{path: "https://reportbase.com/?p=PANO&m=0045&t=wide", func: demo, title: "PANO"},
+{path: "https://reportbase.com/?p=PINO&m=0029&t=wide", func: demo, title: "PINO"},
+{path: "https://reportbase.com/?p=WIDE&m=0029&t=wide", func: demo, title: "WIDE"},
 
 //Landscapes
-{path: "https://reportbase.com/home.html?p=HOPE&m=0076&t=landscape", title: "HOPE"}, 
-{path: "https://reportbase.com/home.html?p=GOAT&m=0097&t=landscape", title: "GOAT"}, 
-{path: "https://reportbase.com/home.html?p=BOAT&m=0101&t=landscape", title: "BOAT"}, 
-{path: "https://reportbase.com/home.html?p=BELL&m=0015&t=landscape", title: "BELL"}, 
-{path: "https://reportbase.com/home.html?p=ASPO&m=0029&t=landscape", title: "ASPO"}, 
-{path: "https://reportbase.com/home.html?p=GOLF&m=0020&t=landscape", title: "GOLF"}, 
-{path: "https://reportbase.com/home.html?p=PUCK&m=0058&t=landscape", title: "PUCK"}, 
-{path: "https://reportbase.com/home.html?p=DISH&m=0016&t=landscape", title: "DISH"},
-{path: "https://reportbase.com/home.html?p=JESU&m=0014&t=landscape", title: "JESU"}, 
-{path: "https://reportbase.com/home.html?p=GIMP&m=0079&t=landscape", title: "GIMP"}, 
-{path: "https://reportbase.com/home.html?p=NAVY&m=0060&t=landscape", title: "NAVY"}, 
+{path: "https://reportbase.com/?p=HOPE&m=0076&t=landscape", func: demo, title: "HOPE"}, 
+{path: "https://reportbase.com/?p=GOAT&m=0097&t=landscape", func: demo, title: "GOAT"}, 
+{path: "https://reportbase.com/?p=BOAT&m=0101&t=landscape", func: demo, title: "BOAT"}, 
+{path: "https://reportbase.com/?p=BELL&m=0015&t=landscape", func: demo, title: "BELL"}, 
+{path: "https://reportbase.com/?p=ASPO&m=0029&t=landscape", func: demo, title: "ASPO"}, 
+{path: "https://reportbase.com/?p=GOLF&m=0020&t=landscape", func: demo, title: "GOLF"}, 
+{path: "https://reportbase.com/?p=PUCK&m=0058&t=landscape", func: demo, title: "PUCK"}, 
+{path: "https://reportbase.com/?p=DISH&m=0016&t=landscape", func: demo, title: "DISH"},
+{path: "https://reportbase.com/?p=JESU&m=0014&t=landscape", func: demo, title: "JESU"}, 
+{path: "https://reportbase.com/?p=GIMP&m=0079&t=landscape", func: demo, title: "GIMP"}, 
+{path: "https://reportbase.com/?p=NAVY&m=0060&t=landscape", func: demo, title: "NAVY"}, 
 
 //Portraits
-{path: "https://reportbase.com/home.html?p=ROBE&m=0012&t=portrait", title: "ROBE"}, 
-{path: "https://reportbase.com/home.html?p=RAIN&m=0077&t=portrait", title: "RAIN"}, 
-{path: "https://reportbase.com/home.html?p=BIRD&m=0041&t=portrait", title: "BIRD"}, 
-{path: "https://reportbase.com/home.html?p=CITY&m=0037&t=portrait", title: "CITY"}, 
-{path: "https://reportbase.com/home.html?p=HOOD&m=0036&t=portrait", title: "HOOD"}, 
-{path: "https://reportbase.com/home.html?p=BALL&m=0026&t=portrait", title: "BALL"}, 
-{path: "https://reportbase.com/home.html?p=PUMP&m=0029&t=portrait", title: "PUMP"}, 
-{path: "https://reportbase.com/home.html?p=NATB&m=0026&t=portrait", title: "NATB"}, 
-{path: "https://reportbase.com/home.html?p=DAME&m=0056&t=portrait", title: "DAME"}, 
-{path: "https://reportbase.com/home.html?p=BOND&m=0075&t=portrait", title: "BOND"}, 
-{path: "https://reportbase.com/home.html?p=ANIM&m=0014&t=portrait", title: "ANIM"}, 
-{path: "https://reportbase.com/home.html?p=CRBE&m=0009&t=portrait", title: "CRBE"}, 
-{path: "https://reportbase.com/home.html?p=CRBT&m=0010&t=portrait", title: "CRBT"}, 
-{path: "https://reportbase.com/home.html?p=DOLL&m=0056&t=portrait", title: "DOLL"}, 
-{path: "https://reportbase.com/home.html?p=FABL&m=0027&t=portrait", title: "FABL"}, 
-{path: "https://reportbase.com/home.html?p=FAIR&m=0014&t=portrait", title: "FAIR"}, 
-{path: "https://reportbase.com/home.html?p=FASH&m=0007&t=portrait", title: "FASH"}, 
-{path: "https://reportbase.com/home.html?p=DOCS&m=0009&t=portrait", title: "DOCS"}, 
-{path: "https://reportbase.com/home.html?p=WALL&m=0043&t=portrait", title: "WALL"}, 
-{path: "https://reportbase.com/home.html?p=GIRL&m=0055&t=portrait", title: "GIRL"}, 
-{path: "https://reportbase.com/home.html?p=PORT&m=0053&t=portrait", title: "PORT"}, 
-{path: "https://reportbase.com/home.html?p=POST&m=0188&t=portrait", title: "POST"}, 
-{path: "https://reportbase.com/home.html?p=STOY&m=0020&t=portrait", title: "STOY"}, 
-{path: "https://reportbase.com/home.html?p=TALE&m=0010&t=portrait", title: "TALE"}, 
-{path: "https://reportbase.com/home.html?p=ZEUS&m=0034&t=portrait", title: "ZEUS"}, 
-{path: "https://reportbase.com/home.html?p=BUGS&m=0026&t=portrait", title: "BUGS"}, 
-{path: "https://reportbase.com/home.html?p=NATU&m=0050&t=portrait", title: "NATU"}, 
-{path: "https://reportbase.com/home.html?p=DRES&m=0012&t=portrait", title: "DRES"}, 
-{path: "https://reportbase.com/home.html?p=GREK&m=0017&t=portrait", title: "GREK"}, 
-{path: "https://reportbase.com/home.html?p=JAPN&m=0024&t=portrait", title: "JAPN"}, 
-{path: "https://reportbase.com/home.html?p=ROME&m=0021&t=portrait", title: "ROME"}, 
-{path: "https://reportbase.com/home.html?p=BAKE&m=0047&t=portrait", title: "BAKE"}, 
-{path: "https://reportbase.com/home.html?p=DECS&m=0011&t=portrait", title: "DECS"}, 
-{path: "https://reportbase.com/home.html?p=OSHI&m=0010&t=portrait", title: "OSHI"}, 
-{path: "https://reportbase.com/home.html?p=LITE&m=0052&t=portrait", title: "LITE"}, 
-{path: "https://reportbase.com/home.html?p=BOOK&m=0063&t=portrait", title: "BOOK"}, 
-{path: "https://reportbase.com/home.html?p=LION&m=0027&t=portrait", title: "LION"}, 
-{path: "https://reportbase.com/home.html?p=DASH&m=0206&t=portrait", title: "DASH"}, 
+{path: "https://reportbase.com/?p=ROBE&m=0012&t=portrait", func: demo, title: "ROBE"}, 
+{path: "https://reportbase.com/?p=RAIN&m=0077&t=portrait", func: demo, title: "RAIN"}, 
+{path: "https://reportbase.com/?p=BIRD&m=0041&t=portrait", func: demo, title: "BIRD"}, 
+{path: "https://reportbase.com/?p=CITY&m=0037&t=portrait", func: demo, title: "CITY"}, 
+{path: "https://reportbase.com/?p=HOOD&m=0036&t=portrait", func: demo, title: "HOOD"}, 
+{path: "https://reportbase.com/?p=BALL&m=0026&t=portrait", func: demo, title: "BALL"}, 
+{path: "https://reportbase.com/?p=PUMP&m=0029&t=portrait", func: demo, title: "PUMP"}, 
+{path: "https://reportbase.com/?p=NATB&m=0026&t=portrait", func: demo, title: "NATB"}, 
+{path: "https://reportbase.com/?p=DAME&m=0056&t=portrait", func: demo, title: "DAME"}, 
+{path: "https://reportbase.com/?p=BOND&m=0075&t=portrait", func: demo, title: "BOND"}, 
+{path: "https://reportbase.com/?p=ANIM&m=0014&t=portrait", func: demo, title: "ANIM"}, 
+{path: "https://reportbase.com/?p=CRBE&m=0009&t=portrait", func: demo, title: "CRBE"}, 
+{path: "https://reportbase.com/?p=CRBT&m=0010&t=portrait", func: demo, title: "CRBT"}, 
+{path: "https://reportbase.com/?p=DOLL&m=0056&t=portrait", func: demo, title: "DOLL"}, 
+{path: "https://reportbase.com/?p=FABL&m=0027&t=portrait", func: demo, title: "FABL"}, 
+{path: "https://reportbase.com/?p=FAIR&m=0014&t=portrait", func: demo, title: "FAIR"}, 
+{path: "https://reportbase.com/?p=FASH&m=0007&t=portrait", func: demo, title: "FASH"}, 
+{path: "https://reportbase.com/?p=DOCS&m=0009&t=portrait", func: demo, title: "DOCS"}, 
+{path: "https://reportbase.com/?p=WALL&m=0051&t=portrait", func: demo, title: "WALL"}, 
+{path: "https://reportbase.com/?p=GIRL&m=0058&t=portrait", func: demo, title: "GIRL"}, 
+{path: "https://reportbase.com/?p=PORT&m=0055&t=portrait", func: demo, title: "PORT"}, 
+{path: "https://reportbase.com/?p=POST&m=0188&t=portrait", func: demo, title: "POST"}, 
+{path: "https://reportbase.com/?p=STOY&m=0020&t=portrait", func: demo, title: "STOY"}, 
+{path: "https://reportbase.com/?p=TALE&m=0010&t=portrait", func: demo, title: "TALE"}, 
+{path: "https://reportbase.com/?p=ZEUS&m=0034&t=portrait", func: demo, title: "ZEUS"}, 
+{path: "https://reportbase.com/?p=BUGS&m=0026&t=portrait", func: demo, title: "BUGS"}, 
+{path: "https://reportbase.com/?p=NATU&m=0050&t=portrait", func: demo, title: "NATU"}, 
+{path: "https://reportbase.com/?p=DRES&m=0012&t=portrait", func: demo, title: "DRES"}, 
+{path: "https://reportbase.com/?p=GREK&m=0017&t=portrait", func: demo, title: "GREK"}, 
+{path: "https://reportbase.com/?p=JAPN&m=0024&t=portrait", func: demo, title: "JAPN"}, 
+{path: "https://reportbase.com/?p=ROME&m=0021&t=portrait", func: demo, title: "ROME"}, 
+{path: "https://reportbase.com/?p=BAKE&m=0047&t=portrait", func: demo, title: "BAKE"}, 
+{path: "https://reportbase.com/?p=DECS&m=0011&t=portrait", func: demo, title: "DECS"}, 
+{path: "https://reportbase.com/?p=OSHI&m=0010&t=portrait", func: demo, title: "OSHI"}, 
+{path: "https://reportbase.com/?p=LITE&m=0052&t=portrait", func: demo, title: "LITE"}, 
+{path: "https://reportbase.com/?p=BOOK&m=0063&t=portrait", func: demo, title: "BOOK"}, 
+{path: "https://reportbase.com/?p=LION&m=0027&t=portrait", func: demo, title: "LION"}, 
+{path: "https://reportbase.com/?p=DASH&m=0206&t=portrait", func: demo, title: "DASH"}, 
 
 //Tall
-{path: "https://reportbase.com/home.html?p=TALL&m=0004&t=tall", title: "TALL"}, 
-{path: "https://reportbase.com/home.html?p=SKIN&m=0008&t=tall", title: "SKIN"},
+{path: "https://reportbase.com/?p=TALL&m=0004&t=tall", func: demo, title: "TALL"}, 
+{path: "https://reportbase.com/?p=SKIN&m=0008&t=tall", func: demo, title: "SKIN"},
 
 //Comic
-{path: "https://reportbase.com/home.html?p=FRAM.0000.jpg&m=0050&t=comic", title: "FRAM"}, 
-{path: "https://reportbase.com/home.html?p=GUIL.0000.jpg&m=0064&t=comic", title: "GUIL"}, 
-{path: "https://reportbase.com/home.html?p=IRON.0000.jpg&m=0072&t=comic", title: "IRON"}, 
-{path: "https://reportbase.com/home.html?p=THOR.0000.jpg&m=0064&t=comic", title: "THOR"}, 
-{path: "https://reportbase.com/home.html?p=HULK.0000.jpg&m=0059&t=comic", title: "HULK"}, 
-{path: "https://reportbase.com/home.html?p=REAV.0000.jpg&m=0062&t=comic", title: "REAV"}, 
-{path: "https://reportbase.com/home.html?p=KAZA.0000.jpg&m=0063&t=comic", title: "KAZA"}, 
-{path: "https://reportbase.com/home.html?p=DAGG.0000.jpg&m=0063&t=comic", title: "DAGG"}, 
-{path: "https://reportbase.com/home.html?p=NERU.0000.jpg&m=0044&t=comic", title: "NEUR"}, 
-{path: "https://reportbase.com/home.html?p=INTR.0000.jpg&m=0062&t=comic", title: "INTR"}, 
-{path: "https://reportbase.com/home.html?p=TORM.0000.jpg&m=0079&t=comic", title: "TORM"}, 
-{path: "https://reportbase.com/home.html?p=AREN.0000.jpg&m=0050&t=comic", title: "AREN"}, 
-{path: "https://reportbase.com/home.html?p=AX.0000.jpg&m=0050&t=comic", title: "AX"}, 
-{path: "https://reportbase.com/home.html?p=ROGU.0000.jpg&m=0064&t=comic", title: "ROGU"}, 
-{path: "https://reportbase.com/home.html?p=LUST.0000.jpg&m=0051&t=comic", title: "LUST"}, 
-{path: "https://reportbase.com/home.html?p=HORN.0000.jpg&m=0064&t=comic", title: "HORN"}, 
-{path: "https://reportbase.com/home.html?p=SKUL.0000.jpg&m=0065&t=comic", title: "SKUL"}, 
-{path: "https://reportbase.com/home.html?p=ROGE.0000.jpg&m=0077&t=comic", title: "ROGE"}, 
-{path: "https://reportbase.com/home.html?p=SURF.0000.jpg&m=0077&t=comic", title: "SURF"}, 
-{path: "https://reportbase.com/home.html?p=SURF.0000.jpg&m=0077&t=comic", title: "SURF"}, 
-{path: "https://reportbase.com/home.html?p=GONE.0000.jpg&m=0068&t=comic", title: "GONE"}, 
-{path: "https://reportbase.com/home.html?p=RIOR.0000.jpg&m=0071&t=comic", title: "RIOR"}, 
-{path: "https://reportbase.com/home.html?p=SPIR.0000.jpg&m=0085&t=comic", title: "SPIR"}, 
-{path: "https://reportbase.com/home.html?p=WEID.0000.jpg&m=0066&t=comic", title: "WEID"}, 
-{path: "https://reportbase.com/home.html?p=FURY.0000.jpg&m=0065&t=comic", title: "FURY"}, 
-{path: "https://reportbase.com/home.html?p=KULL.0000.jpg&m=0066&t=comic", title: "KULL"}, 
-{path: "https://reportbase.com/home.html?p=SPID.0000.jpg&m=0063&t=comic", title: "SPID"}, 
-{path: "https://reportbase.com/home.html?p=JUDG.0000.jpg&m=0064&t=comic", title: "JUDG"}, 
-{path: "https://reportbase.com/home.html?p=SHAM.0000.jpg&m=0062&t=comic", title: "SHAM"}, 
-{path: "https://reportbase.com/home.html?p=MOOR.0000.jpg&m=0063&t=comic", title: "MOOR"}, 
-{path: "https://reportbase.com/home.html?p=DEAT.0000.jpg&m=0081&t=comic", title: "DEAT"}, 
-{path: "https://reportbase.com/home.html?p=DOOM.0000.jpg&m=0051&t=comic", title: "DOOM"}, 
-{path: "https://reportbase.com/home.html?p=BLOD.0000.jpg&m=0043&t=comic", title: "BLOD"}, 
-{path: "https://reportbase.com/home.html?p=SILV.0000.jpg&m=0043&t=comic", title: "SILV"}, 
-{path: "https://reportbase.com/home.html?p=DRWH.0000.jpg&m=0043&t=comic", title: "DRWH"}, 
-{path: "https://reportbase.com/home.html?p=HERC.0000.jpg&m=0080&t=comic", title: "HERC"}, 
-{path: "https://reportbase.com/home.html?p=DARE.0000.jpg&m=0063&t=comic", title: "DARE"}, 
-{path: "https://reportbase.com/home.html?p=ALAD.0000.jpg&m=0065&t=comic", title: "ALAD"}, 
-{path: "https://reportbase.us/home.html?p=DBAT&m=0360&t=comic", title: "DBAT"}, 
-{path: "https://reportbase.us/home.html?p=GRIM&m=0390&t=comic", title: "GRIM"}, 
-{path: "https://reportbase.com/home.html?p=TRAP&m=0083&t=comic", title: "TRAP"}, 
-{path: "https://reportbase.com/home.html?p=AGEN&m=0083&t=comic", title: "AGEN"}, 
-{path: "https://reportbase.com/home.html?p=DRAC&m=0081&t=comic", title: "DRAC"}, 
-{path: "https://reportbase.com/home.html?p=SAIL&m=0129&t=comic", title: "SAIL"}, 
-{path: "https://reportbase.com/home.html?p=GODL&m=0063&t=comic", title: "GODL"}, 
-{path: "https://reportbase.com/home.html?p=DAZZ&m=0064&t=comic", title: "DAZZ"}, 
-{path: "https://reportbase.com/home.html?p=WILL&m=0064&t=comic", title: "WILL"}, 
-{path: "https://reportbase.com/home.html?p=VOID&m=0046&t=comic", title: "VOID"}, 
-{path: "https://reportbase.com/home.html?p=DARK&m=0022&t=comic", title: "DARK"}, 
-{path: "https://reportbase.com/home.html?p=ULTR&m=0457&t=comic", title: "ULTR"}, 
-{path: "https://reportbase.com/home.html?p=HUSH&m=0298&t=comic", title: "HUSH"}, 
-{path: "https://reportbase.com/home.html?p=GOTH&m=0298&t=comic", title: "GOTH"}, 
-{path: "https://reportbase.com/home.html?p=KNIG&m=0197&t=comic", title: "KNIG"}, 
-{path: "https://reportbase.com/home.html?p=VIOL&m=0151&t=comic", title: "VIOL"}, 
-{path: "https://reportbase.com/home.html?p=MADB&m=0161&t=comic", title: "MADB"}, 
-{path: "https://reportbase.com/home.html?p=KILL&m=0064&t=comic", title: "KILL"}, 
-{path: "https://reportbase.com/home.html?p=DETC&m=0166&t=comic", title: "DETC"}, 
-{path: "https://reportbase.com/home.html?p=SECH&m=0460&t=comic", title: "SECH"}, 
-{path: "https://reportbase.com/home.html?p=SECI&m=0498&t=comic", title: "SECI"}, 
-{path: "https://reportbase.com/home.html?p=WALK&m=0433&t=comic", title: "WALK"}, 
-{path: "https://reportbase.com/home.html?p=SUIC&m=0409&t=comic", title: "SUIC"}, 
-{path: "https://reportbase.com/home.html?p=DMZ&&m=0283&t=comic", title: "DMZ"}, 
-{path: "https://reportbase.com/home.html?p=DMZA&&m=0128&t=comic", title: "DMZA"}, 
-{path: "ttps://reportbase.com/home.html?p=MANH&m=0027&t=comic", title: "MANH"},
-{path: "https://reportbase.com/home.html?p=MAD&m=084&t=comic", title: "MAD"},
-{path: "https://reportbase.com/home.html?p=COLD&m=066&t=comic", title: "COLD"},
-{path: "https://reportbase.com/home.html?p=VAMP&m=075&t=comic", title: "VAMP"},
-{path: "https://reportbase.com/home.html?p=BODY&m=059&t=comic", title: "BODY"},
-{path: "https://reportbase.com/home.html?p=RAVA&m=0061&t=comic", title: "RAVA"},
-{path: "https://reportbase.com/home.html?p=FEAR&m=0061&t=comic", title: "FEAR"},
+{path: "https://reportbase.com/?p=FRAM.0000.jpg&m=0050&t=comic", func: demo, title: "FRAM"}, 
+{path: "https://reportbase.com/?p=GUIL.0000.jpg&m=0064&t=comic", func: demo, title: "GUIL"}, 
+{path: "https://reportbase.com/?p=IRON.0000.jpg&m=0072&t=comic", func: demo, title: "IRON"}, 
+{path: "https://reportbase.com/?p=REAV.0000.jpg&m=0062&t=comic", func: demo, title: "REAV"}, 
+{path: "https://reportbase.com/?p=KAZA.0000.jpg&m=0063&t=comic", func: demo, title: "KAZA"}, 
+{path: "https://reportbase.com/?p=DAGG.0000.jpg&m=0063&t=comic", func: demo, title: "DAGG"}, 
+{path: "https://reportbase.com/?p=NERU.0000.jpg&m=0044&t=comic", func: demo, title: "NEUR"}, 
+{path: "https://reportbase.com/?p=INTR.0000.jpg&m=0062&t=comic", func: demo, title: "INTR"}, 
+{path: "https://reportbase.com/?p=TORM.0000.jpg&m=0079&t=comic", func: demo, title: "TORM"}, 
+{path: "https://reportbase.com/?p=AREN.0000.jpg&m=0050&t=comic", func: demo, title: "AREN"}, 
+{path: "https://reportbase.com/?p=AX.0000.jpg&m=0050&t=comic", func: demo, title: "AX"}, 
+{path: "https://reportbase.com/?p=ROGU.0000.jpg&m=0064&t=comic", func: demo, title: "ROGU"}, 
+{path: "https://reportbase.com/?p=LUST.0000.jpg&m=0051&t=comic", func: demo, title: "LUST"}, 
+{path: "https://reportbase.com/?p=HORN.0000.jpg&m=0064&t=comic", func: demo, title: "HORN"}, 
+{path: "https://reportbase.com/?p=SKUL.0000.jpg&m=0065&t=comic", func: demo, title: "SKUL"}, 
+{path: "https://reportbase.com/?p=ROGE.0000.jpg&m=0077&t=comic", func: demo, title: "ROGE"}, 
+{path: "https://reportbase.com/?p=SURF.0000.jpg&m=0077&t=comic", func: demo, title: "SURF"}, 
+{path: "https://reportbase.com/?p=SURF.0000.jpg&m=0077&t=comic", func: demo, title: "SURF"}, 
+{path: "https://reportbase.com/?p=GONE.0000.jpg&m=0068&t=comic", func: demo, title: "GONE"}, 
+{path: "https://reportbase.com/?p=RIOR.0000.jpg&m=0071&t=comic", func: demo, title: "RIOR"}, 
+{path: "https://reportbase.com/?p=SPIR.0000.jpg&m=0085&t=comic", func: demo, title: "SPIR"}, 
+{path: "https://reportbase.com/?p=WEID.0000.jpg&m=0066&t=comic", func: demo, title: "WEID"}, 
+{path: "https://reportbase.com/?p=FURY.0000.jpg&m=0065&t=comic", func: demo, title: "FURY"}, 
+{path: "https://reportbase.com/?p=KULL.0000.jpg&m=0066&t=comic", func: demo, title: "KULL"}, 
+{path: "https://reportbase.com/?p=SPID.0000.jpg&m=0063&t=comic", func: demo, title: "SPID"}, 
+{path: "https://reportbase.com/?p=JUDG.0000.jpg&m=0064&t=comic", func: demo, title: "JUDG"}, 
+{path: "https://reportbase.com/?p=SHAM.0000.jpg&m=0062&t=comic", func: demo, title: "SHAM"}, 
+{path: "https://reportbase.com/?p=MOOR.0000.jpg&m=0063&t=comic", func: demo, title: "MOOR"}, 
+{path: "https://reportbase.com/?p=DEAT.0000.jpg&m=0081&t=comic", func: demo, title: "DEAT"}, 
+{path: "https://reportbase.com/?p=DOOM.0000.jpg&m=0051&t=comic", func: demo, title: "DOOM"}, 
+{path: "https://reportbase.com/?p=BLOD.0000.jpg&m=0043&t=comic", func: demo, title: "BLOD"}, 
+{path: "https://reportbase.com/?p=SILV.0000.jpg&m=0043&t=comic", func: demo, title: "SILV"}, 
+{path: "https://reportbase.com/?p=DRWH.0000.jpg&m=0043&t=comic", func: demo, title: "DRWH"}, 
+{path: "https://reportbase.com/?p=HERC.0000.jpg&m=0080&t=comic", func: demo, title: "HERC"}, 
+{path: "https://reportbase.com/?p=DARE.0000.jpg&m=0063&t=comic", func: demo, title: "DARE"}, 
+{path: "https://reportbase.com/?p=ALAD.0000.jpg&m=0065&t=comic", func: demo, title: "ALAD"}, 
+{path: "https://reportbase.us/?p=DBAT&m=0360&t=comic", func: demo, title: "DBAT"}, 
+{path: "https://reportbase.us/?p=GRIM&m=0390&t=comic", func: demo, title: "GRIM"}, 
+{path: "https://reportbase.com/?p=TRAP&m=0083&t=comic", func: demo, title: "TRAP"}, 
+{path: "https://reportbase.com/?p=AGEN&m=0083&t=comic", func: demo, title: "AGEN"}, 
+{path: "https://reportbase.com/?p=DRAC&m=0081&t=comic", func: demo, title: "DRAC"}, 
+{path: "https://reportbase.com/?p=SAIL&m=0129&t=comic", func: demo, title: "SAIL"}, 
+{path: "https://reportbase.com/?p=GODL&m=0063&t=comic", func: demo, title: "GODL"}, 
+{path: "https://reportbase.com/?p=DAZZ&m=0064&t=comic", func: demo, title: "DAZZ"}, 
+{path: "https://reportbase.com/?p=WILL&m=0064&t=comic", func: demo, title: "WILL"}, 
+{path: "https://reportbase.com/?p=VOID&m=0046&t=comic", func: demo, title: "VOID"}, 
+{path: "https://reportbase.com/?p=DARK&m=0022&t=comic", func: demo, title: "DARK"}, 
+{path: "https://reportbase.com/?p=ULTR&m=0457&t=comic", func: demo, title: "ULTR"}, 
+{path: "https://reportbase.com/?p=HUSH&m=0298&t=comic", func: demo, title: "HUSH"}, 
+{path: "https://reportbase.com/?p=GOTH&m=0298&t=comic", func: demo, title: "GOTH"}, 
+{path: "https://reportbase.com/?p=KNIG&m=0197&t=comic", func: demo, title: "KNIG"}, 
+{path: "https://reportbase.com/?p=VIOL&m=0151&t=comic", func: demo, title: "VIOL"}, 
+{path: "https://reportbase.com/?p=MADB&m=0161&t=comic", func: demo, title: "MADB"}, 
+{path: "https://reportbase.com/?p=KILL&m=0064&t=comic", func: demo, title: "KILL"}, 
+{path: "https://reportbase.com/?p=DETC&m=0166&t=comic", func: demo, title: "DETC"}, 
+{path: "https://reportbase.com/?p=SECH&m=0460&t=comic", func: demo, title: "SECH"}, 
+{path: "https://reportbase.com/?p=SECI&m=0498&t=comic", func: demo, title: "SECI"}, 
+{path: "https://reportbase.com/?p=WALK&m=0433&t=comic", func: demo, title: "WALK"}, 
+{path: "https://reportbase.com/?p=SUIC&m=0409&t=comic", func: demo, title: "SUIC"}, 
+{path: "https://reportbase.com/?p=DMZ&&m=0283&t=comic", func: demo, title: "DMZ"}, 
+{path: "https://reportbase.com/?p=DMZA&&m=0128&t=comic", func: demo, title: "DMZA"}, 
+{path: "https://reportbase.com/?p=MANH&m=0027&t=comic", func: demo, title: "MANH"},
+{path: "https://reportbase.com/?p=MAD&m=084&t=comic", func: demo, title: "MAD"},
+{path: "https://reportbase.com/?p=COLD&m=066&t=comic", func: demo, title: "COLD"},
+{path: "https://reportbase.com/?p=VAMP&m=075&t=comic", func: demo, title: "VAMP"},
+{path: "https://reportbase.com/?p=BODY&m=059&t=comic", func: demo, title: "BODY"},
+{path: "https://reportbase.com/?p=RAVA&m=0061&t=comic", func: demo, title: "RAVA"},
+{path: "https://reportbase.com/?p=FEAR&m=0061&t=comic",func: demo, title: "FEAR"},
 ];
 
 demolst.sort((a, b) => (a.title > b.title) ? 1 : -1)
@@ -1597,7 +1649,7 @@ var panlst =
         }
         else if (type == "panup" || type == "pandown")
         {
-            if (globalobj.vpan && zoomobj.getcurrent() > 0)
+            if (globalobj.vpan)
             {
                 var h = rect.height*(1-zoomobj.getcurrent())*panyobj.getcurrent();
                 y = (pt.y/rect.height)*h;
@@ -1908,8 +1960,9 @@ var keylst =
             contextobj.reset();
             evt.preventDefault();
         }
-         else if (evt.key == "ArrowLeft" || evt.key == "h")
+        else if (evt.key == "ArrowLeft" || evt.key == "h")
         {
+            slideoff();
             localobj.autodirect = -1;
             if (context.ctrlhit)
                 context.movepage(localobj.autodirect)
@@ -1919,6 +1972,7 @@ var keylst =
         }
         else if (evt.key == "ArrowRight" || evt.key == "l")
         {
+            slideoff();
             localobj.autodirect = 1;
             if (context.ctrlhit)
                 context.movepage(localobj.autodirect)
@@ -1928,6 +1982,7 @@ var keylst =
         }
         else if (evt.key == "ArrowUp" || evt.key == "k")
         {
+            slideoff();
             if (context.ctrlhit)
                 rowobj.set(0);
             else
@@ -1937,6 +1992,7 @@ var keylst =
         }
         else if (evt.key == "ArrowDown" || evt.key == "j" )
         {
+            slideoff();
             if (context.ctrlhit)
                 rowobj.set(rowobj.length()-1);
             else
@@ -2213,7 +2269,7 @@ var thumblst =
     draw: function (context, rect, user, time)
     {
         var th = heightobj.getcurrent().getcurrent();
-        var headers = MFRAME?0:ALIEXTENT*2; 
+        var headers = MOBFRAME?0:ALIEXTENT*2; 
         var width = rect.width-THUMBORDER*2;
         var height = rect.height-headers-THUMBORDER*2;
         if (globalobj.maxheight)
@@ -2221,7 +2277,7 @@ var thumblst =
         var r = calculateAspectRatioFit(photo.image.width, photo.image.height, width*th, height*th); 
         var h = r.height;
         var w = r.width;
-        var a = MFRAME?0:ALIEXTENT;
+        var a = MOBFRAME?0:ALIEXTENT;
         var pos = positobj.current();
         if (pos == 0)
         {
@@ -2418,7 +2474,7 @@ var drawlst = [
         var a = new Layer(
         [
             new Expand(new Rounded(clr, 2, "white", 8, 8), 0, 18),
-            new Shrink(new Text("white", "center", "middle",0,1,1),20,0),
+            new Shrink(new Text("white", "center", "middle",0, 0, 1),20,0),
         ]); 
      
         a.draw(context, rect, str+"", time);
@@ -2462,7 +2518,7 @@ function resetcanvas()
     zoomrange[1] = 0.925;
     zoomobj.split(zoomobj.current(), zoomrange.join("-"), OPTIONSIZE);
 
-   /* AAPL 
+    /* AAPL 
     for (var n = 0; n < zoomobj.length(); ++n)
     {
         var k = zoomobj.data()[n];
@@ -2472,6 +2528,7 @@ function resetcanvas()
         var j = photo.image.width/h;
         var vh = context.canvas.height;
         var vw = vh * j;
+        const MAXVIRTUALSIZE = SAFARI?12000000:24000000;
         if (vw*vh < MAXVIRTUALSIZE)
             continue;
         zoomobj.data_.length = n+1;
@@ -2495,13 +2552,13 @@ function resetcanvas()
     {
         var k = slicelst[n];
         var fw = context.virtualwidth / k.slices;
-        if (fw < SLICEWIDTH)
+        if (fw < globalobj.slicewidth)
             continue;
         ks = n;
         break;
     }
 
-    var canvaslen = Math.ceil(context.virtualwidth/MAXVIRTUALWIDTH);
+    var canvaslen = Math.ceil(context.virtualwidth/MAXVIRTUAL);
     var e = slicelst[ks];
     var delay = e.delay;
     var slices = Math.ceil(e.slices/canvaslen);
@@ -2579,10 +2636,10 @@ var eventlst =
     {name: "_3cnvctx", mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
     {name: "_4cnvctx", mouse: "BOSS", guide: "GUIDE", thumb: "BOSS",  tap: "BOSS", pan: "BOSS", swipe: "BOSS", draw: "BOSS", wheel: "BOSS", drop: "BOSS", key: "BOSS", press: "BOSS", pinch: "BOSS", fillwidth: 0}, 
     {name: "_5cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "DEFAULT", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
-    {name: "_6cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210}, 
+    {name: "_6cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 320}, 
     {name: "_7cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 210},
     {name: "_8cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 240}, 
-    {name: "_9cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 360}, 
+    {name: "_9cnvctx", mouse: "MENU", guide: "DEFAULT", thumb: "DEFAULT", tap: "MENU", pan: "MENU", swipe: "MENU", draw: "MENU", wheel: "DEFAULT", drop: "DEFAULT", key: "MENU", press: "DEFAULT", pinch: "DEFAULT", fillwidth: 320}, 
     {name: "describe", mouse: "DEFAULT", guide: "DEFAULT", thumb: "DEFAULT", tap: "DESCRIBE", pan: "DESCRIBE", swipe: "DEFAULT", draw: "DEFAULT", wheel: "DESCRIBE", drop: "DEFAULT", key: "DESCRIBE", press: "DEFAULT", pinch: "DESCRIBE", fillwidth: 0},
 ];
 
@@ -2650,7 +2707,6 @@ function setevents(context, obj)
     context.panupdown_ = k.updown;
     context.panleftright_ = k.leftright;
     context.panend_ = k.panend;
-            
     context.fillwidth = obj.fillwidth;
 }
 
@@ -2687,14 +2743,13 @@ var ContextObj = (function ()
             context.debugobj = new makeoption("", [projectobj, context.timeobj,  context.sliceobj, context.columnobj ]);
         }
 
-        var slices = _7cnvctx.sliceobj;
-        slices.data_= [];
-        var items = demoobj.length(); 
-        for (var n = 0; n < items; ++n)
-        {
-            slices.data_.push({index:n, title:demoobj.data_[n].title, path: demoobj.data_[n].path, func: demo})
-        }
+        var slices = _6cnvctx.sliceobj;
+        slices.data_= cachelst;
+        _6cnvctx.delayinterval = DELAYCENTER / slices.data_.length;
+        _6cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
 
+        var slices = _7cnvctx.sliceobj;
+        slices.data_= demolst;
         _7cnvctx.delayinterval = DELAYCENTER / slices.data_.length;
         _7cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
 
@@ -2702,76 +2757,22 @@ var ContextObj = (function ()
         slices.data_= [];
         var items = projectobj.length();
         for (var n = 0; n < items; ++n)
-        {
             slices.data_.push({index:n, title:(n+1)+"", path: "PROJECT", func: project})
-        }
         
         _8cnvctx.delayinterval = DELAYCENTER / slices.data_.length;
         _8cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
 
         var slices = _9cnvctx.sliceobj;
         slices.data_= [];
-        slices.data_.push({title:"Refresh (F5)", path: "REFRESH", func: function(){location.reload()}})
+        slices.data_.push({title:"Refresh", path: "REFRESH", func: function(){location.reload()}})
         slices.data_.push({title:"Help", path: "HELP", func: function(){menuhide(); helpobj.getcurrent().draw(_4cnvctx, _4cnvctx.rect(), 0, 0);} })
-        slices.data_.push({title:"Open... (O)", path: "LOAD", func: function(){menuhide(); promptFile().then(function(files) { dropfiles(files); })}})
+        slices.data_.push({title:"Open...", path: "LOAD", func: function(){menuhide(); promptFile().then(function(files) { dropfiles(files); })}})
+        slices.data_.push({title:"Debug", path: "DEBUG", func: function(){ menushow(_6cnvctx); }})
         slices.data_.push({title:"Examples", path: "DEMOS", func: function(){ menushow(_7cnvctx); }})
         slices.data_.push({title:"Screenshot", path: "SCREENSHOT", func: screenshot})
         slices.data_.push({title:"Original", path: "ORIGINAL", func: function(){window.open(photo.image.original, '_blank');}})
         if (!SAFARI)
-            slices.data_.push({title:"Fullscreen (F)", path: "FULLSCREEN", func: fullscreen})
-
-        if (CACHEDEBUG)
-        {
-            slices.data_.push({title:"Delete Caches", path: "DELCACH", func: function()
-            {
-                 caches.keys().then(function(names) 
-                 {
-                     for (let name of names)
-                         caches.delete(name);
-                 });
-            }});
-            
-            slices.data_.push({title:"Delete Service Workers", path: "DELSERVWORK", func: function()
-            {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) 
-                {
-                    for (let registration of registrations) 
-                    {
-                        registration.unregister()
-                    } 
-                })
-            }});
-            
-            slices.data_.push({title:"Delete Service Workers", path: "DELSERVWORK", func: function()
-            {
-                navigator.serviceWorker.getRegistration('/').then(function(registration) 
-                {
-                    registration.update();
-                });
-             
-            }});
-            
-            slices.data_.push({title:"List Cache", path: "LISTCACHE", func: function()
-            {
-                function cacheList(Items)
-                {   
-                    for(var i = 0; i < Items.length; i++)
-                    {
-                        console.log('Items: '+Items[i]);
-                    }
-                }
-
-                var url = [];
-                caches.open('cache-v3').then(function (cache)
-                {
-                    cache.keys().then(function(keys){
-                        return Promise.all(
-                                keys.map(function(k){url.push(k.url); return k.url} )
-                            )
-                    }).then(function(u){ cacheList(url);})
-                })
-            }});
-        }
+            slices.data_.push({title:"Fullscreen", path: "FULLSCREEN", func: fullscreen})
 
         _9cnvctx.delayinterval = DELAYCENTER / slices.data_.length;
         _9cnvctx.virtualheight = slices.data_.length*BUTTONHEIGHT;
@@ -2792,14 +2793,12 @@ var ContextObj = (function ()
 
 		resize: function (context)
        	{
-			var canvas = context.canvas;
-
 			var top = 0;
 			var left = 0;
 			if (!context.enabled)
 			{
 				context.enabled = 0
-				canvas.height = 0;
+				context.canvas.height = 0;
 				return;
 			}
 
@@ -3609,21 +3608,23 @@ function yoll()
         for (var m = 0; m < context.visibles1.length; ++m)
         {
             var j = context.visibles1[m]; 
+            var j1 = context.visibles1[m-1]; 
             var slice = j.slice;
             var x = j.x;
-            let pinchwidth = Math.max(context.visibles1[m+1]?context.visibles1[m+1].x-x:1,1); 
+            let pinchwidth = Math.max(j1?x-j1.x:0,0); 
             context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
-                x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height);
+                x+r.x, 0, context.colwidth+pinchwidth, context.canvas.height);
         }
 
         for (var m = 0; m < context.visibles2.length; ++m)
         {
             var j = context.visibles2[m]; 
+            var j1 = context.visibles2[m-1]; 
             var slice = j.slice;
             var x = j.x;
-            let pinchwidth = Math.max(context.visibles2[m+1]?context.visibles2[m+1].x-x:1,1); 
+            let pinchwidth = Math.max(j1?x-j1.x:0,0); 
             context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
-                x+r.x, 0, context.colwidth*pinchwidth, context.canvas.height);
+                x+r.x, 0, context.colwidth+pinchwidth, context.canvas.height);
         }
 
         context.restore();
@@ -3673,13 +3674,13 @@ function yoll()
             context.setcolumncomplete = 1;
         }
 
-        if (!context.screenshot)
+        if (!localobj.hide && !context.screenshot)
         {
             context.shadowOffsetX = 0;
             context.shadowOffsetY = 0;
             var a = new Fill("black");
             a.draw(context, new rectangle(rect.width-HNUB,0,HNUB,rect.height), 0, 0);
-            var a = new CurrentVPanel(new Fill("white"),(1-zoomobj.getcurrent())*rowobj.length());
+            var a = new CurrentVPanel(new Fill("white"),(1-zoomobj.getcurrent())*(window.innerHeight/2));
             a.draw(context, new rectangle(rect.width-HNUB,YNUB,HNUB,rect.height-YNUB), rowobj, 0);
             var s = context.sliceobj.data_.length;
             var e = context.slicefirst/s;
@@ -4380,12 +4381,12 @@ window.addEventListener("keydown", function (evt)
 
 function pageresize()
 {
-    var h = (localobj.hide||_4cnvctx.hidehead||MFRAME)?0:ALIEXTENT;
+    var h = (localobj.hide||_4cnvctx.hidehead||MOBFRAME)?0:ALIEXTENT;
     var y = 0;
     headcnvctx.show(0,y,window.innerWidth,h);
     headobj.set(0);
     headham.panel = headobj.getcurrent();
-    var h = (localobj.hide||localobj.hide||MFRAME)?0:ALIEXTENT;
+    var h = (localobj.hide||localobj.hide||MOBFRAME)?0:ALIEXTENT;
     footcnvctx.show(0,window.innerHeight-ALIEXTENT, window.innerWidth, h);
     footobj.set(0);
     footham.panel = footobj.getcurrent();
@@ -4508,6 +4509,12 @@ var helplst =
             Tom Brinkman
             repba@proton.me
 
+            The developers at Rb have developed a new graphics layout engine for rendering standard images as 360 degree panoramas.   Examples of this graphics engine can be viewed at reportbase.com.  
+
+            It converts images to a virtual cylinder that can be rotated by the viewer. Only the visible pixels are drawn to the screen for a very fast interactive image viewing experience.   
+
+            Rb provides superior panning, zooming, and slideshow functionality. It supports standard image formats, such as jpg, png, webp or gif.   Specialized image formats or equipment are not required.
+
             Mauris non auctor nibh, nec convallis metus. Nullam eu gravida nunc. Nulla pellentesque augue feugiat elit interdum, ac ornare eros sodales. Vivamus sed ante velit. Mauris non turpis sit amet nunc auctor accumsan eget mattis turpis. Nunc hendrerit suscipit tellus, eget rhoncus augue varius vitae. Proin vel purus malesuada, vehicula nunc et, ullamcorper purus. Integer gravida quam iaculis urna hendrerit, ut fringilla erat dignissim. Cras eget lacus mattis, convallis nisi eget, facilisis massa. Nulla vel libero eu elit venenatis egestas commodo ac ligula.
 
             Donec varius est id mauris commodo, ut imperdiet ipsum molestie. Curabitur condimentum felis non lacus accumsan tincidunt eget vitae velit. Donec viverra felis a lectus maximus vehicula ut quis sem. Vivamus eu neque non risus rutrum pharetra sed vitae dui. Etiam consectetur sem neque, in lacinia enim tristique eu. Praesent bibendum ullamcorper vulputate. Sed commodo sagittis blandit. Vivamus vel porta nisl. Aliquam nibh lorem, aliquam eu tincidunt et, fringilla placerat augue. Donec convallis laoreet condimentum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Cras fermentum non velit in tristique. Sed nunc nulla, tristique vestibulum pulvinar quis, maximus at leo.
@@ -4540,16 +4547,56 @@ var helplst =
         var n = eventlst.findIndex(function(a){return a.name == "describe";})
         setevents(context, eventlst[n])
         context.describe =
-           `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec porttitor dapibus tellus nec bibendum. Vivamus a lorem at arcu tristique dignissim. Aliquam eu lorem dapibus est placerat commodo vel vel risus. Nam mattis faucibus lectus, at luctus libero mattis gravida. Suspendisse tempus mauris ac neque placerat fringilla ut nec leo. Cras placerat nulla id eros suscipit, vel accumsan purus dapibus. Morbi vitae lorem faucibus erat convallis sollicitudin ultrices vel tortor. In hac habitasse platea dictumst. Duis vel lorem diam. Mauris consectetur ac turpis suscipit faucibus.
+           `Keyboard
 
-            Ut blandit leo a luctus elementum. Maecenas nec nulla id lectus vulputate vulputate. Ut auctor tellus sed ultricies efficitur. Donec sodales velit non massa suscipit ullamcorper. Vestibulum nunc diam, ultricies ut eros vitae, consectetur venenatis quam. Aliquam ultrices est ipsum, sed bibendum mauris rhoncus sit amet. Nam eleifend eros purus, at posuere massa ornare nec. Duis tempor turpis ut sem accumsan maximus. Aliquam augue quam, vulputate in tristique et, consectetur in lectus. In varius purus nisi, ac placerat orci euismod eget. Etiam at ligula dignissim, malesuada felis a, accumsan dolor. Integer eu porta purus. Quisque euismod leo sit amet tellus pellentesque, eget condimentum nibh scelerisque. Nulla ac nisl eget nisi congue pulvinar ac at mi.
+            [1-9]
+            Thumbnail Position
 
-            Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nunc a quam lorem. Etiam elementum luctus suscipit. Aenean sed orci non enim congue euismod euismod et ante. Curabitur sed commodo neque, pellentesque dignissim erat. Nullam massa erat, molestie nec tempor varius, consectetur in arcu. Cras gravida, felis a interdum ullamcorper, lacus mi consequat nibh, eu cursus nunc justo sed nisi. In blandit sem in purus laoreet, vel facilisis risus ullamcorper. Duis sed sem quis dui egestas vehicula.
+            [T]
+            Thumbnail Picture
 
-            In pharetra risus vitae nisi eleifend, id dictum risus molestie. Suspendisse varius tellus vitae lorem facilisis vulputate. Maecenas ac ex arcu. In mollis risus vitae odio bibendum tempus. Phasellus tempus magna a erat fringilla tincidunt. Aenean et mauris at leo imperdiet feugiat. Ut ut pretium lectus. Fusce ut mollis justo.
+            [R]
+            Show Thumbnail
 
-            Sed eget odio id augue molestie placerat. Sed eget fermentum lacus, at pretium libero. Praesent fermentum ante lorem, et egestas diam condimentum quis. Nullam quis tellus in lorem malesuada consectetur. Morbi et ex diam. Morbi quis tellus eu velit suscipit aliquet at et ex. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed suscipit condimentum diam, et pretium tellus facilisis in. Integer sit amet faucibus massa. Proin augue lectus, ornare in justo at, iaculis laoreet urna. Mauris libero ex, ullamcorper id elit non, interdum auctor sem.
-            `
+            [F]
+            Fullscreen
+
+            [Space]
+            Hide UI
+
+            [Tab]
+            Move Horizontal
+
+            [B]
+            Load Image
+
+            [-]
+            Zoom-out
+
+            [+]
+            Zoom-in
+
+            [Left]
+            Move Left
+
+            [Right]
+            Move Right
+
+            [Up]
+            Move Up
+
+            [Down]
+            Move Down
+
+            [Page-up]
+            Previous Image
+
+            [Page-down]
+            Next Image
+
+            [Enter]
+            Next Row`;
+        
         var k = helpobj.getcurrent().index?helpobj.getcurrent().index:0;
         context.describeobj.set(k);
         context.refresh()
@@ -4574,9 +4621,13 @@ var helplst =
             Virtual Width\n${context.virtualwidth.toFixed(2)}\n
             Virtual Height\n${context.virtualheight}\n
             Virtual Aspect\n${context.virtualaspect.toFixed(2)}\n
+            Slices\n${context.sliceobj.length()}\n
+            Visible Slices\n${context.count}\n
             Window Width\n${window.innerWidth}\n
             Window Height\n${window.innerHeight}\n
             Window Aspect\n${(window.innerWidth/window.innerHeight).toFixed(2)}\n
+            Time Main\n${globalobj.timemain}\n
+            Slice Width\n${globalobj.slicewidth}\n
             userAgent\n${navigator.userAgent}\n
             `;
 
@@ -4646,6 +4697,11 @@ function project()
     window.open(s,"_self");
 }
 
+document.addEventListener("touchstart", function(evt)
+{
+    evt.preventDefault();
+}, {passive: false});
+
 document.addEventListener('touchmove', function (evt) 
 { 
     evt.preventDefault(); 
@@ -4655,20 +4711,13 @@ window.addEventListener("load", async () =>
 {
     try
     {
-//todo: release mode
-//        if ("serviceWorker" in navigator)
-//            await navigator.serviceWorker.register("sw.js");
-    }
-    catch(error)
-    {
-    }
+        if (url.origin == "https://reportbase.com" && "serviceWorker" in navigator)
+           navigator.serviceWorker.register("sw.js");
 
-    seteventspanel(new YollPanel());
-    _4cnvctx.enabled = 1;
-    globalobj.main = setInterval(function () { yoll(); }, TIMEMAIN);
+        seteventspanel(new YollPanel());
+        _4cnvctx.enabled = 1;
+        globalobj.main = setInterval(function () { yoll(); }, globalobj.timemain);
 
-    try
-    {
         var obj = JSON.parse(localStorage.getItem(url.path));
         if (obj)
         {
@@ -4698,6 +4747,7 @@ window.addEventListener("load", async () =>
         var timers = JSON.parse(localStorage.getItem("TIMERS"));
         if (timers)
         {
+            _6cnvctx.timeobj.set(timers[5]);
             _7cnvctx.timeobj.set(timers[6]);
             _9cnvctx.timeobj.set(timers[8]);
         }
@@ -4774,7 +4824,7 @@ window.addEventListener("visibilitychange", (evt) =>
     }
     else
     {
-        globalobj.main = setInterval(function () { yoll(); }, TIMEMAIN);
+        globalobj.main = setInterval(function () { yoll(); }, globalobj.timemain);
         if (globalobj.autostart)
             slideon()
         contextobj.reset();
