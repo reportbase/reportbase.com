@@ -170,7 +170,7 @@ else if (globalobj.template == "7X1")
     globalobj.trait = 100;
     globalobj.scape = 100;
     globalobj.autostart = 0;
-    globalobj.zoombegin = 0;
+    globalobj.zoombegin = 20;
 }
 
 Math.clamp = function (min, max, val)
@@ -1346,12 +1346,7 @@ var pinchlst =
     name: "BOSS",
     pinch: function (context, scale)
     {
-        var pt = context.getweightedpoint(scale,0); 
-        if (!pt.x)
-            return;
-        scale = pt.x;
-
-        if (localobj.showthumb)
+        if (context.isthumbrect)
         {
             var obj = heightobj.getcurrent();
             var data = obj.data_; 
@@ -1375,6 +1370,8 @@ var pinchlst =
     },
     pinchstart: function (context, rect, x, y) 
     {
+        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+        var n = context.grid ? context.grid.hitest(x,y) : -1; 
         this.clearweights();
         slideoff();
         context.pinching = 1;
@@ -1418,7 +1415,7 @@ var heightobj = new makeoption("HEIGHT", [traitobj,scapeobj]);
 
 var demolst =
 [
-//1x6
+//1x5
 {path: "https://reportbase.com/?p=HUPE&m=0004&t=1x5", func: demo, title: "HUPE"},
 {path: "https://reportbase.com/?p=GOUT&m=0005&t=1x5", func: demo, title: "GOUT"}, 
 {path: "https://reportbase.com/?p=CORN&m=0004&t=1x5", func: demo, title: "CORN"}, 
