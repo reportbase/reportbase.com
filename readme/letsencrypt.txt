@@ -1,6 +1,7 @@
 sudo certbot renew
+
 mkdir -p /srv/http/reportbase.us/.well-known/acme-challenge
-sudo certbot certonly --dry-run --email reportbase@gmail.com --webroot --webroot-path /srv/http/reportbase.us  -d reportbase.us
+sudo certbot certonly --dry-run --email reportbase@gmail.com --webroot --webroot-path /srv/http/reportbase.us  -d www.reportbase.us reportbase.us
 
 Automated certificate renewal
 Create the file /etc/systemd/system/certbot.service:
