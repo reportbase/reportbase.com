@@ -9,7 +9,6 @@ const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
 const MOBFRAME = MOBILE && IFRAME;
 const MAXVIRTUAL = SAFARI?5760:5760*2; 
-const DRAWCOUNT = 25;
 const SWIPETIME = 60;
 const TIMERELOAD = 30000;
 const REFRESHEADER = 1000;
@@ -20,9 +19,9 @@ const THUMBLINEIN = 2.5;
 const THUMBLINEOUT = 4.0;
 const JULIETIME = 100; 
 const DELAY = 10000000;
-const HNUB = 5;
-const YNUB = 6;
-const BNUB = 5;
+const HNUB = 3;
+const YNUB = 3;
+const BNUB = 3;
 const THUMBORDER = 16;
 const TABWIDTH = 40;
 const TABHEIGHT = 40;
@@ -32,8 +31,7 @@ const ALIEXTENT = 60;
 const BEKEXTENT = 20;
 const NUBEXTENT = 8;
 const ARROWBORES = 20;
-const CYLRADIUS = 65.45;
-const VIRTCONST = 0.8;
+const VIRTCONST = 1;//todo  0.8
 const DELAYCENTER = 3.926;
 const TIMEOBJ = 3926;
 const FONTHEIGHT = 16;
@@ -89,14 +87,15 @@ localobj.picture = 0;
 localobj.autodirect = 1;
 localobj.showthumb = 1;
 localobj.position = 7;
-globalobj.timemain = SAFARI?12:4;
-globalobj.slicewidth = 6;//todo crash when to high
+globalobj.timemain = SAFARI?12:8;
+globalobj.slicewidth = 60;//todo
 globalobj.divider = "rgba(0,0,0,0)";
 globalobj.timebegin = TIMEOBJ/2;
 globalobj.autostart = 0;
 globalobj.autopage = 1500;
 globalobj.cols = 1;
 globalobj.rows = 5;
+globalobj.slicextra = 2;
 globalobj.vpan = 1;
 globalobj.trait = 80;
 globalobj.scape = 80;
@@ -165,12 +164,13 @@ else if (globalobj.template == "1X5")
 }
 else if (globalobj.template == "7X1")
 {
+    globalobj.vpan = 0;
     globalobj.maxheight = 50;
     globalobj.cols = 7;
     globalobj.trait = 100;
     globalobj.scape = 100;
     globalobj.autostart = 0;
-    globalobj.zoombegin = 0;
+    globalobj.zoombegin = 20;
 }
 
 Math.clamp = function (min, max, val)
@@ -187,11 +187,9 @@ photo.image = 0;
 photo.cached = 0;
 
 var slicelst = [];
-var j = 400;
-for (var n = 0; n < 1000; n++)
+for (var n = 400; n >= 0; n=n-1)
 {
-    slicelst[n] = {slices: j*100, delay: CYLRADIUS*(60/j)}
-    j--;
+    slicelst.push({slices: n*1.02, delay:305343/n});
 }
 
 var makeoption = function (title, data)
@@ -600,8 +598,10 @@ var ScrollPanel = function()
         context.shadowOffsetX = 1;
         context.shadowOffsetY = 1;
         context.shadowColor = "black"
-        var a = new CurrentVPanel(new Fill(NUBCOLOR),(1-zoomobj.berp())*window.innerHeight/2);
+        
+        var a = new CurrentVPanel(new Fill(NUBCOLOR),Math.min(ALIEXTENT*2,rect.height/4));
         a.draw(context, new rectangle(0,YNUB,HNUB,rect.height-YNUB), rowobj, 0);
+  
         var s = context.sliceobj.data_.length;
         var e = context.slicefirst/s;
         var k = context.count/s; 
@@ -621,6 +621,9 @@ var ScrollPanel = function()
         a.draw(context, new rectangle(xxxxx,0,wwwww,BNUB), 0, 0);
         if (s > rect.width)
             a.draw(context, new rectangle(0,0,c,BNUB), 0, 0);
+  
+        //var a = new CurrentHPanel(new Fill(NUBCOLOR),Math.min(ALIEXTENT*2,rect.height/5));
+        //a.draw(context, new rectangle(0,0,rect.width,HNUB), context.timeobj, 0);
     }
 }
 
@@ -815,7 +818,6 @@ function rectangle(x, y, w, h, user)
     this.user = user;
 }
 
-window.rect = new rectangle(0,0,window.innerWidth,window.innerHeight);
 rectangle.prototype.hitest = function (x, y)
 {
     return x >= this.x && y >= this.y &&
@@ -946,15 +948,8 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
             projectobj.rotate(j);
             var str = addressobj.full();
             history.replaceState(0, document.title, str);
-            if (++context.drawcount > DRAWCOUNT)
-            {
-                location.reload();
-            }
-            else
-            {
-                contextobj.reset();
-                setTimeout(function(){_4cnvctx.movingpage = 0; _4cnvctx.refresh(); }, 200);
-            }
+            contextobj.reset();
+            setTimeout(function(){_4cnvctx.movingpage = 0; _4cnvctx.refresh(); }, 200);
         }
     }, 100);
 }
@@ -1350,12 +1345,7 @@ var pinchlst =
     name: "BOSS",
     pinch: function (context, scale)
     {
-        var pt = context.getweightedpoint(scale,0); 
-        if (!pt.x)
-            return;
-        scale = pt.x;
-
-        if (localobj.showthumb)
+        if (context.isthumbrect)
         {
             var obj = heightobj.getcurrent();
             var data = obj.data_; 
@@ -1379,6 +1369,8 @@ var pinchlst =
     },
     pinchstart: function (context, rect, x, y) 
     {
+        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+        var n = context.grid ? context.grid.hitest(x,y) : -1; 
         this.clearweights();
         slideoff();
         context.pinching = 1;
@@ -1422,7 +1414,7 @@ var heightobj = new makeoption("HEIGHT", [traitobj,scapeobj]);
 
 var demolst =
 [
-//1x6
+//1x5
 {path: "https://reportbase.com/?p=HUPE&m=0004&t=1x5", func: demo, title: "HUPE"},
 {path: "https://reportbase.com/?p=GOUT&m=0005&t=1x5", func: demo, title: "GOUT"}, 
 {path: "https://reportbase.com/?p=CORN&m=0004&t=1x5", func: demo, title: "CORN"}, 
@@ -1669,6 +1661,7 @@ var panlst =
  	leftright: function (context, rect, x, y, type) { },
 	pan: function (context, rect, x, y, type)
 	{
+        slideoff();
         if ( context.pinching )
              return;
 
@@ -1679,7 +1672,7 @@ var panlst =
         var pt = context.getweightedpoint(x,y); 
         if (!pt)
             return;
-
+        
         if (context.isthumbrect)
         {
             context.hithumb(pt.x, globalobj.vpan?pt.y:undefined);
@@ -1719,8 +1712,6 @@ var panlst =
     },
     panend: function (context, rect, x, y)
 	{
-        if (++context.drawcount > DRAWCOUNT)
-            location.reload();
         contextobj.reset();
         context.pantype = 0;
         context.panning = 0;  
@@ -2417,11 +2408,6 @@ var thumblst =
         context.thumbselect[0] = new rectangle(xxxxx,y,wwwww,hh);
         context.thumbselectwidth = wwwww;
        
-        var kx = context.thumbselect[0].x - context.thumbrect.x;
-        var k = kx/context.thumbrect.width;
-        var ki = Math.floor(k*context.sliceobj.length());
-        context.sliceobj.set(ki);
-
         context.lineWidth = THUMBLINEIN;
         blackrect.draw(context, context.thumbselect[0], 0, 0);
         whiterect.draw(context, context.thumbselect[0], 0, 0);
@@ -2663,6 +2649,7 @@ function resetcanvas()
     var p = panxobj.getcurrent();
     var s = context.timeobj.length()/context.virtualwidth;
     context.rvalue = p*s;
+    window.rect = new rectangle(0,0,window.innerWidth,window.innerHeight);
 
     var k = window.innerHeight > window.innerWidth?0:1;
     heightobj.set(k);
@@ -2774,7 +2761,6 @@ var ContextObj = (function ()
 			context.fillText("  ", 0, 0);
 			context.font = "400 100px Source Code Pro";
 			context.fillText("  ", 0, 0);
-            context.drawcount = 0;  
 			context.lastime = 0;
             setevents(context, eventlst[n]);
             context.sliceobj = new makeoption("", []);
@@ -2850,8 +2836,8 @@ var ContextObj = (function ()
 			if (context.index == 3)//boss
             {
                 var h = window.innerHeight;
-                var w = window.innerWidth + globalobj.slicewidth*8;
-                var l = -globalobj.slicewidth*4;
+                var w = window.innerWidth + globalobj.slicewidth*globalobj.slicextra*2;
+                var l = -globalobj.slicewidth*globalobj.slicextra;
                 var t = 0;
 				context.show(l, t, w, h);
             }
@@ -2921,8 +2907,8 @@ var ContextObj = (function ()
                     resetcanvas(context);
                     context.refresh();
 
-                    if (globalobj.autostart)
-                        slideon();
+                    //todo if (globalobj.autostart)
+                      //todo  slideon();
 
                     var k = projectobj.current();
                     projectobj.rotate(localobj.autodirect);
@@ -3503,7 +3489,6 @@ function reset()
 
 function resize()
 {
-    _4cnvctx.drawcount = 0;
     menuhide();
     delete photo.cached;
     delete _4cnvctx.describe;
@@ -3583,7 +3568,7 @@ function drawslices()
         context.translate(xt, 0);
         context.shadowOffsetX = 0;
         context.shadowOffsetY = 0;
-        context.clear();
+        context.clear();//todo
         var m = context.getslicefirst()
         var msave = m;
         var j = time + slice.time;
@@ -3655,15 +3640,29 @@ function drawslices()
             context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
                 j1.x+r.x, 0, pinchwidth, context.canvas.height);
         }
+//todo
 
-        for (var m = 1; m < context.visibles2.length; ++m)
+        for (var m = 0; m < context.visibles2.length; ++m)
         {
-            var j = context.visibles2[m]; 
-            var j1 = context.visibles2[m-1]; 
-            var slice = j.slice;
-            let pinchwidth = Math.abs(j.x-j1.x); 
-            context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
-                j1.x+r.x, 0, pinchwidth, context.canvas.height);
+            if (m == 0)
+            {
+                var j = context.visibles2[m]; 
+                var k = context.visibles2.length;
+                var j1 = context.visibles2[k-1]; 
+                var slice = j.slice;
+                let pinchwidth = Math.abs(j.x-j1.x); 
+                context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
+                    j1.x+r.x, 0, pinchwidth, context.canvas.height);
+            }
+            else
+            {
+                var j = context.visibles2[m]; 
+                var j1 = context.visibles2[m-1]; 
+                var slice = j.slice;
+                let pinchwidth = j.x-j1.x; 
+                context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
+                    j1.x+r.x, 0, pinchwidth, context.canvas.height);
+            }
         }
 
         context.thumbselect = [];
@@ -3684,7 +3683,7 @@ function drawslices()
 
         context.restore();
         context.save();
-        context.translate(globalobj.slicewidth*4, 0);
+        context.translate(globalobj.slicewidth*globalobj.slicextra, 0);
         if (context.describe)
         {
             for (var m = 0; m < sliceobj.length; ++m)
@@ -4671,8 +4670,6 @@ function slideon()
 {
     menuhide();
     clearInterval(globalobj.auto)
-//    if (!_4cnvctx.panning)
-//        _4cnvctx.movepage(localobj.autodirect);
     globalobj.auto = setInterval(function()
     {
         if (_4cnvctx.panning)
@@ -4844,8 +4841,8 @@ window.addEventListener("visibilitychange", (evt) =>
     else
     {
         globalobj.main = setInterval(function () { drawslices(); }, globalobj.timemain);
-        if (globalobj.autostart)
-            slideon()
+        //todo if (globalobj.autostart)
+          //  slideon()
         contextobj.reset();
         pageresize();
         _4cnvctx.refresh();

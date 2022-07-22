@@ -87,8 +87,8 @@ localobj.picture = 0;
 localobj.autodirect = 1;
 localobj.showthumb = 1;
 localobj.position = 7;
-globalobj.timemain = SAFARI?12:8;
-globalobj.slicewidth = 5;
+globalobj.timemain = 10;
+globalobj.slicewidth = 10;
 globalobj.divider = "rgba(0,0,0,0)";
 globalobj.timebegin = TIMEOBJ/2;
 globalobj.autostart = 0;
@@ -187,7 +187,7 @@ photo.image = 0;
 photo.cached = 0;
 
 var slicelst = [];
-for (var n = 400; n >= 0; n=n-1)
+for (var n = 399; n >= 0; n=n-1)
 {
     const CYLRADIUS = 65.45*32;
     slicelst.push({slices: n*3.125, delay: CYLRADIUS*(60/n)});
@@ -3569,7 +3569,6 @@ function drawslices()
         context.translate(xt, 0);
         context.shadowOffsetX = 0;
         context.shadowOffsetY = 0;
-        context.clear();
         var m = context.getslicefirst()
         var msave = m;
         var j = time + slice.time;
@@ -3632,24 +3631,50 @@ function drawslices()
         }
 
         context.count = context.visibles1.length + context.visibles2.length;
-        for (var m = 1; m < context.visibles1.length; ++m)
+        for (var m = 0; m < context.visibles1.length; ++m)
         {
-            var j = context.visibles1[m]; 
-            var j1 = context.visibles1[m-1]; 
-            var slice = j.slice;
-            let pinchwidth = Math.abs(j.x-j1.x); 
-            context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
-                j1.x+r.x, 0, pinchwidth, context.canvas.height);
+            if (m == 0)
+            {
+                var j = context.visibles2[m]; 
+                var k = context.visibles2.length;
+                var j1 = context.visibles2[k-1]; 
+                var slice = j.slice;
+                let pinchwidth = j.x-j1.x; 
+                context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
+                     j1.x+r.x, 0, pinchwidth, context.canvas.height);
+            }
+            else
+            {
+                var j = context.visibles1[m]; 
+                var j1 = context.visibles1[m-1]; 
+                var slice = j.slice;
+                let pinchwidth = Math.abs(j.x-j1.x); 
+                context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
+                    j1.x+r.x, 0, pinchwidth, context.canvas.height);
+            }
         }
-//todo
-        for (var m = 1; m < context.visibles2.length; ++m)
+        
+        for (var m = 0; m < context.visibles2.length; ++m)
         {
-            var j = context.visibles2[m]; 
-            var j1 = context.visibles2[m-1]; 
-            var slice = j.slice;
-            let pinchwidth = Math.abs(j.x-j1.x); 
-            context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
-                j1.x+r.x, 0, pinchwidth, context.canvas.height);
+            if (m == 0)
+            {
+                var j = context.visibles2[m]; 
+                var k = context.visibles2.length;
+                var j1 = context.visibles2[k-1]; 
+                var slice = j.slice;
+                let pinchwidth = j.x-j1.x; 
+                context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
+                     j1.x+r.x, 0, pinchwidth, context.canvas.height);
+            }
+            else
+            {
+                var j = context.visibles2[m]; 
+                var j1 = context.visibles2[m-1]; 
+                var slice = j.slice;
+                let pinchwidth = Math.abs(j.x-j1.x); 
+                context.drawImage(slice.canvas, slice.x, 0, context.colwidth, context.canvas.height,
+                    j1.x+r.x, 0, pinchwidth, context.canvas.height);
+            }
         }
 
         context.thumbselect = [];
@@ -4657,8 +4682,6 @@ function slideon()
 {
     menuhide();
     clearInterval(globalobj.auto)
-//    if (!_4cnvctx.panning)
-//        _4cnvctx.movepage(localobj.autodirect);
     globalobj.auto = setInterval(function()
     {
         if (_4cnvctx.panning)
@@ -4830,8 +4853,8 @@ window.addEventListener("visibilitychange", (evt) =>
     else
     {
         globalobj.main = setInterval(function () { drawslices(); }, globalobj.timemain);
-        if (globalobj.autostart)
-            slideon()
+//        if (globalobj.autostart)
+//            slideon()
         contextobj.reset();
         pageresize();
         _4cnvctx.refresh();
