@@ -4842,11 +4842,11 @@ var templatelst =
         globalobj.vpan = 0;
         globalobj.trait = 100;
         globalobj.scape = 100;
-        globalobj.zoombegin = 35;
+        globalobj.zoombegin = 0;
         startobj.autopage = 3000;
         globalobj.rowbegin = 0;
         globalobj.hide = 1;
-        startobj.set(2);
+        startobj.set(1);
     }
 },
 {

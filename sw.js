@@ -1,6 +1,6 @@
 // https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers
 
-const cacheName = 'v12';
+const cacheName = 'v13';
 const precacheResources = 
 [
     '/',
@@ -20,9 +20,22 @@ self.addEventListener('install', (event) =>
     event.waitUntil(caches.open(cacheName).then((cache) => cache.addAll(precacheResources)));
 });
 
+const deleteCache = async key => 
+{
+    await caches.delete(key)
+}
+
+const deleteOldCaches = async () => 
+{
+   const cacheKeepList = [cacheName];
+   const keyList = await caches.keys()
+   const cachesToDelete = keyList.filter(key => !cacheKeepList.includes(key))
+   await Promise.all(cachesToDelete.map(deleteCache));
+}
+
 self.addEventListener('activate', (event) => 
 {
-    console.log('Delete old caches');
+    event.waitUntil(deleteOldCaches());
 });
 
 self.addEventListener("fetch", function(e) 
