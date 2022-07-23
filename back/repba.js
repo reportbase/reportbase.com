@@ -186,10 +186,12 @@ var photo = {}
 photo.image = 0;
 photo.cached = 0;
 
+const VIRTCONST = 0.8;
 var slicelst = [];
-for (var n = 400; n >= 0; n=n-1)
+for (var n = 399; n >= 0; n=n-1)
 {
-    slicelst.push({slices: n*1.02, delay:305343/n});
+    const CYLRADIUS = 65.45*32;
+    slicelst.push({slices: n*3.125, delay: CYLRADIUS*(60/n)});
 }
 
 var makeoption = function (title, data)

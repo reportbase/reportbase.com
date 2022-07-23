@@ -19,9 +19,9 @@ const THUMBLINEIN = 2.5;
 const THUMBLINEOUT = 4.0;
 const JULIETIME = 100; 
 const DELAY = 10000000;
-const HNUB = 3;
-const YNUB = 3;
-const BNUB = 3;
+const HNUB = 5;
+const YNUB = 5;
+const BNUB = 5;
 const THUMBORDER = 16;
 const TABWIDTH = 40;
 const TABHEIGHT = 40;
@@ -56,10 +56,12 @@ dropobj = {};
 globalobj = {};
 localobj = {}
 
+const VIRTCONST = 0.8;
 var slicelst = [];
 for (var n = 399; n >= 0; n=n-1)
 {
-    slicelst.push({slices: n*3.125, delay: 100500/n});
+    const CYLRADIUS = 65.45*32;
+    slicelst.push({slices: n*3.125, delay: CYLRADIUS*(60/n)});
 }
 
 var url = new URL(window.location.href);
@@ -219,7 +221,9 @@ var startlst =
             clearInterval(startobj.auto)
             startobj.auto = setInterval(function()
             {
-                _4cnvctx.movepage(1);
+                if (_4cnvctx.slideshow > 0)
+                    return;
+                _4cnvctx.movepage(localobj.autodirect);
             }, startobj.autopage);
         }
     },
@@ -230,21 +234,11 @@ var startlst =
             clearInterval(startobj.auto);
             startobj.auto = setInterval(function()
             {
+                if (_4cnvctx.slideshow > 0)
+                    return;
                 _4cnvctx.movedown();
                 contextobj.reset();
-            }, 1000);
-        }
-    },
-	new function ()
-    {
-        this.init = function ()
-        {
-            clearInterval(startobj.auto);
-            startobj.auto = setInterval(function()
-            {
-                _4cnvctx.movedown();
-                contextobj.reset();
-            }, 3000);
+            }, startobj.autopage);
         }
     },
 ];
@@ -275,8 +269,8 @@ globalobj.scape = 80;
 globalobj.maxheight = 0;
 globalobj.zoombegin = MOBILE?50:40;
 globalobj.rowreset = 1;
-globalobj.slidecount = (TIMEOBJ/window.innerWidth)*5;
-globalobj.slidereduce = globalobj.slidecount/25;
+globalobj.slidecountfactor = 25;
+globalobj.slidreducefactor = 25;
 
 var photo = {}
 photo.image = 0;
@@ -852,7 +846,7 @@ CanvasRenderingContext2D.prototype.getx = function(k)
     var slice = this.sliceobj.data_[k];
     var time = this.timeobj.getcurrent()/1000;
     var j = time + slice.time;
-    var b = Math.tan(j);
+    var b = Math.tan(j*VIRTCONST);
     return Math.berp(-1, 1, b) * this.virtualpinch-this.virtualeft;
 }
 
@@ -2622,6 +2616,9 @@ function resetcanvas()
         slices[m+Math.floor(col.width/2)].ismiddle = 1;
     }
 
+    globalobj.slidecount = (TIMEOBJ/context.virtualwidth)*globalobj.slidecountfactor;
+    globalobj.slidereduce = globalobj.slidecount/globalobj.slidreducefactor;
+
     var p = panxobj.getcurrent();
     var s = context.timeobj.length()/context.virtualwidth;
     context.rvalue = p*s;
@@ -3495,6 +3492,7 @@ window.addEventListener("screenorientation", (evt) =>
 
 function escape() 
 {
+    startobj.off();
     menuhide();
     delete _4cnvctx.describe;
     var n = eventlst.findIndex(function(a){return a.name == "_4cnvctx";})
@@ -3547,7 +3545,7 @@ function drawslices()
         var m = context.getslicefirst()
         var msave = m;
         var j = time + slice.time;
-        var b = Math.tan(j);
+        var b = Math.tan(j*VIRTCONST);
         var first = Math.berp(-1, 1, b) * context.virtualpinch - context.virtualeft;
         var firstx = DELAY;
         var count = 0;
@@ -3557,7 +3555,7 @@ function drawslices()
         {
             var slice = sliceobj[m];
             var j = time + slice.time;
-            var b = Math.tan(j);
+            var b = Math.tan(j*VIRTCONST);
             var x = Math.berp(-1, 1, b) * context.virtualpinch - context.virtualeft;
 
             if (first < 0 && x >= width)
@@ -3588,7 +3586,7 @@ function drawslices()
             {
                 var slice = sliceobj[m];
                 var j = time + slice.time;
-                var b = Math.tan(j);
+                var b = Math.tan(j*VIRTCONST);
                 var x = Math.berp(-1, 1, b) * context.virtualpinch - context.virtualeft;
 
                 if (first < 0 && x >= width)
@@ -3610,7 +3608,7 @@ function drawslices()
         {
             if (m == 0)
             {
-                var j = context.visibles2[m]; 
+                var j = context.visibles1[m]; 
                 var k = context.visibles2.length;
                 var j1 = context.visibles2[k-1]; 
                 var slice = j.slice;
@@ -3756,7 +3754,7 @@ function drawslices()
             var slice = slices[m];
             slice.time = time + (m*context.delayinterval);
             var e = (context.virtualheight-r.height)/2;
-            var bos = Math.tan(slice.time * 0.8);
+            var bos = Math.tan(slice.time *VIRTCONST);
             let y = Math.berp(-1, 1, bos) * context.virtualheight;
             y -= e;
             var x =  w/2;
@@ -4828,8 +4826,6 @@ var templatelst =
         globalobj.rowbegin = 0;
         globalobj.zoombegin = MOBILE?75:25;
         localobj.picture = 1;
-        globalobj.slidecount = (TIMEOBJ/window.innerWidth)*10;
-        globalobj.slidereduce = globalobj.slidecount/25;
         startobj.set(2);
     }
 },
@@ -4842,11 +4838,13 @@ var templatelst =
         globalobj.vpan = 0;
         globalobj.trait = 100;
         globalobj.scape = 100;
-        globalobj.zoombegin = 0;
+        globalobj.zoombegin = 10;
         startobj.autopage = 3000;
-        globalobj.rowbegin = 0;
+        globalobj.rowbegin = 50;
         globalobj.hide = 1;
         startobj.set(1);
+        globalobj.slidecountfactor = 20;
+        globalobj.slidreducefactor = 100;
     }
 },
 {
@@ -4904,6 +4902,8 @@ var templatelst =
         globalobj.trait = 100;
         globalobj.scape = 100;
         globalobj.zoombegin = 20;
+        globalobj.slidecountfactor = 20;
+        globalobj.slidreducefactor = 100;
     }
 }
 ];
