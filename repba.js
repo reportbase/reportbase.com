@@ -4863,6 +4863,7 @@ var templatelst =
     init: function ()
     {
         localobj.picture = 1;
+        globalobj.rowbegin = 20;
         globalobj.trait = 100;
         globalobj.scape = 100;
         startobj.set(1);
@@ -4883,12 +4884,13 @@ var templatelst =
     name: "1X5",
     init: function ()
     {
+        slideobj.data_ = [4,27.5,50,72.5,95]
         globalobj.cols = 1;
         globalobj.rows = 5;
         globalobj.trait = 50;
         globalobj.scape = 100;
         globalobj.zoombegin = 50;
-        globalobj.rowbegin = 0;
+        globalobj.rowbegin = 4;
         startobj.set(2);
     }
 },
@@ -4901,7 +4903,7 @@ var templatelst =
         globalobj.trait = 100;
         globalobj.scape = 100;
         globalobj.zoombegin = 0;
-        globalobj.rowbegin = 15;
+        globalobj.rowbegin = 20;
         globalobj.slidecountfactor = 20;
         globalobj.slidreducefactor = 100;
     }
