@@ -1360,6 +1360,8 @@ var demolst =
 {path: "https://reportbase.com/?p=GOUT&m=0005&t=1x5", func: demo, title: "GOUT"}, 
 {path: "https://reportbase.com/?p=CORN&m=0004&t=1x5", func: demo, title: "CORN"}, 
 {path: "https://reportbase.us/?p=ARMY&m=0005&t=1x5", func: demo, title: "ARMY"},
+{path: "https://reportbase.com/?p=TIGE&m=0001&t=1x5", func: demo, title: "TIGE"},
+{path: "https://reportbase.com/?p=SKRA&m=0003&t=1x5", func: demo, title: "SKRA"},
 
 //7x1
 {path: "https://reportbase.com/?p=WELL&m=0007&t=7x1", func: demo, title: "WELL"},
@@ -1383,7 +1385,13 @@ var demolst =
 {path: "https://reportbase.com/?p=PINO&m=0029&t=wide", func: demo, title: "PINO"},
 {path: "https://reportbase.us/?p=WIDE&m=0029&t=wide", func: demo, title: "WIDE"},
 
+//Mona Lisa
+{path: "https://reportbase.com/?p=MOCO&t=MONA", func: demo, title: "MOCO"}, 
+{path: "https://reportbase.com/?p=MONA&t=MONA", func: demo, title: "MONA"}, 
+{path: "https://reportbase.com/?p=USCO&t=MONA", func: demo, title: "USCO"}, 
+
 //Landscapes
+{path: "https://reportbase.com/?p=SKYE&m=0035&t=landscape", func: demo, title: "SKYE"}, 
 {path: "https://reportbase.com/?p=HOPE&m=0076&t=landscape", func: demo, title: "HOPE"}, 
 {path: "https://reportbase.com/?p=GOAT&m=0097&t=landscape", func: demo, title: "GOAT"}, 
 {path: "https://reportbase.com/?p=BOAT&m=0101&t=landscape", func: demo, title: "BOAT"}, 
@@ -1397,8 +1405,6 @@ var demolst =
 {path: "https://reportbase.com/?p=NAVY&m=0060&t=landscape", func: demo, title: "NAVY"}, 
 
 //Portraits
-{path: "https://reportbase.com/?p=MONA&t=mona", func: demo, title: "MONA"}, 
-{path: "https://reportbase.com/?p=USCO&t=mona", func: demo, title: "USCO"}, 
 {path: "https://reportbase.com/?p=ROBE&m=0012&t=portrait", func: demo, title: "ROBE"}, 
 {path: "https://reportbase.com/?p=RAIN&m=0077&t=portrait", func: demo, title: "RAIN"}, 
 {path: "https://reportbase.com/?p=BIRD&m=0041&t=portrait", func: demo, title: "BIRD"}, 
