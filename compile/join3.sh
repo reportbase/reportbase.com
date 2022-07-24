@@ -1,7 +1,4 @@
-convert a1.webp a2.webp a3.webp +append MEA3.0001.webp
-convert b1.webp b2.webp b3.webp +append MEA3.0002.webp
-convert c1.webp c2.webp c3.webp +append MEA3.0003.webp
-convert d1.webp d2.webp d3.webp +append MEA3.0004.webp
-convert f1.webp f2.webp f3.webp +append MEA3.0005.webp
-convert g1.webp g2.webp g3.webp +append MEA3.0006.webp
-convert r1.webp r2.webp r3.webp +append MEA3.0007.webp
+convert 0000.jpg 0001.jpg 0002.jpg 0003.jpg 0004.jpg -append 0000.jpg
+convert 0005.jpg 0006.jpg 0007.jpg 0008.jpg 0009.jpg -append 0001.jpg
+convert 0010.jpg 0011.jpg 0012.jpg 0013.jpg 0014.jpg -append 0002.jpg
+convert 0015.jpg 0016.jpg 0017.jpg 0018.jpg 0019.jpg -append 0003.jpg
