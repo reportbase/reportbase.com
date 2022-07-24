@@ -9,7 +9,7 @@ const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
 const MOBFRAME = MOBILE && IFRAME;
 const MAXVIRTUAL = SAFARI?5760:5760*2; 
-const SWIPETIME = 60;
+const SWIPETIME = 40;
 const TIMERELOAD = 30000;
 const REFRESHEADER = 1000;
 const MAXSLIDER = 720;
@@ -256,8 +256,7 @@ localobj.hide = 1;
 localobj.picture = 0;
 localobj.autodirect = 1;
 localobj.showthumb = 1;
-localobj.position = 7;
-globalobj.timemain = SAFARI?36:1;
+globalobj.timemain = SAFARI?36:4;
 globalobj.timebegin = TIMEOBJ/2;
 globalobj.cols = 1;
 globalobj.rows = 5;
@@ -268,7 +267,7 @@ globalobj.maxheight = 0;
 globalobj.zoombegin = MOBILE?50:40;
 globalobj.rowreset = 1;
 globalobj.slidecountfactor = 25;
-globalobj.slidreducefactor = 25;
+globalobj.slidreducefactor = 50;
 globalobj.slicewidth = 10;
 globalobj.slicextra = 2;
 globalobj.xboundry = globalobj.slicewidth * globalobj.slicextra;
@@ -1592,7 +1591,7 @@ var panlst =
     {
         var j = Math.max(context.virtualheight,rect.height);
         var s = context.timeobj.length()/j;
-        var k = 3*s;
+        var k = 3.5*s;
         context.timeobj.rotate(type=="pandown" ? k : -k);
         localStorage.setItem(context.id, context.timeobj.current());
 	},
@@ -1616,12 +1615,11 @@ var panlst =
             y = rowobj.getcurrent()
         
         x -= globalobj.xboundry;
-        var pt = context.getweightedpoint(x,y); 
-        x = (pt?pt.x:x);
-        y = (pt?pt.y:y);
-
         if (context.isthumbrect)
         {
+            var pt = context.getweightedpoint(x,y); 
+            x = (pt?pt.x:x);
+            y = (pt?pt.y:y);
             context.hithumb(x, globalobj.vpan?y:undefined);
         }
         else if (type == "panleft" || type == "panright")
@@ -1764,14 +1762,16 @@ var presslst =
         var n = context.grid.hitest(x,y); 
         if (isthumbrect || positobj.current() == n)
         {
-            localobj.picture = localobj.picture?0:1; 
+            if (localobj.showthumb)
+                localobj.picture = localobj.picture?0:1; 
+            localobj.showthumb = 1;
             pageresize();
             context.refresh()            
         }
         else
         {
-            //positobj.set(n);
-            //context.refresh();
+            positobj.set(n);
+            context.refresh();
             localobj.showthumb = localobj.showthumb?0:1;
             pageresize();
             context.refresh();
@@ -1793,8 +1793,8 @@ var swipelst =
     swipeupdown: function (context, rect, x, y, evt)
     {
         context.swipetype = evt.type;
-        var k = Math.max(window.innerHeight,context.virtualheight);
-        context.slideshow = (TIMEOBJ/k)*50;
+        var k = Math.max(window.innerHeight,context.virtualheight)*2;
+        context.slideshow = 75;///k)*50;
         context.refresh();
     },
 },
@@ -1802,11 +1802,15 @@ var swipelst =
     name: "BOSS",
     swipeleftright: function (context, rect, x, y, evt)
     {
+        startobj.off();
         x -= globalobj.xboundry;
         setTimeout(function()
         {   
             var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
-            localobj.autodirect = evt.type == "swipeleft"?-1:1;
+            if (isthumbrect)
+                localobj.autodirect = evt.type == "swipeleft"?1:-1;
+            else
+                localobj.autodirect = evt.type == "swipeleft"?-1:1;
             evt.preventDefault();
             context.slideshow = globalobj.slidecount;
             context.refresh();
@@ -1815,15 +1819,16 @@ var swipelst =
 
     swipeupdown: function (context, rect, x, y, evt)
     {
-        x -= globalobj.xboundry;
-        setTimeout(function()
-        {
-            if (evt.type == "swipedown")
-                context.moveup()
-            else 
+        startobj.off();
+         x -= globalobj.xboundry;                                                                                                               
+         setTimeout(function()
+         {
+             if (evt.type == "swipedown")
+                 context.moveup()
+             else 
                 context.movedown()
-            contextobj.reset();
-        }, SWIPETIME);
+             contextobj.reset();
+         }, SWIPETIME);
     },
 },
 ];
@@ -2366,7 +2371,6 @@ var thumblst =
 },
 ];
 
-var positobj = new makeoption("POSITION", 9);
 var thumbobj = new makeoption("THUMB", thumblst);
 
 var getmenufrompoint = function (context, x, y)
@@ -4740,19 +4744,6 @@ window.addEventListener("load", async () =>
     _4cnvctx.refresh()
 });
 
-var localst = 
-[
-    {obj:thumbobj,def:0},
-    {obj:positobj,def:localobj.position},
-    {obj:pinchobj,def:pinchobj.begin},
-    {obj:panyobj,def:panyobj.begin},
-    {obj:panxobj,def:panxobj.begin},
-    {obj:traitobj,def:globalobj.trait},
-    {obj:scapeobj,def:globalobj.scape},
-    {obj:zoomobj,def:globalobj.zoombegin},
-    {obj:rowobj,def:rowobj.begin},
-];
-
 function savelocal()
 {
     localobj.current = {};
@@ -4886,10 +4877,9 @@ var templatelst =
     name: "1X5",
     init: function ()
     {
-        localobj.position = 5;
         globalobj.cols = 1;
         globalobj.rows = 5;
-        globalobj.trait = 25;
+        globalobj.trait = 50;
         globalobj.scape = 100;
         globalobj.zoombegin = 50;
         globalobj.rowbegin = 0;
@@ -4900,7 +4890,6 @@ var templatelst =
     name: "7X1",
     init: function ()
     {
-        slideobj.data_ = [12.5, 25, 50, 75, 87.5];
         globalobj.maxheight = 50;
         globalobj.cols = 7;
         globalobj.trait = 100;
@@ -4916,8 +4905,28 @@ var templatelst =
 var templateobj = new makeoption("TEMPLATE", templatelst);
 var template = url.searchParams.has("t") ? url.searchParams.get("t") : 
     (url.origin == "https://reportbase.com" ? "7x1":"WIDE");
-var j = templatelst.findIndex(function(a){return a.name == template.toUpperCase();})
+template = template.toUpperCase();
+var j = templatelst.findIndex(function(a){return a.name == template;})
 templateobj.set(j)
 templateobj.getcurrent().init();
+
+var positobj = new makeoption("POSITION", 9);
+if (template == "1X5")
+    positobj.begin = 5;
+else
+    positobj.begin = 7;
+
+var localst = 
+[
+    {obj:thumbobj,def:0},
+    {obj:positobj,def:positobj.begin},
+    {obj:pinchobj,def:pinchobj.begin},
+    {obj:panyobj,def:panyobj.begin},
+    {obj:panxobj,def:panxobj.begin},
+    {obj:traitobj,def:globalobj.trait},
+    {obj:scapeobj,def:globalobj.scape},
+    {obj:zoomobj,def:globalobj.zoombegin},
+    {obj:rowobj,def:rowobj.begin},
+];
 
 
