@@ -104,8 +104,23 @@ var makeoption = function (title, data)
     this.length = function () { return Array.isArray(this.data()) ? this.data().length : Number(this.data()); };
     this.getanchor = function () { return (this.ANCHOR < this.length() &&
 		Array.isArray(this.data())) ? this.data()[this.ANCHOR] : this.anchor(); };
-    this.getcurrent = function () { return (this.CURRENT < this.length() &&
-		Array.isArray(this.data())) ? this.data()[this.CURRENT] : this.current(); };
+
+    this.getcurrent = function () 
+    { 
+        return (this.CURRENT < this.length() &&
+		    Array.isArray(this.data())) ? this.data()[this.CURRENT] : this.current(); 
+    };
+
+    this.get = function (index) 
+    { 
+        index += this.CURRENT;
+        if (index >= this.length())
+            index = 0;
+        else if (index < 0)
+            index = this.length()-1;
+        return Array.isArray(this.data()) ? this.data()[index] : index; 
+    };
+
     this.data = function () { return this.data_; };
     this.anchor = function () { return this.ANCHOR; };
     this.current = function () { return this.CURRENT; };
@@ -179,14 +194,15 @@ var makeoption = function (title, data)
             index = 0;
         this.CURRENT = Math.clamp(0, this.length() - 1, index); 
     };
-
+/*
     this.sett = function (p) 
     {
         var a = p*this.length();
         this.setcurrent(a); 
         this.setanchor(a); 
     };
-       
+*/
+ 
     this.set = function (index) 
     {
         this.setcurrent(index); 
@@ -268,6 +284,8 @@ globalobj.slidecountfactor = 25;
 globalobj.slidreducefactor = 50;
 globalobj.timemain = 4;
 globalobj.xboundry = 360;
+globalobj.zoomin = 0;
+globalobj.zoomax = 0.9;
 
 var photo = {}
 photo.image = 0;
@@ -867,14 +885,10 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
     this.refresh();
     _4cnvctx.movingpage = j;
     localobj.autodirect = j;
-    var k = projectobj.current();
-    projectobj.rotate(j);
-    var path = url.origin + "/data/" + url.fullpath();
+    var path = url.origin + "/data/" +
+        url.path + "." + projectobj.get(j).pad(4) + "." + url.extension;
     if (!loaded.has(path))
-    {
-        projectobj.set(k)
         return;
-    }
 
     clearTimeout(globalobj.move);
     globalobj.move = setTimeout(function()
@@ -891,6 +905,7 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
                 rowobj.set((k/100)*rowobj.length());
             }
 
+            projectobj.rotate(j);
             _4cnvctx.timeobj.set(globalobj.timebegin);
             var str = addressobj.full();
             history.replaceState(0, document.title, str);
@@ -2496,7 +2511,7 @@ function resetcanvas()
     var context = _4cnvctx;
 
     window.aspect = window.innerWidth/window.innerHeight;
-    var zoomrange = [0];
+    var zoomrange = [globalobj.zoomin];
 
     for (var n = 0; n < 1.0; n+=0.01)
     {
@@ -2513,7 +2528,7 @@ function resetcanvas()
         break;
     }
 
-    zoomrange[1] = 0.925;
+    zoomrange[1] = globalobj.zoomax;
     zoomobj.split(zoomobj.current(), zoomrange.join("-"), OPTIONSIZE);
 
     /* AAPL 
@@ -2613,7 +2628,7 @@ function resetcanvas()
         for (var e = col.x; e < col.x+col.width; ++e)
             slices[e].col = n;
         var m = col.x;
-        slices[m].isleft = 1;
+        slices[m].isleft = 1;//todo
         slices[m+col.width-1].isright = 1;
         slices[m+Math.floor(col.width/2)].ismiddle = 1;
     }
@@ -3458,9 +3473,9 @@ function menuhide()
 
 function reset()
 {
-//    contextobj.reset()
-//    setTimeout(contextobj.reset,50);
-//    setTimeout(contextobj.reset,100);
+    contextobj.reset()
+    setTimeout(contextobj.reset,50);
+    setTimeout(contextobj.reset,100);
     setTimeout(contextobj.reset,200);
     setTimeout(contextobj.reset,500);
     setTimeout(contextobj.reset,1000);
@@ -4831,6 +4846,13 @@ var templatelst =
     }
 },
 {
+    name: "HIRES",
+    init: function ()
+    {
+        globalobj.zoomax = 0.985;
+    }
+},
+{
     name: "COMIC",
     init: function ()
     {
@@ -4963,7 +4985,7 @@ var localst =
     {obj:traitobj,def:traitobj.begin},
     {obj:scapeobj,def:scapeobj.begin},
     {obj:zoomobj,def:globalobj.zoombegin},
-    {obj:rowobj,def:rowobj.begin},
+    {obj:rowobj,def:rowobj.begin},//todo
 ];
 
 
