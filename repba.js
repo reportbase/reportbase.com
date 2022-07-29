@@ -8,7 +8,6 @@ const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
-const MOBFRAME = MOBILE && IFRAME;
 const MAXVIRTUAL = SAFARI?5760:5760*2; 
 const SWIPETIME = 40;
 const TIMERELOAD = 30000;
@@ -20,9 +19,9 @@ const THUMBLINEIN = 2.0;
 const THUMBLINEOUT = 4.0;
 const JULIETIME = 100; 
 const DELAY = 10000000;
-const HNUB = 5;
-const YNUB = 5;
-const BNUB = 5;
+const HNUB = 4;
+const YNUB = 4;
+const BNUB = 4;
 const THUMBORDER = 16;
 const TABWIDTH = 40;
 const TABHEIGHT = 40;
@@ -66,6 +65,7 @@ for (var n = 399; n >= 0; n=n-1)
 }
 
 var url = new URL(window.location.href);
+var loaded = new Set()
 
 var filename = url.searchParams.has("p") ? url.searchParams.get("p") : 
     (url.origin == "https://reportbase.com" ? "GAMP":"WIDE");
@@ -266,17 +266,8 @@ globalobj.zoombegin = MOBILE?50:40;
 globalobj.rowreset = 1;
 globalobj.slidecountfactor = 25;
 globalobj.slidreducefactor = 50;
-
 globalobj.timemain = 4;
-if (url.searchParams.has("tm"))
-    globalobj.timemain = url.searchParams.get("tm");
-
-globalobj.slicewidth = SAFARI?4:36;
-if (url.searchParams.has("sw"))
-    globalobj.slicewidth = url.searchParams.get("sw");
-
-globalobj.slicextra = 2;
-globalobj.xboundry = globalobj.slicewidth * globalobj.slicextra;
+globalobj.xboundry = 360;
 
 var photo = {}
 photo.image = 0;
@@ -546,8 +537,25 @@ var ScrollPanel = function()
         context.shadowOffsetX = 1;
         context.shadowOffsetY = 1;
         context.shadowColor = "black"
-        var a = new CurrentVPanel(new Fill(NUBCOLOR),Math.min(ALIEXTENT*2,rect.height/4));
+        var a = new CurrentVPanel(new Fill(NUBCOLOR), Math.min(ALIEXTENT*2, rect.height/4));
         a.draw(context, new rectangle(0,YNUB,HNUB,rect.height-YNUB), rowobj, 0);
+        
+        var x = 0;
+        var h = rect.height;
+        var w = rect.width;
+        var jj = context.timeobj.berp();
+        var bb = Math.lerp(x,x+w,1-jj);
+        var ww = w*(1-zoomobj.getcurrent());
+        var xx = bb-ww/2;
+        var a = new Fill(NUBCOLOR);
+        a.draw(context, new rectangle(xx,0,ww,YNUB), 0, 0);
+        var ee = xx+ww-w;
+        if (ee > 0)
+            a.draw(context, new rectangle(0,0,ee,YNUB), 0, 0);
+       
+        if (xx < 0)
+            a.draw(context, new rectangle(w+xx,0,ww,YNUB), 0, 0);
+
         context.restore();
     }
 }
@@ -859,6 +867,15 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
     this.refresh();
     _4cnvctx.movingpage = j;
     localobj.autodirect = j;
+    var k = projectobj.current();
+    projectobj.rotate(j);
+    var path = url.origin + "/data/" + url.fullpath();
+    if (!loaded.has(path))
+    {
+        projectobj.set(k)
+        return;
+    }
+
     clearTimeout(globalobj.move);
     globalobj.move = setTimeout(function()
     {
@@ -869,9 +886,12 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
             _4cnvctx.slidecomplete = 0;
             _4cnvctx.setcolumncomplete = 0;
             if (globalobj.rowreset)
-                rowobj.set((rowobj.begin/100)*rowobj.length());
+            {
+                var k = j == -1 ? rowobj.end : rowobj.begin;
+                rowobj.set((k/100)*rowobj.length());
+            }
+
             _4cnvctx.timeobj.set(globalobj.timebegin);
-            projectobj.rotate(j);
             var str = addressobj.full();
             history.replaceState(0, document.title, str);
             contextobj.reset();
@@ -1331,12 +1351,13 @@ var pinchlst =
 
 var rowobj = new makeoption("ROW", window.innerHeight);
 rowobj.begin = 50;
+rowobj.end = 50;
 
 var pinchobj = new makeoption("PINCH", pinchlst);
 pinchobj.begin = 50;
 
 var panxobj = new makeoption("PANX", OPTIONSIZE); 
-panxobj.begin  = 50;
+panxobj.begin  = 20;
 
 var panyobj = new makeoption("PANY", OPTIONSIZE); 
 panyobj.begin  = 50;
@@ -1953,6 +1974,7 @@ var keylst =
         }
         else if (evt.key == "ArrowLeft" || evt.key == "h")
         {
+            startobj.off();
             if (context.ctrlhit)
                 context.movepage(-1)
             else
@@ -1961,6 +1983,7 @@ var keylst =
         }
         else if (evt.key == "ArrowRight" || evt.key == "l")
         {
+            startobj.off();
             if (context.ctrlhit)
                 context.movepage(1)
             else
@@ -1969,6 +1992,7 @@ var keylst =
         }
         else if (evt.key == "ArrowUp" || evt.key == "k")
         {
+            startobj.off();
             if (context.ctrlhit)
                 rowobj.set(0);
             else
@@ -1978,6 +2002,7 @@ var keylst =
         }
         else if (evt.key == "ArrowDown" || evt.key == "j" )
         {
+            startobj.off();
             if (context.ctrlhit)
                 rowobj.set(rowobj.length()-1);
             else
@@ -1987,11 +2012,13 @@ var keylst =
         }
         else if (evt.key == "Pageup" || evt.key == "o")
         {
+            startobj.off();
             context.movepage(-1)
             evt.preventDefault();
         }
         else if (evt.key == "Pagedown" || evt.key == "p")
         {
+            startobj.off();
             context.movepage(1)
             evt.preventDefault();
         }
@@ -2238,7 +2265,7 @@ var thumblst =
     {
         context.save();
         var th = heightobj.getcurrent().getcurrent();
-        var headers = MOBFRAME?0:ALIEXTENT*2; 
+        var headers = ALIEXTENT*2; 
         var width = rect.width-THUMBORDER*2;
         var height = rect.height-headers-THUMBORDER*2;
         if (globalobj.maxheight)
@@ -2246,7 +2273,7 @@ var thumblst =
         var r = calculateAspectRatioFit(photo.image.width, photo.image.height, width*th, height*th); 
         var h = r.height;
         var w = r.width;
-        var a = MOBFRAME?0:ALIEXTENT;
+        var a = ALIEXTENT;
         var pos = positobj.current();
         if (pos == 0)
         {
@@ -2515,6 +2542,8 @@ function resetcanvas()
     context.virtualheight = context.canvas.height;
     context.virtualwidth = context.virtualheight * imageaspect;
     context.virtualaspect = context.virtualwidth / context.virtualheight;
+
+    context.slicewidth = Math.min(120,Math.floor(context.virtualwidth/20));
       
     var y = Math.clamp(0,context.canvas.height-1,context.canvas.height*rowobj.berp());
     context.nuby = Math.nub(y, context.canvas.height, context.imageheight, photo.image.height);  
@@ -2523,7 +2552,7 @@ function resetcanvas()
     {
         var k = slicelst[n];
         var fw = context.virtualwidth / k.slices;
-        if (fw < globalobj.slicewidth)
+        if (fw < context.slicewidth)
             continue;
         ks = n;
         break;
@@ -2583,9 +2612,8 @@ function resetcanvas()
         var col = cols[n]
         for (var e = col.x; e < col.x+col.width; ++e)
             slices[e].col = n;
-        
         var m = col.x;
-        slices[m].isleft = 1;//todo 
+        slices[m].isleft = 1;
         slices[m+col.width-1].isright = 1;
         slices[m+Math.floor(col.width/2)].ismiddle = 1;
     }
@@ -2854,17 +2882,21 @@ var ContextObj = (function ()
                     contextobj.resize(context);
                     resetcanvas(context);
                     context.refresh();
-
                     startobj.getcurrent().init();
+                    seteventspanel(new YollPanel());
 
                     var k = projectobj.current();
-                    projectobj.rotate(localobj.autodirect);
+                    projectobj.rotate(1);
                     var path = url.origin + "/data/" + url.fullpath();
                     var img = new Image();
+                    img.onload = function() { loaded.add(this.src); }
+                    img.src = path;
+                    projectobj.rotate(-2);
+                    var path = url.origin + "/data/" + url.fullpath();
+                    var img = new Image();
+                    img.onload = function() { loaded.add(this.src); }
                     img.src = path;
                     projectobj.set(k);
-                    
-                    seteventspanel(new YollPanel());
                }
 			}
 
@@ -3426,9 +3458,9 @@ function menuhide()
 
 function reset()
 {
-    contextobj.reset()
-    setTimeout(contextobj.reset,50);
-    setTimeout(contextobj.reset,100);
+//    contextobj.reset()
+//    setTimeout(contextobj.reset,50);
+//    setTimeout(contextobj.reset,100);
     setTimeout(contextobj.reset,200);
     setTimeout(contextobj.reset,500);
     setTimeout(contextobj.reset,1000);
@@ -4354,6 +4386,7 @@ window.addEventListener("keydown", function (evt)
 
 function pageresize()
 {
+    const MOBFRAME = MOBILE && IFRAME;
     var h = (localobj.hide||_4cnvctx.hidehead||MOBFRAME)?0:ALIEXTENT;
     var y = 0;
     headcnvctx.show(0,y,window.innerWidth,h);
@@ -4601,7 +4634,7 @@ var helplst =
             Window Height\n${window.innerHeight}\n
             Window Aspect\n${(window.innerWidth/window.innerHeight).toFixed(2)}\n
             Time Main\n${globalobj.timemain}\n
-            Slice Width\n${globalobj.slicewidth}\n
+            Slice Width\n${_4cnvctx.slicewidth}\n
             userAgent\n${navigator.userAgent}\n`;
         var k = helpobj.getcurrent().index?helpobj.getcurrent().index:0;
         context.describeobj.set(k);
@@ -4802,6 +4835,7 @@ var templatelst =
     init: function ()
     {
         rowobj.begin = 0;
+        rowobj.end = 100;
         globalobj.slidreducefactor = 25;
         globalobj.zoombegin = MOBILE?50:25;
         localobj.picture = 1;
@@ -4843,7 +4877,7 @@ var templatelst =
     name: "PORTRAIT",
     init: function ()
     {
-        globalobj.slidreducefactor = 25;
+        globalobj.slidreducefactor = 50;
         startobj.set(1);
         rowobj.begin = 20;
         traitobj.begin = 60;
@@ -4856,7 +4890,7 @@ var templatelst =
     name: "LANDSCAPE",
     init: function ()
     {
-        globalobj.slidreducefactor = 50;
+        globalobj.slidreducefactor = 100;
         localobj.picture = 1;
         rowobj.begin = 20;
         traitobj.begin = 60;
