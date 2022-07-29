@@ -3,7 +3,7 @@ Copyright 2017 Tom Brinkman
 http://www.reportbase.com 
 */
 
-const VERSION = "v17"
+const VERSION = "v18"
 const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -566,13 +566,12 @@ var ScrollPanel = function()
         var ww = w*(1-zoomobj.getcurrent());
         var xx = bb-ww/2;
         var a = new Fill(NUBCOLOR);
-        a.draw(context, new rectangle(xx,0,ww,YNUB), 0, 0);
-        var ee = xx+ww-w;
-        if (ee > 0)
-            a.draw(context, new rectangle(0,0,ee,YNUB), 0, 0);
-       
-        if (xx < 0)
-            a.draw(context, new rectangle(w+xx,0,ww,YNUB), 0, 0);
+        //a.draw(context, new rectangle(xx,0,ww,YNUB), 0, 0);
+        //var ee = xx+ww-w;
+        //if (ee > 0)
+        //    a.draw(context, new rectangle(0,0,ee,YNUB), 0, 0);
+        //if (xx < 0)
+        //    a.draw(context, new rectangle(w+xx,0,ww,YNUB), 0, 0);
 
         context.restore();
     }
@@ -1417,6 +1416,10 @@ var demolst =
 {path: "https://reportbase.com/?p=NETA&m=0003&t=7x1", func: demo, title: "NETA"},
 {path: "https://reportbase.us/?p=NATA&m=0006&t=7x1", func: demo, title: "NATA"},
 {path: "https://reportbase.com/?p=GARL&m=0003&t=7x1", func: demo, title: "GARL"},
+
+//HIRES
+{path: "https://reportbase.us/?p=MAPS&m=0024&t=HIRES", func: demo, title: "MAPS"},                                                                                            
+{path: "https://reportbase.us/?p=MEPS&m=0024&t=HIRES", func: demo, title: "MEPS"},                                                                                            
 
 //Wide Images
 {path: "https://reportbase.com/?p=PENO&m=0073&t=wide", func: demo, title: "PENO"},                                                                                            
@@ -2791,7 +2794,6 @@ var ContextObj = (function ()
         slices.data_.push({title:"Open...", path: "LOAD", func: function(){menuhide(); promptFile().then(function(files) { dropfiles(files); })}})
         slices.data_.push({title:"Debug", path: "DEBUG", func: function(){ menushow(_6cnvctx); }})
         slices.data_.push({title:"Examples", path: "DEMOS", func: function(){ menushow(_7cnvctx); }})
-        slices.data_.push({title:"Screenshot", path: "SCREENSHOT", func: screenshot})
         slices.data_.push({title:"Original", path: "ORIGINAL", func: function(){window.open(photo.image.original, '_blank');}})
         if (!SAFARI)
             slices.data_.push({title:"Fullscreen", path: "FULLSCREEN", func: fullscreen})
@@ -3709,7 +3711,7 @@ function drawslices()
         var a = new Grid(3,3,0,new Rects(context.grid));
         a.draw(context, window.rect, 0, 0);
 
-        if (localobj.showthumb && !context.describe && !context.screenshot)
+        if (localobj.showthumb && !context.describe)
         {
             thumbobj.getcurrent().draw(context, window.rect, 0, 0);
         }
@@ -3719,11 +3721,8 @@ function drawslices()
             context.setcolumncomplete = 1;
         }
 
-        if (!context.screenshot)
-        {
-            var a = new ScrollPanel();
-            a.draw(context, window.rect, 0, 0);
-        }
+        var a = new ScrollPanel();
+        a.draw(context, window.rect, 0, 0);
         
         context.restore();
     }
@@ -4912,7 +4911,7 @@ var templatelst =
     name: "LANDSCAPE",
     init: function ()
     {
-        globalobj.slidreducefactor = 100;
+        globalobj.slidreducefactor = 75;
         localobj.picture = 1;
         rowobj.begin = 20;
         traitobj.begin = 60;
@@ -4935,7 +4934,6 @@ var templatelst =
     name: "1X5",
     init: function ()
     {
-        slideobj.data_ = [4,27.5,50,72.5,95]
         globalobj.cols = 1;
         globalobj.rows = 5;
         traitobj.begin = 50;
