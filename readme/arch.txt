@@ -1,8 +1,9 @@
 # packages
-pacman -S libwebp ranger unrar
+pacman -S libwebp ranger unrar rustup wasm-pack
 
 # upgrade
 pacman -Syu                        # upgrade system
+sudo pacman -S archlinux-keyring
 pacman-key --refresh-keys          # upgrade keys
 pacman -S antergos-keyring       # upgrade antergos keys
 yaourt -Syua                       # upgrade system including yaourt

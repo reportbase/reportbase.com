@@ -3,7 +3,7 @@ Copyright 2017 Tom Brinkman
 http://www.reportbase.com 
 */
 
-const VERSION = "v18"
+const VERSION = "v19"
 const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -36,9 +36,9 @@ const TIMEOBJ = 3926;
 const FONTHEIGHT = 16;
 const BUTTONHEIGHT = 38; 
 const ROWHEIGHT = FONTHEIGHT*2;
-const PINCHRANGE = "0.35-1.1";
+const PINCHRANGE = "0.4-1.0";
 const HEIGHTRANGE = "0.10-1.0";
-const PANXRANGE = "3-15";
+const PANXRANGE = "3-15"
 const PANYRANGE = "1.0-6.0";
 const CANVASMAX = 30;
 const NUBCOLOR = "rgb(255,255,255)";
@@ -57,17 +57,17 @@ globalobj = {};
 localobj = {}
 
 const VIRTCONST = 0.8;
-var slicelst = [];
-for (var n = 399; n >= 0; n=n-1)
+let slicelst = [];
+for (let n = 399; n >= 0; n=n-1)
 {
     const CYLRADIUS = 65.45*32;
     slicelst.push({slices: n*3.125, delay: CYLRADIUS*(60/n)});
 }
 
-var url = new URL(window.location.href);
-var loaded = new Set()
+let url = new URL(window.location.href);
+let loaded = new Set()
 
-var filename = url.searchParams.has("p") ? url.searchParams.get("p") : 
+let filename = url.searchParams.has("p") ? url.searchParams.get("p") : 
     (url.origin == "https://reportbase.com" ? "GAMP":"WIDE");
 filename = filename.split(".");
 if (filename.length == 3)
@@ -94,7 +94,7 @@ Math.clamp = function (min, max, val)
     return (val < min) ? min : (val > max) ? max : val;
 };
 
-var makeoption = function (title, data)
+let makeoption = function (title, data)
 {
     this.title = title.toLowerCase().replace(/\./g, "");
     this.fulltitle = title;
@@ -132,18 +132,17 @@ var makeoption = function (title, data)
 
     this.split = function(k,j,size)
     {
-        var s = j.split("-");
-        var begin = Number(s[0]);
-        var end = Number(s[1]);
-        var mn = begin;
-        var mx = end;
-        var ad = (mx-mn)/size;
+        let s = j.split("-");
+        let begin = Number(s[0]);
+        let end = Number(s[1]);
+        let mn = begin;
+        let mx = end;
+        let ad = (mx-mn)/size;
         if (mx == mn)
             size = 1;
-        var lst = [];
-        for (var n = 0; n < size; ++n, mn+=ad)
+        let lst = [];
+        for (let n = 0; n < size; ++n, mn+=ad)
             lst.push(mn.toFixed(4));
-        var j = this.length();
         this.data_ = lst;
         this.set(k);
         this.begin = begin;
@@ -166,7 +165,7 @@ var makeoption = function (title, data)
 
     this.rotate = function (factor) 
     { 
-        var k = this.current()+factor;
+        let k = this.current()+factor;
         if (k >= this.length())
             k = k-this.length();
         else if (k < 0)
@@ -194,14 +193,6 @@ var makeoption = function (title, data)
             index = 0;
         this.CURRENT = Math.clamp(0, this.length() - 1, index); 
     };
-/*
-    this.sett = function (p) 
-    {
-        var a = p*this.length();
-        this.setcurrent(a); 
-        this.setanchor(a); 
-    };
-*/
  
     this.set = function (index) 
     {
@@ -216,14 +207,14 @@ var makeoption = function (title, data)
 
     this.find = function (k)
     {
-        var j = this.data_.findIndex(function(a){return a == k;})
+        let j = this.data_.findIndex(function(a){return a == k;})
         if (j == -1)
             return 0;
         return this.data_[j];
     }
 };
 
-var startlst = 
+let startlst = 
 [
 	new function ()
     {
@@ -260,8 +251,8 @@ var startlst =
     },
 ];
 
-var slideobj = new makeoption("", [0,27.5,50,72.5,100]);
-var startobj = new makeoption("START", startlst);
+let slideobj = new makeoption("", [0,27.5,50,72.5,100]);
+let startobj = new makeoption("START", startlst);
 startobj.autopage = 1500;
 startobj.off = function()
 {
@@ -283,16 +274,23 @@ globalobj.rowreset = 1;
 globalobj.slidecountfactor = 25;
 globalobj.slidreducefactor = 50;
 globalobj.timemain = 4;
-globalobj.xboundry = 360;
+globalobj.xboundry = 60;
+globalobj.slicewidth = 30;
 globalobj.zoomin = 0;
 globalobj.zoomax = 0.9;
 
-var photo = {}
+let photo = {}
 photo.image = 0;
 photo.cached = 0;
 
-var debuglst = 
+let debuglst = 
 [
+    {
+        title:"Screenshot", path: "SCREENSHOT", func: function()
+        {
+            screenshot();
+        }
+    },
     {
         title:"Clear Local Cache", path: "CLEARLOCAL", func: function()
         {
@@ -320,7 +318,7 @@ var debuglst =
     },
 ];
 
-var debugobj = new makeoption("", debuglst);
+let debugobj = new makeoption("", debuglst);
 
 const opts = {synchronized: true, };
 let _1cnv = document.getElementById("_1");
@@ -346,8 +344,8 @@ let headcnvctx = headcnv.getContext("2d", opts);
 let footcnv = document.getElementById("foot");
 let footcnvctx = footcnv.getContext("2d", opts);
         
-var contextlst = [_1cnvctx,_2cnvctx,_3cnvctx,_4cnvctx,_5cnvctx,_6cnvctx,_7cnvctx,_8cnvctx,_9cnvctx];
-var canvaslst = [];
+let contextlst = [_1cnvctx,_2cnvctx,_3cnvctx,_4cnvctx,_5cnvctx,_6cnvctx,_7cnvctx,_8cnvctx,_9cnvctx];
+let canvaslst = [];
 
 function setPixelDensity(canvas) 
 {
@@ -387,13 +385,13 @@ function limitSize(size, maximumPixels)
 
 function calculateAspectRatioFit(imgwidth, imgheight, rectwidth, rectheight)
 {
-	var ratio = Math.min(rectwidth/imgwidth, rectheight/imgheight);
-	var imgaspectratio = imgwidth/imgheight;
-	var rectaspectratio = rectwidth/rectheight;
-	var xstart = 0;
-	var ystart = 0;
-	var width = imgwidth * ratio;
-	var height = imgheight * ratio;
+	let ratio = Math.min(rectwidth/imgwidth, rectheight/imgheight);
+	let imgaspectratio = imgwidth/imgheight;
+	let rectaspectratio = rectwidth/rectheight;
+	let xstart = 0;
+	let ystart = 0;
+	let width = imgwidth * ratio;
+	let height = imgheight * ratio;
 	if (imgaspectratio < rectaspectratio)
 	{
 		xstart = (rectwidth - width) / 2;
@@ -419,12 +417,6 @@ function download(filename, text)
 	document.body.removeChild(element);
 }
 
-var colorlst =
-[
-	"Red", "Green", "Yellow", "Blue", "Orange", "Purple", "Cyan", "Magenta",
-    "Pink", "Teal", "Lavender", "Brown", "Beige", "Maroon", "Olive", "Navy", "Grey", "White", "Black",
-].sort();
-
 color = {};
 color.rgb = function(r,g,b)
 {
@@ -444,8 +436,8 @@ color.canvas2rgba = function(color)
 {
     if (typeof color === "undefined")
         color = "black";
-	var canvas = document.createElement("canvas");
-	var context = canvas.getContext('2d');
+	let canvas = document.createElement("canvas");
+	let context = canvas.getContext('2d');
 	canvas.height = 1;
 	canvas.width = 1;
     context.fillStyle = color;
@@ -459,7 +451,7 @@ color.name2rgba = function (clr, alpha)
         clr = "black";
     if (typeof alpha === "undefined")
         alpha = 1.0;
-    var k = color.canvas2rgba(clr);
+    let k = color.canvas2rgba(clr);
     return "rgba(" + k[0] + "," + k[1] + "," + k[2] + "," + alpha + ")";
 };
 
@@ -470,13 +462,13 @@ Math.round2 = function (x) { return (x % 2) >= 1 ? parseInt(x / 2) * 2 + 2 : par
 
 Image.prototype.load = function(url)
 {
-    var thisImg = this;
-    var xmlHTTP = new XMLHttpRequest();
+    let thisImg = this;
+    let xmlHTTP = new XMLHttpRequest();
     xmlHTTP.open('GET', url, true);
     xmlHTTP.responseType = 'arraybuffer';
     xmlHTTP.onload = function(e) 
     {
-        var blob = new Blob([this.response]);
+        let blob = new Blob([this.response]);
         thisImg.src = window.URL.createObjectURL(blob);
     };
 
@@ -499,7 +491,7 @@ String.prototype.stripquotes = function() { return this.replace(/(^"|"$)/g, '');
 
 String.prototype.clean = function()
 {
-	var _trimLeft  = /^\s+/,
+	let _trimLeft  = /^\s+/,
         _trimRight = /\s+$/,
 	    _multiple  = /\s+/g;
 	return this.replace(_trimLeft, '').replace(_trimRight, '').replace(_multiple, ' ');
@@ -517,11 +509,11 @@ Array.prototype.move = function (from, to)
 
 String.prototype.wild = function (e)
 {
-    var re = new RegExp("^" + e.split("*").join(".*") + "$");
+    let re = new RegExp("^" + e.split("*").join(".*") + "$");
     return re.test(this);
 };
 
-var pattern = function ()
+let pattern = function ()
 {
     this.draw = function (context, rect, user, time)
     {
@@ -539,7 +531,7 @@ var pattern = function ()
     };
 };
 
-var Empty = function()
+let Empty = function()
 {
     this.draw = function (context, rect, user, time)
     {
@@ -547,7 +539,7 @@ var Empty = function()
     }
 };
 
-var ScrollPanel = function()
+let ScrollPanel = function()
 {
     this.draw = function (context, rect, user, time)
     {
@@ -557,35 +549,19 @@ var ScrollPanel = function()
         context.shadowColor = "black"
         var a = new CurrentVPanel(new Fill(NUBCOLOR), Math.min(ALIEXTENT*2, rect.height/4));
         a.draw(context, new rectangle(0,YNUB,HNUB,rect.height-YNUB), rowobj, 0);
-        
-        var x = 0;
-        var h = rect.height;
-        var w = rect.width;
-        var jj = context.timeobj.berp();
-        var bb = Math.lerp(x,x+w,1-jj);
-        var ww = w*(1-zoomobj.getcurrent());
-        var xx = bb-ww/2;
-        var a = new Fill(NUBCOLOR);
-        //a.draw(context, new rectangle(xx,0,ww,YNUB), 0, 0);
-        //var ee = xx+ww-w;
-        //if (ee > 0)
-        //    a.draw(context, new rectangle(0,0,ee,YNUB), 0, 0);
-        //if (xx < 0)
-        //    a.draw(context, new rectangle(w+xx,0,ww,YNUB), 0, 0);
-
         context.restore();
     }
 }
 
-var HelpPanel = function()
+let HelpPanel = function()
 {
     this.draw = function (context, rect, user, time)
     {
-        var Panel = function ()
+        let Panel = function ()
         {
             this.draw = function (context, rect, user, time)
             {
-                var a = new Layer(
+                let a = new Layer(
                     [
                         new Shrink(new Text("white", "center", "middle",0,1),10,10),
                         new Rectangle(context.describerect),
@@ -595,18 +571,18 @@ var HelpPanel = function()
             }
         }
 
-        var Wrap = function ()
+        let Wrap = function ()
         {
             this.draw = function (context, rect, user, time)
             {
-                var lst = user;
-                var lst2 = [];
+                let lst = user;
+                let lst2 = [];
                 if (!Array.isArray(lst))
                 {
-                    var j = lst.split("\n");
-                    for (var n = 0; n < j.length; ++n)
+                    let j = lst.split("\n");
+                    for (let n = 0; n < j.length; ++n)
                     {
-                        var k = wrap2(context, rect, j[n].clean()); 
+                        let k = wrap2(context, rect, j[n].clean()); 
                         lst2.push(...k);
                     }
 
@@ -614,9 +590,9 @@ var HelpPanel = function()
                 }
 
                 context.describeobj.data_ = lst.length;
-                var rows = Math.ceil(rect.height/ROWHEIGHT);
+                let rows = Math.ceil(rect.height/ROWHEIGHT);
                 lst = lst.slice(context.describeobj.current());
-                var a = new GridA(1, rows, 0, new Panel());
+                let a = new GridA(1, rows, 0, new Panel());
                 a.draw(context, rect, lst, time);
             }
         };
@@ -631,8 +607,8 @@ var HelpPanel = function()
         context.nexthelp2 = new rectangle()
         context.prevhelp2 = new rectangle()
         context.hidehelp = new rectangle()
-        var jw = Math.min(640,rect.width-80); 
-        var a = new Col([0,jw,0],
+        let jw = Math.min(640,rect.width-80); 
+        let a = new Col([0,jw,0],
             [
                 0,
                 new RowA([headcnv.height+BEKEXTENT,ALIEXTENT,0,ALIEXTENT,footcnv.height+BEKEXTENT],
@@ -716,7 +692,7 @@ var HelpPanel = function()
     }
 };
 
-var Fill = function (color)
+let Fill = function (color)
 {
     this.draw = function (context, rect, user, time)
     {
@@ -2560,9 +2536,6 @@ function resetcanvas()
     context.virtualheight = context.canvas.height;
     context.virtualwidth = context.virtualheight * imageaspect;
     context.virtualaspect = context.virtualwidth / context.virtualheight;
-
-    context.slicewidth = Math.min(120,Math.floor(context.virtualwidth/20));
-      
     var y = Math.clamp(0,context.canvas.height-1,context.canvas.height*rowobj.berp());
     context.nuby = Math.nub(y, context.canvas.height, context.imageheight, photo.image.height);  
     var ks = 0;
@@ -2570,7 +2543,7 @@ function resetcanvas()
     {
         var k = slicelst[n];
         var fw = context.virtualwidth / k.slices;
-        if (fw < context.slicewidth)
+        if (fw < globalobj.slicewidth)
             continue;
         ks = n;
         break;
@@ -3578,7 +3551,7 @@ function drawslices()
             var j = time + slice.time;
             var b = Math.tan(j*VIRTCONST);
             var x = Math.berp(-1, 1, b) * context.virtualpinch - context.virtualeft;
-            var ww = rect.width + context.slicewidth;
+            var ww = rect.width;// + context.slicewidth;
             if (first < 0 && x >= ww)
                 break;
             if (first >= ww && x >= ww && x < first)
@@ -3586,7 +3559,7 @@ function drawslices()
 
             if (x < 0)
                 continue;
-            else if (x >= ww)
+            else if (x > ww)
                 continue;
 
             context.visibles2.push({slice, x}); 
@@ -3609,15 +3582,16 @@ function drawslices()
                 var j = time + slice.time;
                 var b = Math.tan(j*VIRTCONST);
                 var x = Math.berp(-1, 1, b) * context.virtualpinch - context.virtualeft;
+                var ww = rect.width;// + context.slicewidth;
 
-                if (first < 0 && x >= rect.width)
+                if (first < 0 && x >= ww)
                     break;
-                if (first >= rect.width && x >= rect.width && x < first)
+                if (first >= ww && x >= ww && x < first)
                     break;
 
                 if (x < 0)
                     continue;
-                else if (x >= rect.width)
+                else if (x >= ww)
                     continue;
                 
                 context.visibles1.push({slice, x}); 
@@ -4648,7 +4622,7 @@ var helplst =
             Window Height\n${window.innerHeight}\n
             Window Aspect\n${(window.innerWidth/window.innerHeight).toFixed(2)}\n
             Time Main\n${globalobj.timemain}\n
-            Slice Width\n${_4cnvctx.slicewidth}\n
+            Slice Width\n${globalobj.slicewidth}\n
             userAgent\n${navigator.userAgent}\n`;
         var k = helpobj.getcurrent().index?helpobj.getcurrent().index:0;
         context.describeobj.set(k);
@@ -4857,6 +4831,7 @@ var templatelst =
     {
         rowobj.begin = 0;
         rowobj.end = 100;
+        globalobj.xboundry = 540;
         globalobj.slidreducefactor = 25;
         globalobj.zoombegin = MOBILE?50:25;
         localobj.picture = 1;
@@ -4866,7 +4841,8 @@ var templatelst =
     name: "WIDE",
     init: function ()
     {
-        globalobj.maxheight = 50;
+        globalobj.xboundry = 120;
+        globalobj.slicewidth = 60;
         globalobj.rows = 1;
         traitobj.begin = 100;
         traitobj.begin = 100;
@@ -4875,7 +4851,7 @@ var templatelst =
         rowobj.begin = 50;
         globalobj.hide = 1;
         startobj.set(1);
-        globalobj.slidecountfactor = 20;
+        globalobj.slidecountfactor = 40;
         globalobj.slidreducefactor = 100;
     }
 },
@@ -4940,6 +4916,7 @@ var templatelst =
         scapeobj.begin = 100;
         globalobj.zoombegin = 50;
         rowobj.begin = 4;
+        slideobj.data_ = [4,27.5,50,72.5,95]
         startobj.set(2);
     }
 },
