@@ -4822,6 +4822,8 @@ var templatelst =
     name: "HIRES",
     init: function ()
     {
+        globalobj.xboundry = 120;
+        globalobj.slicewidth = 60;
         globalobj.zoomax = 0.985;
     }
 },
@@ -4851,8 +4853,8 @@ var templatelst =
         rowobj.begin = 50;
         globalobj.hide = 1;
         startobj.set(1);
-        globalobj.slidecountfactor = 40;
-        globalobj.slidreducefactor = 100;
+        globalobj.slidecountfactor = 20;
+        globalobj.slidreducefactor = 75;
     }
 },
 {
