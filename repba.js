@@ -3,7 +3,7 @@ Copyright 2017 Tom Brinkman
 http://www.reportbase.com 
 */
 
-const VERSION = "v19"
+const VERSION = "v21"
 const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -274,8 +274,8 @@ globalobj.rowreset = 1;
 globalobj.slidecountfactor = 25;
 globalobj.slidreducefactor = 50;
 globalobj.timemain = 4;
-globalobj.xboundry = 60;
-globalobj.slicewidth = 30;
+globalobj.xboundry = 180;
+globalobj.slicewidth = 90;
 globalobj.zoomin = 0;
 globalobj.zoomax = 0.9;
 
@@ -828,7 +828,7 @@ CanvasRenderingContext2D.prototype.moveup = function()
     var k = rowobj.berp()*100-1;
     var lst = slideobj.data();
     var index = lst.findLastIndex(a=>{return a < k;})
-    if (index == -1)
+    if (zoomobj.getcurrent() == 0 || index == -1)
     {
         context.movepage(-1);
         return;
@@ -845,7 +845,7 @@ CanvasRenderingContext2D.prototype.movedown = function()
     var k = rowobj.berp()*100;
     var lst = slideobj.data();
     var index = lst.findIndex(a=>{return a > k;})
-    if (index == -1)
+    if (zoomobj.getcurrent() == 0 || index == -1)
     {
         context.movepage(1);
         return;
@@ -1305,7 +1305,7 @@ var pinchlst =
     },
     pinchstart: function (context, rect, x, y) 
     {
-        var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
+        var isthumbrect = localobj.showthumb && context.thumbrect && context.thumbrect.hitest(x,y);
         var n = context.grid ? context.grid.hitest(x,y) : -1; 
         this.clearpoints();
         startobj.off();
@@ -1347,7 +1347,7 @@ var pinchobj = new makeoption("PINCH", pinchlst);
 pinchobj.begin = 50;
 
 var panxobj = new makeoption("PANX", OPTIONSIZE); 
-panxobj.begin  = 20;
+panxobj.begin  = 50;
 
 var panyobj = new makeoption("PANY", OPTIONSIZE); 
 panyobj.begin  = 50;
@@ -1522,16 +1522,16 @@ var demolst =
 {path: "https://reportbase.com/?p=GOTH&m=0298&t=comic", func: demo, title: "GOTH"}, 
 {path: "https://reportbase.com/?p=KNIG&m=0197&t=comic", func: demo, title: "KNIG"}, 
 {path: "https://reportbase.com/?p=VIOL&m=0151&t=comic", func: demo, title: "VIOL"}, 
-{path: "https://reportbase.com/?p=MADB&m=0161&t=comic", func: demo, title: "MADB"}, 
+{path: "https://reportbase.us/?p=MADB&m=0161&t=comic", func: demo, title: "MADB"}, 
 {path: "https://reportbase.com/?p=KILL&m=0064&t=comic", func: demo, title: "KILL"}, 
 {path: "https://reportbase.com/?p=DETC&m=0166&t=comic", func: demo, title: "DETC"}, 
 {path: "https://reportbase.com/?p=SECH&m=0460&t=comic", func: demo, title: "SECH"}, 
 {path: "https://reportbase.com/?p=SECI&m=0498&t=comic", func: demo, title: "SECI"}, 
 {path: "https://reportbase.com/?p=SUIC&m=0409&t=comic", func: demo, title: "SUIC"}, 
-{path: "https://reportbase.com/?p=DMZ&&m=0283&t=comic", func: demo, title: "DMZ"}, 
-{path: "https://reportbase.com/?p=DMZA&&m=0128&t=comic", func: demo, title: "DMZA"}, 
+{path: "https://reportbase.us/?p=DMZ&&m=0283&t=comic", func: demo, title: "DMZ"}, 
+{path: "https://reportbase.us/?p=DMZA&&m=0128&t=comic", func: demo, title: "DMZA"}, 
 {path: "https://reportbase.com/?p=MANH&m=0027&t=comic", func: demo, title: "MANH"},
-{path: "https://reportbase.com/?p=MAD&m=084&t=comic", func: demo, title: "MAD"},
+{path: "https://reportbase.us/?p=MAD&m=084&t=comic", func: demo, title: "MAD"},
 {path: "https://reportbase.com/?p=COLD&m=066&t=comic", func: demo, title: "COLD"},
 {path: "https://reportbase.com/?p=VAMP&m=075&t=comic", func: demo, title: "VAMP"},
 {path: "https://reportbase.com/?p=BODY&m=059&t=comic", func: demo, title: "BODY"},
@@ -4831,10 +4831,12 @@ var templatelst =
     name: "COMIC",
     init: function ()
     {
+        panxobj.begin  = 20;
         rowobj.begin = 0;
         rowobj.end = 100;
-        globalobj.xboundry = 540;
-        globalobj.slidreducefactor = 25;
+        globalobj.xboundry = 60;
+       globalobj.slicewidth = 30;
+       globalobj.slidreducefactor = 25;
         globalobj.zoombegin = MOBILE?50:25;
         localobj.picture = 1;
     }
@@ -4876,9 +4878,11 @@ var templatelst =
     name: "PORTRAIT",
     init: function ()
     {
-        globalobj.slidreducefactor = 50;
+        globalobj.xboundry = 60;
+       globalobj.slicewidth = 30;
+         globalobj.slidreducefactor = 50;
         startobj.set(1);
-        rowobj.begin = 20;
+        rowobj.begin = 4;
         traitobj.begin = 60;
         scapeobj.begin = 60;
         startobj.autopage = 2000;
@@ -4891,7 +4895,7 @@ var templatelst =
     {
         globalobj.slidreducefactor = 75;
         localobj.picture = 1;
-        rowobj.begin = 20;
+        rowobj.begin = 4;
         traitobj.begin = 60;
         scapeobj.begin = 60;
         startobj.set(1);
@@ -4902,7 +4906,11 @@ var templatelst =
     name: "TALL",
     init: function ()
     {
-        globalobj.rows = 1;
+        slideobj.data_ = [4,15,27.5,38,50,62,72.5,84,95]
+        rowobj.begin = 4;
+        globalobj.xboundry = 30;
+       globalobj.slicewidth = 10;
+         globalobj.rows = 1;
         globalobj.cols = 1;
         startobj.set(1);
         startobj.autopage = 5000;

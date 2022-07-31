@@ -1,3 +1,4 @@
+du -h *  #human readable disk usage
 scp 0* scott@reportbase.com:/srv/http/data/boss #transfer files
 grep -r --include "*.ini" "#auto" . #recursive find
 sed -r 's/\s+//g' filename  #clear whitespace
