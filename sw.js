@@ -1,6 +1,6 @@
 // https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers
 
-const VERSION = "v23"
+const VERSION = "v25"
 const precacheResources = 
 [
     '/',

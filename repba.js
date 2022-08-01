@@ -3,7 +3,7 @@ Copyright 2017 Tom Brinkman
 http://www.reportbase.com 
 */
 
-const VERSION = "v23"
+const VERSION = "v25"
 const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -250,7 +250,7 @@ let startlst =
 ];
 
 var slicewidthobj = new makeoption("SLICEWIDTH", OPTIONSIZE); 
-slicewidthobj.begin = SAFARI?1.5:5;
+slicewidthobj.begin = SAFARI?1.5:35;
 slicewidthobj.xbounry = function() { return 3*slicewidthobj.current() }
 
 var positobj = new makeoption("POSITION", 9);
@@ -279,7 +279,7 @@ globalobj.rowreset = 1;
 globalobj.slidecountfactor = 25;
 globalobj.slidreducefactor = 50;
 globalobj.restrictpan = 0;
-globalobj.timemain = 4;
+globalobj.timemain = 3;//todo
 globalobj.zoomin = 0;
 globalobj.zoomax = 0.9;
 globalobj.automove  = 50;
@@ -911,11 +911,6 @@ CanvasRenderingContext2D.prototype.refresh = function ()
 {
     this.lastime = -0.0101010101;
 };
-
-CanvasRenderingContext2D.prototype.panimage = function (less,x,y)
-{
-    this.timeobj.rotate(less ? this.rvalue : -this.rvalue);
-}
 
 CanvasRenderingContext2D.prototype.show = function (x, y, width, height)
 {
@@ -1607,6 +1602,11 @@ var droplst =
 },
 ];
 
+CanvasRenderingContext2D.prototype.panimage = function (less,x,y)
+{
+    this.timeobj.rotate(less ? this.rvalue : -this.rvalue);
+}
+
 var panlst =
 [
 {
@@ -1624,9 +1624,10 @@ var panlst =
     {
         var j = Math.max(context.virtualheight,rect.height);
         var s = context.timeobj.length()/j;
-        var k = 4*s;
+        var k = 6*s;
         context.timeobj.rotate(type=="pandown" ? k : -k);
         localStorage.setItem(context.id, context.timeobj.current());
+        drawslices();
 	},
  	leftright: function (context, rect, x, y, type) { },
 	pan: function (context, rect, x, y, type) { },
@@ -1657,13 +1658,15 @@ var panlst =
         }
         else if (type == "panleft" || type == "panright")
         {
-            context.panimage(type=="panright",x,y);
+            context.timeobj.rotate(type=="panright" ? context.rvalue : -context.rvalue);
+            drawslices();
         }
         else if (type == "panup" || type == "pandown")
         {
             if (globalobj.restrictpan || (!Number(zoomobj.getcurrent()) && !zoomobj.current()))
             {
                 context.panimage(type=="panup",(x/rect.width)*rect.height,(y/rect.height)*rect.width);
+                drawslices();
             }
             else
             {
