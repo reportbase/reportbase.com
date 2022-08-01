@@ -3,7 +3,7 @@ Copyright 2017 Tom Brinkman
 http://www.reportbase.com 
 */
 
-const VERSION = "v21"
+const VERSION = "v22"
 const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -20,8 +20,6 @@ const THUMBLINEOUT = 4.0;
 const JULIETIME = 100; 
 const DELAY = 10000000;
 const HNUB = 4;
-const YNUB = 4;
-const BNUB = 4;
 const THUMBORDER = 16;
 const TABWIDTH = 40;
 const TABHEIGHT = 40;
@@ -40,7 +38,6 @@ const PINCHRANGE = "0.4-1.0";
 const HEIGHTRANGE = "0.10-1.0";
 const PANXRANGE = "3-15"
 const PANYRANGE = "1.0-6.0";
-const CANVASMAX = 30;
 const NUBCOLOR = "rgb(255,255,255)";
 const MENUCOLOR = "rgba(0,0,0,0.50)";
 const HEADCOLOR = "rgba(0,0,0,0.40)";
@@ -273,6 +270,7 @@ globalobj.zoombegin = MOBILE?50:40;
 globalobj.rowreset = 1;
 globalobj.slidecountfactor = 25;
 globalobj.slidreducefactor = 50;
+globalobj.restrictpan = 0;
 globalobj.timemain = 4;
 globalobj.xboundry = 180;
 globalobj.slicewidth = 90;
@@ -548,7 +546,7 @@ let ScrollPanel = function()
         context.shadowOffsetY = 1;
         context.shadowColor = "black"
         var a = new CurrentVPanel(new Fill(NUBCOLOR), Math.min(ALIEXTENT*2, rect.height/4));
-        a.draw(context, new rectangle(0,YNUB,HNUB,rect.height-YNUB), rowobj, 0);
+        a.draw(context, new rectangle(0,HNUB,HNUB,rect.height-HNUB), rowobj, 0);
         context.restore();
     }
 }
@@ -874,9 +872,16 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
             delete photo.image;
             _4cnvctx.slidecomplete = 0;
             _4cnvctx.setcolumncomplete = 0;
-            if (globalobj.rowreset)
+            //if (globalobj.rowreset)
+            if (startobj.auto)
             {
-                var k = j == -1 ? rowobj.end : rowobj.begin;
+                var k = 50;
+                rowobj.set((k/100)*rowobj.length());
+            }
+            else
+            {
+                //var k = j == -1 ? rowobj.end : rowobj.begin;
+                var k = j == -1 ? 100 : 0;
                 rowobj.set((k/100)*rowobj.length());
             }
 
@@ -1398,13 +1403,11 @@ var demolst =
 {path: "https://reportbase.us/?p=MEPS&m=0024&t=HIRES", func: demo, title: "MEPS"},                                                                                            
 
 //Wide Images
-{path: "https://reportbase.com/?p=PENO&m=0073&t=wide", func: demo, title: "PENO"},                                                                                            
-{path: "https://reportbase.com/?p=PUNO&m=0086&t=wide", func: demo, title: "PUNO"},
-{path: "https://reportbase.com/?p=PANO&m=0045&t=wide", func: demo, title: "PANO"},
-{path: "https://reportbase.com/?p=PINO&m=0029&t=wide", func: demo, title: "PINO"},
-{path: "https://reportbase.us/?p=WIDE&m=0029&t=wide", func: demo, title: "WIDE"},
+{path: "https://reportbase.us/?p=PANO&m=0083&t=landscape", func: demo, title: "PANO"},
+{path: "https://reportbase.us/?p=PENO&m=0167&t=wide", func: demo, title: "PENO"},                                                                                            
+{path: "https://reportbase.us/?p=PUNO&m=0016&t=xwide", func: demo, title: "PUNO"},
 
-//Mona Lisa
+    //Mona Lisa
 {path: "https://reportbase.com/?p=MOCO&t=MONA", func: demo, title: "MOCO"}, 
 {path: "https://reportbase.com/?p=MONA&t=MONA", func: demo, title: "MONA"}, 
 {path: "https://reportbase.com/?p=USCO&t=MONA", func: demo, title: "USCO"}, 
@@ -1413,7 +1416,7 @@ var demolst =
 {path: "https://reportbase.com/?p=SKYE&m=0063&t=landscape", func: demo, title: "SKYE"}, 
 {path: "https://reportbase.com/?p=HOPE&m=0076&t=landscape", func: demo, title: "HOPE"}, 
 {path: "https://reportbase.com/?p=GOAT&m=0097&t=landscape", func: demo, title: "GOAT"}, 
-{path: "https://reportbase.com/?p=BOAT&m=0100&t=landscape", func: demo, title: "BOAT"}, 
+{path: "https://reportbase.com/?p=BOAT&m=0102&t=landscape", func: demo, title: "BOAT"}, 
 {path: "https://reportbase.com/?p=BELL&m=0015&t=landscape", func: demo, title: "BELL"}, 
 {path: "https://reportbase.com/?p=ASPO&m=0029&t=landscape", func: demo, title: "ASPO"}, 
 {path: "https://reportbase.com/?p=GOLF&m=0020&t=landscape", func: demo, title: "GOLF"}, 
@@ -1637,13 +1640,15 @@ var panlst =
              return;
 
         context.pantype = type;
-        
+        if (globalobj.restrictpan)
+            y = rowobj.getcurrent()
+    
         x -= globalobj.xboundry;
         if (context.isthumbrect)
         {
             var pt = context.getweightedpoint(x,y); 
             x = (pt?pt.x:x);
-            y = (pt?pt.y:y);
+            y = globalobj.restrictpan?undefined:(pt?pt.y:y);
             context.hithumb(x,y);
         }
         else if (type == "panleft" || type == "panright")
@@ -1652,7 +1657,7 @@ var panlst =
         }
         else if (type == "panup" || type == "pandown")
         {
-            if (!Number(zoomobj.getcurrent()) && !zoomobj.current())
+            if (globalobj.restrictpan || (!Number(zoomobj.getcurrent()) && !zoomobj.current()))
             {
                 context.panimage(type=="panup",(x/rect.width)*rect.height,(y/rect.height)*rect.width);
             }
@@ -2258,6 +2263,8 @@ var thumblst =
     draw: function (context, rect, user, time)
     {
         context.save();
+        context.shadowOffsetX = 0;
+        context.shadowOffsetY = 0;
         var th = heightobj.getcurrent().getcurrent();
         var headers = ALIEXTENT*2; 
         var width = rect.width-THUMBORDER*2;
@@ -2349,9 +2356,9 @@ var thumblst =
         var jj = context.timeobj.berp();
         var bb = Math.lerp(x,x+w,1-jj);
         var berp = Math.berp(0,photo.image.height,context.imageheight); 
-        var hh = Math.lerp(0,h,berp);
+        var hh = Math.lerp(0,h-2,berp);
         var berp = Math.berp(0,photo.image.height,context.nuby); 
-        var yy = y+Math.lerp(0,h,berp);
+        var yy = y+Math.lerp(0,h,berp)+1;
         var ww = window.aspect*hh;
         var xx = bb-ww/2;
         context.lineWidth = THUMBLINEIN;
@@ -2604,6 +2611,11 @@ function resetcanvas()
         for (var e = col.x; e < col.x+col.width; ++e)
             slices[e].col = n;
         var m = col.x;
+        if (!slices[m])
+        {
+            console.assert(0);
+        }
+
         slices[m].isleft = 1;//todo
         slices[m+col.width-1].isright = 1;
         slices[m+Math.floor(col.width/2)].ismiddle = 1;
@@ -4019,19 +4031,19 @@ var headlst =
                     new Layer(
                     [
                     ]),
-                    new Row([BNUB,0,BNUB],
+                    new Row([HNUB,0,HNUB],
                     [
                         0,
                         new Layer(
                         [
                             (_4cnvctx.movingpage == -1 ||
                                 startobj.auto && localobj.autodirect == -1) ? new Fill(ARROWSELECT):new Fill(HEADCOLOR),
-                            new Shrink(new Arrow(270),ARROWBORES,ARROWBORES-BNUB),
+                            new Shrink(new Arrow(270),ARROWBORES,ARROWBORES-HNUB),
                             new Rectangle(context.prevpage),
                         ]),
                         0,
                     ]),
-                    new Row([BNUB,0,BNUB],
+                    new Row([HNUB,0,HNUB],
                     [
                         0,
                         new Layer(
@@ -4042,14 +4054,14 @@ var headlst =
                         ]),
                         0,
                     ]),
-                    new Row([BNUB,0,BNUB],
+                    new Row([HNUB,0,HNUB],
                     [
                         0,
                         new Layer(
                         [
                             (_4cnvctx.movingpage == 1 ||
                                 startobj.auto && localobj.autodirect == 1) ? new Fill(ARROWSELECT):new Fill(HEADCOLOR),
-                            new Shrink(new Arrow(90),ARROWBORES,ARROWBORES-BNUB),
+                            new Shrink(new Arrow(90),ARROWBORES,ARROWBORES-HNUB),
                             new Rectangle(context.nextpage),
                         ]),
                         0,
@@ -4116,6 +4128,7 @@ var Footer = function ()
 
     this.pan = function (context, rect, x, y, type)
     {
+        startobj.off();
         var b = Math.berp(0,context.slider.width,x);
         var l = Math.lerp(0,zoomobj.length(),b);
         var k = panhorz(zoomobj, l);
@@ -4129,6 +4142,7 @@ var Footer = function ()
 
     this.tap = function (context, rect, x, y)
     {   
+        startobj.off();
         _4cnvctx.panning = 1;  
         clearTimeout(globalobj.tap);
         globalobj.tap = setTimeout(function()
@@ -4837,7 +4851,7 @@ var templatelst =
         globalobj.xboundry = 60;
        globalobj.slicewidth = 30;
        globalobj.slidreducefactor = 25;
-        globalobj.zoombegin = MOBILE?50:25;
+        globalobj.zoombegin = MOBILE?60:30;
         localobj.picture = 1;
     }
 },
@@ -4845,14 +4859,36 @@ var templatelst =
     name: "WIDE",
     init: function ()
     {
-        globalobj.xboundry = 120;
+        globalobj.restrictpan = 1;
+        globalobj.xboundry = 60;
+        globalobj.slicewidth = 30;
+        globalobj.rows = 1;
+        traitobj.begin = 100;
+        scapeobj.begin = 100;
+        globalobj.zoombegin = 0;
+        startobj.autopage = 3000;
+        rowobj.begin = 0;
+        rowobj.end = 100;
+        globalobj.hide = 1;
+        startobj.set(1);
+        globalobj.slidecountfactor = 20;
+        globalobj.slidreducefactor = 75;
+    }
+},
+{
+    name: "XWIDE",
+    init: function ()
+    {
+        globalobj.restrictpan = 1;
+        globalobj.xboundry = 180;
         globalobj.slicewidth = 60;
         globalobj.rows = 1;
         traitobj.begin = 100;
-        traitobj.begin = 100;
+        scapeobj.begin = 100;
         globalobj.zoombegin = 0;
         startobj.autopage = 3000;
-        rowobj.begin = 50;
+        rowobj.begin = 0;
+        rowobj.end = 100;
         globalobj.hide = 1;
         startobj.set(1);
         globalobj.slidecountfactor = 20;
@@ -4878,11 +4914,13 @@ var templatelst =
     name: "PORTRAIT",
     init: function ()
     {
+        globalobj.zoombegin = MOBILE?60:30;
         globalobj.xboundry = 60;
-       globalobj.slicewidth = 30;
-         globalobj.slidreducefactor = 50;
+        globalobj.slicewidth = 30;
+        globalobj.slidreducefactor = 50;
         startobj.set(1);
-        rowobj.begin = 4;
+        rowobj.begin = 0;
+        rowobj.end = 100;
         traitobj.begin = 60;
         scapeobj.begin = 60;
         startobj.autopage = 2000;
@@ -4893,9 +4931,9 @@ var templatelst =
     name: "LANDSCAPE",
     init: function ()
     {
+        rowobj.begin = 50;
         globalobj.slidreducefactor = 75;
         localobj.picture = 1;
-        rowobj.begin = 4;
         traitobj.begin = 60;
         scapeobj.begin = 60;
         startobj.set(1);
@@ -4926,6 +4964,7 @@ var templatelst =
         scapeobj.begin = 100;
         globalobj.zoombegin = 50;
         rowobj.begin = 4;
+        rowobj.end = 95;
         slideobj.data_ = [4,27.5,50,72.5,95]
         startobj.set(2);
     }
@@ -4939,9 +4978,10 @@ var templatelst =
         traitobj.begin = 100;
         scapeobj.begin = 100;
         globalobj.zoombegin = 0;
-        rowobj.begin = 20;
         globalobj.slidecountfactor = 20;
         globalobj.slidreducefactor = 100;
+        rowobj.begin = 0;
+        rowobj.end = 100;
     }
 },
 ];
@@ -4972,5 +5012,4 @@ var localst =
     {obj:zoomobj,def:globalobj.zoombegin},
     {obj:rowobj,def:rowobj.begin},//todo
 ];
-
 

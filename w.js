@@ -27,4 +27,3 @@ const runWasm = async () =>
 };
 
 runWasm();
-
