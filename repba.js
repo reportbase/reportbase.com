@@ -3,12 +3,12 @@ Copyright 2017 Tom Brinkman
 http://www.reportbase.com 
 */
 
-const VERSION = "v22"
+const VERSION = "v23"
 const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
-const MAXVIRTUAL = SAFARI?5760:5760*2; 
+const MAXVIRTUAL = 5760;//todo SAFARI?5760:5760*2; 
 const SWIPETIME = 40;
 const TIMERELOAD = 30000;
 const REFRESHEADER = 1000;
@@ -37,7 +37,8 @@ const ROWHEIGHT = FONTHEIGHT*2;
 const PINCHRANGE = "0.4-1.0";
 const HEIGHTRANGE = "0.10-1.0";
 const PANXRANGE = "3-15"
-const PANYRANGE = "1.0-6.0";
+const PANYRANGE = "1-6";
+const SLICEWIDTH = "0-100";
 const NUBCOLOR = "rgb(255,255,255)";
 const MENUCOLOR = "rgba(0,0,0,0.50)";
 const HEADCOLOR = "rgba(0,0,0,0.40)";
@@ -248,7 +249,14 @@ let startlst =
     },
 ];
 
-let slideobj = new makeoption("", [0,27.5,50,72.5,100]);
+var slicewidthobj = new makeoption("SLICEWIDTH", OPTIONSIZE); 
+slicewidthobj.begin = SAFARI?1.5:5;
+slicewidthobj.xbounry = function() { return 3*slicewidthobj.current() }
+
+var positobj = new makeoption("POSITION", 9);
+positobj.begin = 8;
+
+let slideobj = new makeoption("", [5,27.5,50,72.5,95]);
 let startobj = new makeoption("START", startlst);
 startobj.autopage = 1500;
 startobj.off = function()
@@ -264,7 +272,7 @@ localobj.autodirect = 1;
 localobj.showthumb = 1;
 globalobj.timebegin = TIMEOBJ/2;
 globalobj.cols = 1;
-globalobj.rows = 5;
+globalobj.rows = 1;
 globalobj.maxheight = 0;
 globalobj.zoombegin = MOBILE?50:40;
 globalobj.rowreset = 1;
@@ -272,10 +280,9 @@ globalobj.slidecountfactor = 25;
 globalobj.slidreducefactor = 50;
 globalobj.restrictpan = 0;
 globalobj.timemain = 4;
-globalobj.xboundry = 180;
-globalobj.slicewidth = 90;
 globalobj.zoomin = 0;
 globalobj.zoomax = 0.9;
+globalobj.automove  = 50;
 
 let photo = {}
 photo.image = 0;
@@ -783,7 +790,7 @@ addressobj.body = function ()
 {
     var context = _4cnvctx;
     var out = "&m="+(projectobj.length()-1);
-        out += "&t="+templateobj.getcurrent().name;
+    out += "&t="+templateobj.getcurrent().name;
     return out;
 }
 
@@ -872,16 +879,13 @@ CanvasRenderingContext2D.prototype.movepage = function(j)
             delete photo.image;
             _4cnvctx.slidecomplete = 0;
             _4cnvctx.setcolumncomplete = 0;
-            //if (globalobj.rowreset)
-            if (startobj.auto)
+            if (globalobj.rows == 1 && startobj.auto)
             {
-                var k = 50;
-                rowobj.set((k/100)*rowobj.length());
+                rowobj.set((50/100)*rowobj.length());
             }
             else
             {
-                //var k = j == -1 ? rowobj.end : rowobj.begin;
-                var k = j == -1 ? 100 : 0;
+                var k = j == -1 ? slideobj.data_[4] : slideobj.data_[0];
                 rowobj.set((k/100)*rowobj.length());
             }
 
@@ -1360,7 +1364,7 @@ panyobj.begin  = 50;
 var zoomobj = new makeoption("ZOOM", OPTIONSIZE); 
 
 var traitobj = new makeoption("TRAIT", OPTIONSIZE); 
-traitobj.begin = 60;
+traitobj.begin = 40;
 
 var scapeobj = new makeoption("SCAPE", OPTIONSIZE); 
 scapeobj.begin = 60;
@@ -1643,7 +1647,7 @@ var panlst =
         if (globalobj.restrictpan)
             y = rowobj.getcurrent()
     
-        x -= globalobj.xboundry;
+        x -= slicewidthobj.xbounry();
         if (context.isthumbrect)
         {
             var pt = context.getweightedpoint(x,y); 
@@ -1682,7 +1686,7 @@ var panlst =
         context.hidepicture = 0;
         context.panning = 1;
         context.refresh();
-        x -= globalobj.xboundry;
+        x -= slicewidthobj.xbounry();
         context.isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
     },
     panend: function (context, rect, x, y)
@@ -1788,7 +1792,7 @@ var presslst =
         if (!localobj.showthumb)
             return;
 
-        x -= globalobj.xboundry;
+        x -= slicewidthobj.xbounry();
 
         var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         var n = context.grid.hitest(x,y); 
@@ -1826,7 +1830,7 @@ var swipelst =
     swipeleftright: function (context, rect, x, y, evt)
     {
         startobj.off();
-        x -= globalobj.xboundry;
+        x -= slicewidthobj.xbounry();
         setTimeout(function()
         {   
             var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
@@ -1843,7 +1847,7 @@ var swipelst =
     swipeupdown: function (context, rect, x, y, evt)
     {
         startobj.off();
-         x -= globalobj.xboundry;                                                                                                               
+         x -= slicewidthobj.xbounry();                                                                                                               
          setTimeout(function()
          {
              if (evt.type == "swipedown")
@@ -2138,7 +2142,7 @@ var taplst =
 	name: "DESCRIBE",
 	tap: function (context, rect, x, y, shift, ctrl)
 	{
-        x -= globalobj.xboundry;
+        x -= slicewidthobj.xbounry();
         if (
             (context.prevhelp && context.prevhelp.hitest(x,y)) ||
             (context.prevhelp2 && context.prevhelp2.hitest(x,y)) )
@@ -2171,7 +2175,7 @@ var taplst =
             return;
         }
  
-        x -= globalobj.xboundry;
+        x -= slicewidthobj.xbounry();
 
         startobj.off();
         context.refresh();
@@ -2327,7 +2331,6 @@ var thumblst =
         var blackrect = new Fill(THUMBFILL);
         var blackrect2 = new Fill(THUMBFILL2);
 
-        context.globalAlpha  =  1;
         context.thumbrect = new rectangle(x,y,w,h);
         if (context.pinching || !localobj.picture || context.hidepicture)
         {
@@ -2550,7 +2553,7 @@ function resetcanvas()
     {
         var k = slicelst[n];
         var fw = context.virtualwidth / k.slices;
-        if (fw < globalobj.slicewidth)
+        if (fw < Number(slicewidthobj.getcurrent()))
             continue;
         ks = n;
         break;
@@ -2604,21 +2607,19 @@ function resetcanvas()
     }
 
     var slices = context.sliceobj.data_;
-    var cols = gridToRect(globalobj.cols, 1, 0, context.sliceobj.data_.length, 1)
-    for (var n = 0; n < cols.length; ++n)
+    if (slices.length > 0)
     {
-        var col = cols[n]
-        for (var e = col.x; e < col.x+col.width; ++e)
-            slices[e].col = n;
-        var m = col.x;
-        if (!slices[m])
+        var cols = gridToRect(globalobj.cols, 1, 0, slices.length, 1)
+        for (var n = 0; n < cols.length; ++n)
         {
-            console.assert(0);
+            var col = cols[n]
+            for (var e = col.x; e < col.x+col.width; ++e)
+                slices[e].col = n;
+            var m = col.x;
+            slices[m].isleft = 1;//todo
+            slices[m+col.width-1].isright = 1;
+            slices[m+Math.floor(col.width/2)].ismiddle = 1;
         }
-
-        slices[m].isleft = 1;//todo
-        slices[m+col.width-1].isright = 1;
-        slices[m+Math.floor(col.width/2)].ismiddle = 1;
     }
 
     globalobj.slidecount = (TIMEOBJ/context.virtualwidth)*globalobj.slidecountfactor;
@@ -2814,8 +2815,8 @@ var ContextObj = (function ()
 			if (context.index == 3)//boss
             {
                 var h = window.innerHeight;
-                var w = window.innerWidth + globalobj.xboundry*2;
-                var l = -globalobj.xboundry;
+                var w = window.innerWidth + slicewidthobj.xbounry()*2;
+                var l = -slicewidthobj.xbounry();
                 var t = 0;
 				context.show(l, t, w, h);
             }
@@ -3545,7 +3546,9 @@ function drawslices()
         var xt = -rect.width / 2;
         let y = rect.height*0.5;
         context.save();
+        //context.clear();
         context.translate(xt, 0);
+        context.globalAlpha  =  1;
         context.shadowOffsetX = 0;
         context.shadowOffsetY = 0;
         var m = context.getslicefirst()
@@ -3563,7 +3566,7 @@ function drawslices()
             var j = time + slice.time;
             var b = Math.tan(j*VIRTCONST);
             var x = Math.berp(-1, 1, b) * context.virtualpinch - context.virtualeft;
-            var ww = rect.width;// + context.slicewidth;
+            var ww = rect.width;
             if (first < 0 && x >= ww)
                 break;
             if (first >= ww && x >= ww && x < first)
@@ -3594,7 +3597,7 @@ function drawslices()
                 var j = time + slice.time;
                 var b = Math.tan(j*VIRTCONST);
                 var x = Math.berp(-1, 1, b) * context.virtualpinch - context.virtualeft;
-                var ww = rect.width;// + context.slicewidth;
+                var ww = rect.width;
 
                 if (first < 0 && x >= ww)
                     break;
@@ -3620,6 +3623,10 @@ function drawslices()
                 var j1 = context.visibles2[k-1]; 
                 var slice = j.slice;
                 let pinchwidth = j.x-j1.x; 
+                if (pinchwidth <= 0)
+                    continue;
+                //var a = new Fill("red");
+                //a.draw(context, new rectangle(j1.x+r.x, 0, pinchwidth, rect.height),0,0)
                 context.drawImage(slice.canvas, slice.x, 0, context.colwidth, rect.height,
                      j1.x+r.x, 0, pinchwidth, rect.height);
             }
@@ -3628,7 +3635,9 @@ function drawslices()
                 var j = context.visibles1[m]; 
                 var j1 = context.visibles1[m-1]; 
                 var slice = j.slice;
-                let pinchwidth = Math.abs(j.x-j1.x); 
+                let pinchwidth = j.x-j1.x; 
+                if (pinchwidth <= 0)
+                    continue;
                 context.drawImage(slice.canvas, slice.x, 0, context.colwidth, rect.height,
                     j1.x+r.x, 0, pinchwidth, rect.height);
             }
@@ -3643,7 +3652,11 @@ function drawslices()
                 var j1 = context.visibles2[k-1]; 
                 var slice = j.slice;
                 let pinchwidth = j.x-j1.x; 
-                context.drawImage(slice.canvas, slice.x, 0, context.colwidth, rect.height,
+                if (pinchwidth <= 0)
+                    continue;
+             //   var a = new Fill("blue");
+             //   a.draw(context, new rectangle(j1.x+r.x, 0, pinchwidth, rect.height),0,0)
+                 context.drawImage(slice.canvas, slice.x, 0, context.colwidth, rect.height,
                      j1.x+r.x, 0, pinchwidth, rect.height);
             }
             else
@@ -3651,7 +3664,9 @@ function drawslices()
                 var j = context.visibles2[m]; 
                 var j1 = context.visibles2[m-1]; 
                 var slice = j.slice;
-                let pinchwidth = Math.abs(j.x-j1.x); 
+                let pinchwidth = j.x-j1.x;
+                if (pinchwidth <= 0)
+                    continue;
                 context.drawImage(slice.canvas, slice.x, 0, context.colwidth, rect.height,
                     j1.x+r.x, 0, pinchwidth, rect.height);
             }
@@ -3675,7 +3690,7 @@ function drawslices()
 
         context.restore();
         context.save();
-        context.translate(globalobj.xboundry, 0);
+        context.translate(slicewidthobj.xbounry(), 0);
         if (context.describe)
         {
             for (var m = 0; m < sliceobj.length; ++m)
@@ -4636,7 +4651,7 @@ var helplst =
             Window Height\n${window.innerHeight}\n
             Window Aspect\n${(window.innerWidth/window.innerHeight).toFixed(2)}\n
             Time Main\n${globalobj.timemain}\n
-            Slice Width\n${globalobj.slicewidth}\n
+            Column Width\n${_4cnvctx.colwidth}\n
             userAgent\n${navigator.userAgent}\n`;
         var k = helpobj.getcurrent().index?helpobj.getcurrent().index:0;
         context.describeobj.set(k);
@@ -4761,6 +4776,7 @@ window.addEventListener("load", async () =>
         pinchobj.split(Number(localobj.current.pinch), PINCHRANGE, OPTIONSIZE);
         panxobj.split(Number(localobj.current.panx), PANXRANGE, OPTIONSIZE);
         panyobj.split(Number(localobj.current.pany), PANYRANGE, OPTIONSIZE);
+        slicewidthobj.split(Number(localobj.current.slicewidth), SLICEWIDTH, OPTIONSIZE);
         traitobj.split(Number(localobj.current.trait), HEIGHTRANGE, OPTIONSIZE);
         scapeobj.split(Number(localobj.current.scape), HEIGHTRANGE, OPTIONSIZE);
     }
@@ -4836,8 +4852,6 @@ var templatelst =
     name: "HIRES",
     init: function ()
     {
-        globalobj.xboundry = 120;
-        globalobj.slicewidth = 60;
         globalobj.zoomax = 0.985;
     }
 },
@@ -4848,8 +4862,6 @@ var templatelst =
         panxobj.begin  = 20;
         rowobj.begin = 0;
         rowobj.end = 100;
-        globalobj.xboundry = 60;
-       globalobj.slicewidth = 30;
        globalobj.slidreducefactor = 25;
         globalobj.zoombegin = MOBILE?60:30;
         localobj.picture = 1;
@@ -4859,10 +4871,9 @@ var templatelst =
     name: "WIDE",
     init: function ()
     {
+        slicewidthobj.begin = SAFARI?3.0:15;
+        positobj.begin = 7;
         globalobj.restrictpan = 1;
-        globalobj.xboundry = 60;
-        globalobj.slicewidth = 30;
-        globalobj.rows = 1;
         traitobj.begin = 100;
         scapeobj.begin = 100;
         globalobj.zoombegin = 0;
@@ -4879,10 +4890,9 @@ var templatelst =
     name: "XWIDE",
     init: function ()
     {
+        slicewidthobj.begin = SAFARI?5.0:30;
+        positobj.begin = 7;
         globalobj.restrictpan = 1;
-        globalobj.xboundry = 180;
-        globalobj.slicewidth = 60;
-        globalobj.rows = 1;
         traitobj.begin = 100;
         scapeobj.begin = 100;
         globalobj.zoombegin = 0;
@@ -4915,13 +4925,11 @@ var templatelst =
     init: function ()
     {
         globalobj.zoombegin = MOBILE?60:30;
-        globalobj.xboundry = 60;
-        globalobj.slicewidth = 30;
         globalobj.slidreducefactor = 50;
         startobj.set(1);
         rowobj.begin = 0;
         rowobj.end = 100;
-        traitobj.begin = 60;
+        traitobj.begin = 50;
         scapeobj.begin = 60;
         startobj.autopage = 2000;
         localobj.picture = 1;
@@ -4931,10 +4939,13 @@ var templatelst =
     name: "LANDSCAPE",
     init: function ()
     {
+        positobj.begin = 7;
         rowobj.begin = 50;
         globalobj.slidreducefactor = 75;
         localobj.picture = 1;
-        traitobj.begin = 60;
+        rowobj.begin = 0;
+        rowobj.end = 100;
+        traitobj.begin = 50;
         scapeobj.begin = 60;
         startobj.set(1);
         startobj.autopage = 2000;
@@ -4946,9 +4957,7 @@ var templatelst =
     {
         slideobj.data_ = [4,15,27.5,38,50,62,72.5,84,95]
         rowobj.begin = 4;
-        globalobj.xboundry = 30;
-       globalobj.slicewidth = 10;
-         globalobj.rows = 1;
+         globalobj.rows = 9;
         globalobj.cols = 1;
         startobj.set(1);
         startobj.autopage = 5000;
@@ -4958,14 +4967,15 @@ var templatelst =
     name: "1X5",
     init: function ()
     {
+        positobj.begin = 5;
         globalobj.cols = 1;
         globalobj.rows = 5;
         traitobj.begin = 50;
         scapeobj.begin = 100;
         globalobj.zoombegin = 50;
-        rowobj.begin = 4;
+        rowobj.begin = 5;
         rowobj.end = 95;
-        slideobj.data_ = [4,27.5,50,72.5,95]
+        slideobj.data_ = [5,27.5,50,72.5,95]
         startobj.set(2);
     }
 },
@@ -4973,6 +4983,7 @@ var templatelst =
     name: "7X1",
     init: function ()
     {
+        positobj.begin = 7;
        globalobj.maxheight = 50;
         globalobj.cols = 7;
         traitobj.begin = 100;
@@ -4994,22 +5005,17 @@ var j = templatelst.findIndex(function(a){return a.name == template;})
 templateobj.set(j)
 templateobj.getcurrent().init();
 
-var positobj = new makeoption("POSITION", 9);
-if (template == "1X5")
-    positobj.begin = 5;
-else
-    positobj.begin = 7;
-
 var localst = 
 [
-    {obj:thumbobj,def:0},
-    {obj:positobj,def:positobj.begin},
-    {obj:pinchobj,def:pinchobj.begin},
-    {obj:panyobj,def:panyobj.begin},
-    {obj:panxobj,def:panxobj.begin},
-    {obj:traitobj,def:traitobj.begin},
-    {obj:scapeobj,def:scapeobj.begin},
-    {obj:zoomobj,def:globalobj.zoombegin},
-    {obj:rowobj,def:rowobj.begin},//todo
+    {obj:thumbobj, def:0},
+    {obj:positobj, def:positobj.begin},
+    {obj:slicewidthobj, def:slicewidthobj.begin},
+    {obj:pinchobj, def:pinchobj.begin},
+    {obj:panyobj, def:panyobj.begin},
+    {obj:panxobj, def:panxobj.begin},
+    {obj:traitobj, def:traitobj.begin},
+    {obj:scapeobj, def:scapeobj.begin},
+    {obj:zoomobj, def:globalobj.zoombegin},
+    {obj:rowobj, def:rowobj.begin},//todo
 ];
 
