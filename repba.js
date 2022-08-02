@@ -8,7 +8,8 @@ const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
-const MAXVIRTUAL = 5760;//todo SAFARI?5760:5760*2; 
+const MAXWEBP = 16383;
+const MAXVIRTUAL = SAFARI?5760:MAXWEBP; 
 const SWIPETIME = 40;
 const TIMERELOAD = 30000;
 const REFRESHEADER = 1000;
@@ -58,8 +59,8 @@ const VIRTCONST = 0.8;
 let slicelst = [];
 for (let n = 399; n >= 0; n=n-1)
 {
-    const CYLRADIUS = 65.45*32;
-    slicelst.push({slices: n*3.125, delay: CYLRADIUS*(60/n)});
+    //slicelst.push({slices: n*3.125, delay: 125664/n});
+    slicelst.push({slices: n*3.0, delay:   130000/n});
 }
 
 let url = new URL(window.location.href);
@@ -279,7 +280,7 @@ globalobj.rowreset = 1;
 globalobj.slidecountfactor = 25;
 globalobj.slidreducefactor = 50;
 globalobj.restrictpan = 0;
-globalobj.timemain = 3;//todo
+globalobj.timemain = 4;
 globalobj.zoomin = 0;
 globalobj.zoomax = 0.9;
 globalobj.automove  = 50;
@@ -1404,6 +1405,7 @@ var demolst =
 //Wide Images
 {path: "https://reportbase.us/?p=PANO&m=0083&t=landscape", func: demo, title: "PANO"},
 {path: "https://reportbase.us/?p=PENO&m=0167&t=wide", func: demo, title: "PENO"},                                                                                            
+{path: "https://reportbase.us/?p=PINO.0000.jpg&m=0016&t=xwide", func: demo, title: "PINO"},
 {path: "https://reportbase.us/?p=PUNO&m=0016&t=xwide", func: demo, title: "PUNO"},
 
     //Mona Lisa
@@ -1446,7 +1448,7 @@ var demolst =
 {path: "https://reportbase.com/?p=FASH&m=0007&t=portrait", func: demo, title: "FASH"}, 
 {path: "https://reportbase.com/?p=USCO&m=0000&t=portrait", func: demo, title: "USCO"}, 
 {path: "https://reportbase.com/?p=WETP&m=0000&t=portrait", func: demo, title: "WETP"}, 
-{path: "https://reportbase.com/?p=DOCS&m=0009&t=portrait", func: demo, title: "DOCS"}, 
+{path: "https://reportbase.com/?p=DOCS&m=0012&t=portrait", func: demo, title: "DOCS"}, 
 {path: "https://reportbase.com/?p=WALL&m=0051&t=portrait", func: demo, title: "WALL"}, 
 {path: "https://reportbase.com/?p=GIRL&m=0058&t=portrait", func: demo, title: "GIRL"}, 
 {path: "https://reportbase.com/?p=PORT&m=0055&t=portrait", func: demo, title: "PORT"}, 
@@ -1584,7 +1586,6 @@ function dropfiles(files)
         return;
     delete photo.cached;
     delete photo.image;
-    startobj.off();
     _4cnvctx.setcolumncomplete = 0;
     globalobj.promptedfile = URL.createObjectURL(files[0]);   
     contextobj.reset();
@@ -1647,8 +1648,8 @@ var panlst =
         context.pantype = type;
         if (globalobj.restrictpan)
             y = rowobj.getcurrent()
-    
         x -= slicewidthobj.xbounry();
+
         if (context.isthumbrect)
         {
             var pt = context.getweightedpoint(x,y); 
@@ -2619,7 +2620,7 @@ function resetcanvas()
             for (var e = col.x; e < col.x+col.width; ++e)
                 slices[e].col = n;
             var m = col.x;
-            slices[m].isleft = 1;//todo
+            slices[m].isleft = 1;
             slices[m+col.width-1].isright = 1;
             slices[m+Math.floor(col.width/2)].ismiddle = 1;
         }
@@ -2860,7 +2861,6 @@ var ContextObj = (function ()
                     path = globalobj.promptedfile;   
               
                 seteventspanel(new Empty());
-                delete globalobj.promptedfile;
                 photo.image = new Image();
                 photo.image.original = path;
                 photo.image.load(path);
@@ -2869,11 +2869,11 @@ var ContextObj = (function ()
                     photo.image.onabort = function()
                 {
                     _4cnvctx.setcolumncomplete = 1;
-                    seteventspanel(new YollPanel());
                     this.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAADK0lEQVRIS7WXWYiOURjH57VknzIXiiwXKBRXLpSMC9OIEDEhk5KdBs0wzQUxSVlmQskSRU0ulKWIUq4MTYkpe1kKRZIt+zqf3//rvF+fd87yynyn/p2v8yz/5zzvc55zvqjIMzKZTDfEvcBYgwHMGfACXAM3wccoir77/NhkkW0Rwi6sTwSLwDzQ2eH4K+snwFHQQgA/0wbQjhjSYoz3GMIeKR0pAJFvhPxdGpu/iCHti9EVMCqNsUXnKmuTIf8css8RQ6rdXf8P0pirGeLSfyHej/LKgMEn5ApWBecbDZBv8Clkd8xuxzFdAEq1a9xGsB38ApsDmVGVj4f8hstZBGlX47A6sIs6HO0wgVYyNwX0m9Bf6CNWFWs3gz2OfiNbh6N9hniKyZCP+w7C6dg8sSlpx0MRPHJ4UMp0NttALU4OGeJy5otA31wZU6NJjvcsVGBzyUU8G8FJi/A+ayq410DdqhUnDw1xf+YyoMBKgD7TcIuPSmyOu4hVySLIHyJahdFBm1FyjazNZO2MRXdFnKWkTKlezqKNYD1GjSmJl6B32KK7DB+29SIRT8XgvMXoi8nEM5Pqyzi5ZVI9hLkCqFUOBHUWe2VtPjbq5e2GiFXNT1PsrBonuw3xNOZzAZtXyOdg0+wi7o1APXaMx5GO0xqcZGuBYOOq9nG3IizH5o2LuBOCGrAzsIN6nGwxxKuZs2faMXT89qLvbEpxy9RtdBboTLuGzmwD0LneChSwa3xAMBJiPRisI/92UlNXL/Y5DCQlJ37MrxkQ30tDrFfGAbA0rfeAnh4Eu0AjAfxI6iYfAt1RqAe1HUSuotQdvxjyu/k+bU8f7XwuUFPpkzKAb+ipnY526GvHut2yx1HD+tiTgCPTj2kT0JnVDdYT6BGooQJT81ARqVXqflYj0cUxyBPsKWRrCeC5kzg2JgClXw+FYUAXgsZboB3qZZn7fujq+KjyfX71pisLEnuit4og1zU4KWC3oBDEyspLoHvaNY50OLGY2PUsptMe4m2FIpbfY8D25tKtNaIgxGbXqnKR539vHbsqCrIwqY5TTMrVByYA/enTSVDhPYC47Q+jAwjFRbnDLAAAAABJRU5ErkJggg==";
                     resetcanvas(context);
                     contextobj.resize(context);
                     context.refresh();
+                    delete globalobj.promptedfile;
                     seteventspanel(new YollPanel());
                 }
 
@@ -2888,8 +2888,10 @@ var ContextObj = (function ()
                     contextobj.resize(context);
                     resetcanvas(context);
                     context.refresh();
-                    startobj.getcurrent().init();
+                    if (!globalobj.promptedfile)
+                        startobj.getcurrent().init();
                     seteventspanel(new YollPanel());
+                    delete globalobj.promptedfile;
 
                     var k = projectobj.current();
                     projectobj.rotate(1);
@@ -3659,7 +3661,7 @@ function drawslices()
                     continue;
              //   var a = new Fill("blue");
              //   a.draw(context, new rectangle(j1.x+r.x, 0, pinchwidth, rect.height),0,0)
-                 context.drawImage(slice.canvas, slice.x, 0, context.colwidth, rect.height,
+               context.drawImage(slice.canvas, slice.x, 0, context.colwidth, rect.height,
                      j1.x+r.x, 0, pinchwidth, rect.height);
             }
             else
@@ -4736,7 +4738,9 @@ window.addEventListener("load", async () =>
     try
     {
         if (url.origin == "https://reportbase.com" && "serviceWorker" in navigator)
-           navigator.serviceWorker.register("sw.js");
+           navigator.serviceWorker.register("reportbase.com.sw.js");
+        else if (url.origin == "https://reportbase.us" && "serviceWorker" in navigator)
+           navigator.serviceWorker.register("reportbase.us.sw.js");
 
         seteventspanel(new YollPanel());
         _4cnvctx.enabled = 1;
