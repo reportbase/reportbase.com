@@ -1,0 +1,5 @@
+To compare the local repository with the remote one, simply use the below syntax:
+git diff @{upstream}
+
+
+

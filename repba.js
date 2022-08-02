@@ -3,7 +3,7 @@ Copyright 2017 Tom Brinkman
 http://www.reportbase.com 
 */
 
-const VERSION = "v25"
+const VERSION = "v26"
 const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -24,8 +24,6 @@ const HNUB = 4;
 const THUMBORDER = 16;
 const TABWIDTH = 40;
 const TABHEIGHT = 40;
-const HOST = "Local";
-const OPTIONSIZE = 100;
 const ALIEXTENT = 60;
 const BEKEXTENT = 20;
 const NUBEXTENT = 8;
@@ -35,11 +33,6 @@ const TIMEOBJ = 3926;
 const FONTHEIGHT = 16;
 const BUTTONHEIGHT = 38; 
 const ROWHEIGHT = FONTHEIGHT*2;
-const PINCHRANGE = "0.4-1.0";
-const HEIGHTRANGE = "0.10-1.0";
-const PANXRANGE = "3-15"
-const PANYRANGE = "1-6";
-const SLICEWIDTH = "0-100";
 const NUBCOLOR = "rgb(255,255,255)";
 const MENUCOLOR = "rgba(0,0,0,0.50)";
 const HEADCOLOR = "rgba(0,0,0,0.40)";
@@ -58,31 +51,40 @@ localobj = {}
 const VIRTCONST = 0.8;
 let slicelst = [];
 for (let n = 399; n >= 0; n=n-1)
-{
-    //slicelst.push({slices: n*3.125, delay: 125664/n});
-    slicelst.push({slices: n*3.0, delay:   130000/n});
-}
+    slicelst.push({slices: n*3, delay: 130500/n});
 
 let url = new URL(window.location.href);
 let loaded = new Set()
 
-let filename = url.searchParams.has("p") ? url.searchParams.get("p") : 
-    (url.origin == "https://reportbase.com" ? "GAMP":"WIDE");
-filename = filename.split(".");
-if (filename.length == 3)
+url.path = "HOME";
+url.project = 0; 
+url.extension = "jpg"; 
+if (url.searchParams.has("p"))
 {
-    url.path = filename[0];
-    url.project = filename[1]; 
-    url.extension = filename[2] 
-}
-else
-{
-    url.path = filename[0];
-    url.project = "0000"; 
-    url.extension = "webp"; 
+    let k = url.searchParams.get("p").split(".");
+    if (k.length == 3)
+    {
+        url.path = k[0];
+        url.project = Number(k[1]); 
+        url.extension = k[2] 
+    }
+    else
+    {
+        url.path = k[0];
+    }
 }
 
-url.fullpath = function() { return url.path + "." + projectobj.current().pad(4) + "." + url.extension; }
+url.filepath = function() 
+{
+    return url.origin+"/data/";
+}
+
+url.filename = function() 
+{ 
+    return url.path + "." + 
+        projectobj.current().pad(4) + "." + 
+        url.extension; 
+}
 
 Math.clamp = function (min, max, val)
 {
@@ -250,10 +252,6 @@ let startlst =
     },
 ];
 
-var slicewidthobj = new makeoption("SLICEWIDTH", OPTIONSIZE); 
-slicewidthobj.begin = SAFARI?1.5:35;
-slicewidthobj.xbounry = function() { return 3*slicewidthobj.current() }
-
 var positobj = new makeoption("POSITION", 9);
 positobj.begin = 8;
 
@@ -412,11 +410,11 @@ function calculateAspectRatioFit(imgwidth, imgheight, rectwidth, rectheight)
 	return new rectangle(xstart, ystart, width, height);
 }
 
-function download(filename, text)
+function download(name, text)
 {
 	var element = document.createElement('a');
 	element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-	element.setAttribute('download', filename);
+	element.setAttribute('download', name);
 	element.style.display = 'none';
 	document.body.appendChild(element);
 	element.click();
@@ -797,7 +795,7 @@ addressobj.body = function ()
 
  addressobj.full = function ()
 {
-    var out = url.origin+"/?p="+url.fullpath();
+    var out = url.origin +"/?p="+url.filename();
     out += addressobj.body();
     return out;
 };
@@ -1350,20 +1348,25 @@ rowobj.end = 50;
 
 var pinchobj = new makeoption("PINCH", pinchlst);
 pinchobj.begin = 50;
+pinchobj.range = "0.4-1.0";
 
-var panxobj = new makeoption("PANX", OPTIONSIZE); 
+var panxobj = new makeoption("PANX", 100); 
 panxobj.begin  = 50;
+panxobj.range = "3-15";
 
-var panyobj = new makeoption("PANY", OPTIONSIZE); 
-panyobj.begin  = 50;
+var panyobj = new makeoption("PANY", 100); 
+panyobj.begin = 50;
+panyobj.range = "1-6";
 
-var zoomobj = new makeoption("ZOOM", OPTIONSIZE); 
+var zoomobj = new makeoption("ZOOM", 100); 
 
-var traitobj = new makeoption("TRAIT", OPTIONSIZE); 
+var traitobj = new makeoption("TRAIT", 100); 
 traitobj.begin = 40;
+traitobj.range = "0.10-1.0";
 
-var scapeobj = new makeoption("SCAPE", OPTIONSIZE); 
+var scapeobj = new makeoption("SCAPE", 100); 
 scapeobj.begin = 60;
+scapeobj.range = "0.10-1.0";
 
 var heightobj = new makeoption("HEIGHT", [traitobj,scapeobj]); 
 
@@ -1648,7 +1651,7 @@ var panlst =
         context.pantype = type;
         if (globalobj.restrictpan)
             y = rowobj.getcurrent()
-        x -= slicewidthobj.xbounry();
+        x -= context.xbounry;
 
         if (context.isthumbrect)
         {
@@ -1690,7 +1693,7 @@ var panlst =
         context.hidepicture = 0;
         context.panning = 1;
         context.refresh();
-        x -= slicewidthobj.xbounry();
+        x -= context.xbounry;
         context.isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
     },
     panend: function (context, rect, x, y)
@@ -1796,7 +1799,7 @@ var presslst =
         if (!localobj.showthumb)
             return;
 
-        x -= slicewidthobj.xbounry();
+        x -= context.xbounry;
 
         var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
         var n = context.grid.hitest(x,y); 
@@ -1834,7 +1837,7 @@ var swipelst =
     swipeleftright: function (context, rect, x, y, evt)
     {
         startobj.off();
-        x -= slicewidthobj.xbounry();
+        x -= context.xbounry;
         setTimeout(function()
         {   
             var isthumbrect = context.thumbrect && context.thumbrect.hitest(x,y);
@@ -1851,7 +1854,7 @@ var swipelst =
     swipeupdown: function (context, rect, x, y, evt)
     {
         startobj.off();
-         x -= slicewidthobj.xbounry();                                                                                                               
+         x -= context.xbounry;                                                                                                               
          setTimeout(function()
          {
              if (evt.type == "swipedown")
@@ -1985,7 +1988,7 @@ var keylst =
             if (context.ctrlhit)
                 context.movepage(-1)
             else
-                context.timeobj.rotate(context.rvalue);
+                context.timeobj.rotate(context.rvalue*2);
             evt.preventDefault();
         }
         else if (evt.key == "ArrowRight" || evt.key == "l")
@@ -1994,7 +1997,7 @@ var keylst =
             if (context.ctrlhit)
                 context.movepage(1)
             else
-                context.timeobj.rotate(-context.rvalue);
+                context.timeobj.rotate(-context.rvalue*2);
             evt.preventDefault();
         }
         else if (evt.key == "ArrowUp" || evt.key == "k")
@@ -2146,7 +2149,7 @@ var taplst =
 	name: "DESCRIBE",
 	tap: function (context, rect, x, y, shift, ctrl)
 	{
-        x -= slicewidthobj.xbounry();
+        x -= context.xbounry;
         if (
             (context.prevhelp && context.prevhelp.hitest(x,y)) ||
             (context.prevhelp2 && context.prevhelp2.hitest(x,y)) )
@@ -2179,7 +2182,7 @@ var taplst =
             return;
         }
  
-        x -= slicewidthobj.xbounry();
+        x -= context.xbounry;
 
         startobj.off();
         context.refresh();
@@ -2489,14 +2492,10 @@ var drawlst = [
 ];
 
 var projects = 0;
-if (url.searchParams.has("t") && url.searchParams.has("m"))
-    projects = url.searchParams.get("m");
-else if (url.searchParams.has("p"))
-    projects = 0;
-else
-    projects = (url.origin == "https://reportbase.com" ? 6:29);
-var projectobj = new makeoption("", Number(projects)+1);
-projectobj.set(Number(url.project));
+if (url.searchParams.has("m"))
+    projects = Number(url.searchParams.get("m"));
+var projectobj = new makeoption("", projects+1);
+projectobj.set(url.project);
 
 function resetcanvas()
 {
@@ -2522,7 +2521,7 @@ function resetcanvas()
     }
 
     zoomrange[1] = globalobj.zoomax;
-    zoomobj.split(zoomobj.current(), zoomrange.join("-"), OPTIONSIZE);
+    zoomobj.split(zoomobj.current(), zoomrange.join("-"), 100);
 
     /* AAPL 
     for (var n = 0; n < zoomobj.length(); ++n)
@@ -2552,12 +2551,14 @@ function resetcanvas()
     context.virtualaspect = context.virtualwidth / context.virtualheight;
     var y = Math.clamp(0,context.canvas.height-1,context.canvas.height*rowobj.berp());
     context.nuby = Math.nub(y, context.canvas.height, context.imageheight, photo.image.height);  
+    context.slicewidth = context.zooming?1:30;
+    context.xbounry = context.slicewidth*2;
     var ks = 0;
     for (var n = 0; n < slicelst.length; ++n)
     {
         var k = slicelst[n];
         var fw = context.virtualwidth / k.slices;
-        if (fw < Number(slicewidthobj.getcurrent()))
+        if (fw < context.slicewidth)
             continue;
         ks = n;
         break;
@@ -2819,8 +2820,8 @@ var ContextObj = (function ()
 			if (context.index == 3)//boss
             {
                 var h = window.innerHeight;
-                var w = window.innerWidth + slicewidthobj.xbounry()*2;
-                var l = -slicewidthobj.xbounry();
+                var w = window.innerWidth + context.xbounry*2;
+                var l = -context.xbounry;
                 var t = 0;
 				context.show(l, t, w, h);
             }
@@ -2856,7 +2857,7 @@ var ContextObj = (function ()
             }
             else if (url.path)
             {
-                var path = url.origin + "/data/" + url.fullpath();
+                var path = url.filepath() + url.filename();
                 if (globalobj.promptedfile)
                     path = globalobj.promptedfile;   
               
@@ -2883,7 +2884,7 @@ var ContextObj = (function ()
                     this.size = ((this.width * this.height)/1000000).toFixed(1) + "MP";
                     this.extent = this.width + "x" + this.height + " (" + this.aspect.toFixed(2) + ")" ;
                     this.extentonly = this.width + "x" + this.height;
-                    document.title = url.fullpath()+" ("+this.extentonly+")" 
+                    document.title = url.filename()+" ("+this.extentonly+")" 
                     
                     contextobj.resize(context);
                     resetcanvas(context);
@@ -2895,12 +2896,12 @@ var ContextObj = (function ()
 
                     var k = projectobj.current();
                     projectobj.rotate(1);
-                    var path = url.origin + "/data/" + url.fullpath();
+                    var path = url.filepath() + url.filename();
                     var img = new Image();
                     img.onload = function() { loaded.add(this.src); }
                     img.src = path;
                     projectobj.rotate(-2);
-                    var path = url.origin + "/data/" + url.fullpath();
+                    var path = url.filepath() + url.filename();
                     var img = new Image();
                     img.onload = function() { loaded.add(this.src); }
                     img.src = path;
@@ -3476,6 +3477,8 @@ function reset()
 
 function resize()
 {
+    _4cnvctx.zooming = 0;
+    reset();
     menuhide();
     delete photo.cached;
     delete _4cnvctx.describe;
@@ -3483,30 +3486,11 @@ function resize()
     setevents(_4cnvctx, eventlst[n])
     _4cnvctx.refresh();
     pageresize();
-    reset();
 }
-
-window.addEventListener("focus", (evt) => 
-{ 
-});
-
-window.addEventListener("blur", (evt) => 
-{ 
-    escape();
-});
-
-window.addEventListener("resize", (evt) => 
-{ 
-    resize();
-});
-
-window.addEventListener("screenorientation", (evt) => 
-{ 
-    resize();
-});
 
 function escape() 
 {
+    _4cnvctx.zooming = 0;
     startobj.off();
     menuhide();
     delete _4cnvctx.describe;
@@ -3515,6 +3499,11 @@ function escape()
     _4cnvctx.setcolumncomplete = 0;
     contextobj.reset();
 }
+
+window.addEventListener("focus", (evt) => { });
+window.addEventListener("blur", (evt) => { escape(); });
+window.addEventListener("resize", (evt) => { resize(); });
+window.addEventListener("screenorientation", (evt) => { resize(); });
 
 function drawslices()
 {
@@ -3695,7 +3684,7 @@ function drawslices()
 
         context.restore();
         context.save();
-        context.translate(slicewidthobj.xbounry(), 0);
+        context.translate(context.xbounry, 0);
         if (context.describe)
         {
             for (var m = 0; m < sliceobj.length; ++m)
@@ -4138,12 +4127,13 @@ var Footer = function ()
     this.height = ALIEXTENT;
     this.panstart = function (context, rect, x, y)
     {
-    };
+        _4cnvctx.zooming = 1;
+    }
 
     this.panend = function (context, rect, x, y)
     {
-        _4cnvctx.refresh();
         delete zoomobj.offset;
+        _4cnvctx.refresh();  
     };
 
     this.pan = function (context, rect, x, y, type)
@@ -4163,12 +4153,6 @@ var Footer = function ()
     this.tap = function (context, rect, x, y)
     {   
         startobj.off();
-        _4cnvctx.panning = 1;  
-        clearTimeout(globalobj.tap);
-        globalobj.tap = setTimeout(function()
-            {
-                _4cnvctx.panning = 0;  
-            }, 1000);
 
         if (context.thumbout.hitest(x,y))
         {
@@ -4737,10 +4721,8 @@ window.addEventListener("load", async () =>
 {
     try
     {
-        if (url.origin == "https://reportbase.com" && "serviceWorker" in navigator)
-           navigator.serviceWorker.register("reportbase.com.sw.js");
-        else if (url.origin == "https://reportbase.us" && "serviceWorker" in navigator)
-           navigator.serviceWorker.register("reportbase.us.sw.js");
+        if ("serviceWorker" in navigator)
+           navigator.serviceWorker.register(url.origin+"/"+url.hostname+".sw.js");
 
         seteventspanel(new YollPanel());
         _4cnvctx.enabled = 1;
@@ -4780,12 +4762,11 @@ window.addEventListener("load", async () =>
             _9cnvctx.timeobj.set(timers[8]);
         }
 
-        pinchobj.split(Number(localobj.current.pinch), PINCHRANGE, OPTIONSIZE);
-        panxobj.split(Number(localobj.current.panx), PANXRANGE, OPTIONSIZE);
-        panyobj.split(Number(localobj.current.pany), PANYRANGE, OPTIONSIZE);
-        slicewidthobj.split(Number(localobj.current.slicewidth), SLICEWIDTH, OPTIONSIZE);
-        traitobj.split(Number(localobj.current.trait), HEIGHTRANGE, OPTIONSIZE);
-        scapeobj.split(Number(localobj.current.scape), HEIGHTRANGE, OPTIONSIZE);
+        pinchobj.split(Number(localobj.current.pinch), pinchobj.range, pinchobj.length());
+        panxobj.split(Number(localobj.current.panx), panxobj.range, panxobj.length());
+        panyobj.split(Number(localobj.current.pany), panyobj.range, panyobj.length());
+        traitobj.split(Number(localobj.current.trait), traitobj.range, traitobj.length());
+        scapeobj.split(Number(localobj.current.scape), scapeobj.range, scapeobj.length());
     }
     catch(error)
     {
@@ -4869,7 +4850,7 @@ var templatelst =
         panxobj.begin  = 20;
         rowobj.begin = 0;
         rowobj.end = 100;
-       globalobj.slidreducefactor = 25;
+        globalobj.slidreducefactor = 25;
         globalobj.zoombegin = MOBILE?60:30;
         localobj.picture = 1;
     }
@@ -4878,7 +4859,6 @@ var templatelst =
     name: "WIDE",
     init: function ()
     {
-        slicewidthobj.begin = SAFARI?3.0:15;
         positobj.begin = 7;
         globalobj.restrictpan = 1;
         traitobj.begin = 100;
@@ -4897,17 +4877,14 @@ var templatelst =
     name: "XWIDE",
     init: function ()
     {
-        slicewidthobj.begin = SAFARI?5.0:30;
         positobj.begin = 7;
         globalobj.restrictpan = 1;
         traitobj.begin = 100;
         scapeobj.begin = 100;
         globalobj.zoombegin = 0;
-        startobj.autopage = 3000;
         rowobj.begin = 0;
         rowobj.end = 100;
         globalobj.hide = 1;
-        startobj.set(1);
         globalobj.slidecountfactor = 20;
         globalobj.slidreducefactor = 75;
     }
@@ -4991,7 +4968,7 @@ var templatelst =
     init: function ()
     {
         positobj.begin = 7;
-       globalobj.maxheight = 50;
+        globalobj.maxheight = 50;
         globalobj.cols = 7;
         traitobj.begin = 100;
         scapeobj.begin = 100;
@@ -5005,24 +4982,24 @@ var templatelst =
 ];
 
 var templateobj = new makeoption("TEMPLATE", templatelst);
-var template = url.searchParams.has("t") ? url.searchParams.get("t") : 
-    (url.origin == "https://reportbase.com" ? "7x1":"WIDE");
-template = template.toUpperCase();
-var j = templatelst.findIndex(function(a){return a.name == template;})
-templateobj.set(j)
-templateobj.getcurrent().init();
+if (url.searchParams.has("t"))
+{
+    var t = url.searchParams.get("t");
+    var j = templatelst.findIndex(function(a){return a.name == t.toUpperCase();})
+    templateobj.set(j==-1?0:j)
+    templateobj.getcurrent().init();
+}
 
 var localst = 
 [
     {obj:thumbobj, def:0},
     {obj:positobj, def:positobj.begin},
-    {obj:slicewidthobj, def:slicewidthobj.begin},
     {obj:pinchobj, def:pinchobj.begin},
     {obj:panyobj, def:panyobj.begin},
     {obj:panxobj, def:panxobj.begin},
     {obj:traitobj, def:traitobj.begin},
     {obj:scapeobj, def:scapeobj.begin},
     {obj:zoomobj, def:globalobj.zoombegin},
-    {obj:rowobj, def:rowobj.begin},//todo
+    {obj:rowobj, def:rowobj.begin},
 ];
 
