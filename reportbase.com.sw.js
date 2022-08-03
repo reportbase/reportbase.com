@@ -1,18 +1,12 @@
 // https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers
 
-const VERSION = "v25"
+const VERSION = "v27"
 const precacheResources = 
 [
     '/',
     '/index.html',
     '/repba.js',
-    '/data/GAMP.0000.webp',
-    '/data/GAMP.0001.webp',
-    '/data/GAMP.0002.webp',
-    '/data/GAMP.0003.webp',
-    '/data/GAMP.0004.webp',
-    '/data/GAMP.0005.webp',
-    '/data/GAMP.0006.webp',
+    '/data/HOME.0000.jpg',
 ];
 
 self.addEventListener('install', (event) => 

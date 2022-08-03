@@ -3,8 +3,9 @@ Copyright 2017 Tom Brinkman
 http://www.reportbase.com 
 */
 
-const VERSION = "v26"
+const VERSION = "v27"
 const MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const ISMOBILE = window.matchMedia("only screen and (max-width: 760px)").matches;
 const SAFARI = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const FIREFOX = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 const IFRAME = window !== window.parent;
@@ -13,7 +14,6 @@ const MAXVIRTUAL = SAFARI?5760:MAXWEBP;
 const SWIPETIME = 40;
 const TIMERELOAD = 30000;
 const REFRESHEADER = 1000;
-const MAXSLIDER = 720;
 const POSITYSPACE = 50;
 const THUMBLINE = 1;
 const THUMBLINEIN = 2.0;
@@ -48,6 +48,8 @@ dropobj = {};
 globalobj = {};
 localobj = {}
 
+globalobj.hdimages = 0;
+
 const VIRTCONST = 0.8;
 let slicelst = [];
 for (let n = 399; n >= 0; n=n-1)
@@ -56,9 +58,6 @@ for (let n = 399; n >= 0; n=n-1)
 let url = new URL(window.location.href);
 let loaded = new Set()
 
-url.path = "HOME";
-url.project = 0; 
-url.extension = "jpg"; 
 if (url.searchParams.has("p"))
 {
     let k = url.searchParams.get("p").split(".");
@@ -73,10 +72,17 @@ if (url.searchParams.has("p"))
         url.path = k[0];
     }
 }
+else
+{
+    url.path = "HOME";
+    url.project = 0; 
+    url.extension = "jpg"; 
+    globalobj.hdimages = 1;
+}
 
 url.filepath = function() 
 {
-    return url.origin+"/data/";
+    return url.origin+((ISMOBILE&&globalobj.hdimages)?"/mobile/":"/data/");
 }
 
 url.filename = function() 
@@ -277,10 +283,10 @@ globalobj.zoombegin = MOBILE?50:40;
 globalobj.rowreset = 1;
 globalobj.slidecountfactor = 25;
 globalobj.slidreducefactor = 50;
-globalobj.restrictpan = 0;
+globalobj.restrictpan = 1;
 globalobj.timemain = 4;
 globalobj.zoomin = 0;
-globalobj.zoomax = 0.9;
+globalobj.zoomax = ISMOBILE?0.85:0.925;
 globalobj.automove  = 50;
 
 let photo = {}
@@ -1310,7 +1316,6 @@ var pinchlst =
     {
         var isthumbrect = localobj.showthumb && context.thumbrect && context.thumbrect.hitest(x,y);
         var n = context.grid ? context.grid.hitest(x,y) : -1; 
-        this.clearpoints();
         startobj.off();
         context.pinching = 1;
         context.isthumbrect = 0;
@@ -1346,7 +1351,7 @@ var rowobj = new makeoption("ROW", window.innerHeight);
 rowobj.begin = 50;
 rowobj.end = 50;
 
-var pinchobj = new makeoption("PINCH", pinchlst);
+var pinchobj = new makeoption("PINCH", 100);
 pinchobj.begin = 50;
 pinchobj.range = "0.4-1.0";
 
@@ -2491,7 +2496,7 @@ var drawlst = [
 },
 ];
 
-var projects = 0;
+var projects = 15;
 if (url.searchParams.has("m"))
     projects = Number(url.searchParams.get("m"));
 var projectobj = new makeoption("", projects+1);
@@ -4019,6 +4024,7 @@ var headlst =
             context.prevpage = new rectangle()
             context.nextpage = new rectangle()
             context.thumbnail = new rectangle()
+            context.extent = new rectangle()
             context.prevpage2 = new rectangle()
             context.nextpage2 = new rectangle()
             context.reload = new rectangle()
@@ -4037,8 +4043,10 @@ var headlst =
                         new PagePanel(_8cnvctx.enabled?0.125:0.1),
                         new Rectangle(context.page),
                     ]),
-                    new Layer(
+                    rect.width<510?0:new Layer(
                     [
+                        new Rectangle(context.extent),
+                        new Text("white", "center", "middle",0,1,1),
                     ]),
                     new Row([HNUB,0,HNUB],
                     [
@@ -4075,8 +4083,10 @@ var headlst =
                         ]),
                         0,
                     ]),
-                    new Layer(
+                    rect.width<510?0:new Layer(
                     [
+                        new Rectangle(context.extent),
+                        new Text("white", "center", "middle",0,1,1),
                     ]),
                     localobj.hide?0:new Layer(
                     [
@@ -4089,11 +4099,11 @@ var headlst =
            a.draw(context, rect, 
                [
                    0,
-                   0,
+                   photo.image.extentonly,
                    0,
                    project,
                    0,
-                   0,
+                   photo.image.size,
                    0
                ]
            , time);
@@ -4183,18 +4193,24 @@ var Footer = function ()
         context.shadowOffsetY = 1;
         context.shadowColor = "black"
         var j = -1;
+        const MAXSLIDER = 560;
         if (rect.width > MAXSLIDER)
             j = (rect.width-MAXSLIDER)/2;
         context.thumbout =  new rectangle();
         context.thumbin =  new rectangle();
         context.slider =  new rectangle();
+        context.zoominfo  =  new rectangle();
 
         var a = new Layer(
         [
             //new Fill(HEADCOLOR),
             new ColA([j,ALIEXTENT,0,ALIEXTENT,j],
             [
-                0,
+                rect.width<510?0:new Layer(
+                [
+                    new Rectangle(context.zoominfo),
+                    new Text("white", "center", "middle",0,1,1),
+                ]),
                 new Layer(
                 [
                     new ImagePanel(),
@@ -4221,17 +4237,21 @@ var Footer = function ()
                     new ImagePanel(),
                     new Rectangle(context.thumbin)
                 ]),
-                0,
+                rect.width<510?0:new Layer(
+                [
+                    new Rectangle(context.zoominfo),
+                    new Text("white", "center", "middle",0,1,1),
+                ]),
             ])
         ]);
 
         a.draw(context, rect, 
             [
-                0,
+                (100*(1-_4cnvctx.timeobj.berp())).toFixed(1)+"%",
                 ico.zoomout,
                 zoomobj,
                 ico.zoomin,
-                0,
+                (100*(1+Number(zoomobj.getcurrent()))).toFixed(1)+"%",
             ]
          , time);
 
@@ -4627,6 +4647,7 @@ var helplst =
             Image\n${projectobj.current().pad(4)}\n
             Extension\n${url.extension}\n
             Version\n${VERSION}\n
+            Mobile\n${ISMOBILE}\n
             Canvas Count\n${canvaslst.length}\n
             Photo Width\n${photo.image.width}\n
             Photo Height\n${photo.image.height}\n
@@ -4853,6 +4874,7 @@ var templatelst =
         globalobj.slidreducefactor = 25;
         globalobj.zoombegin = MOBILE?60:30;
         localobj.picture = 1;
+        globalobj.restrictpan = 0;
     }
 },
 {
@@ -4895,6 +4917,7 @@ var templatelst =
     {
         rowobj.begin = 0;
         globalobj.zoombegin = 0;
+        globalobj.restrictpan = 1;
     }
 },
 {
@@ -4902,6 +4925,7 @@ var templatelst =
     init: function ()
     {
         rowobj.begin = 30;
+        globalobj.restrictpan = 0;
     }
 },
 {
@@ -4917,6 +4941,7 @@ var templatelst =
         scapeobj.begin = 60;
         startobj.autopage = 2000;
         localobj.picture = 1;
+        globalobj.restrictpan = 0;
     }
 },
 {
@@ -4933,6 +4958,7 @@ var templatelst =
         scapeobj.begin = 60;
         startobj.set(1);
         startobj.autopage = 2000;
+        globalobj.restrictpan = 0;
     }
 },
 {
@@ -4945,6 +4971,7 @@ var templatelst =
         globalobj.cols = 1;
         startobj.set(1);
         startobj.autopage = 5000;
+        globalobj.restrictpan = 0;
     }
 },
 {
@@ -4961,6 +4988,7 @@ var templatelst =
         rowobj.end = 95;
         slideobj.data_ = [5,27.5,50,72.5,95]
         startobj.set(2);
+        globalobj.restrictpan = 0;
     }
 },
 {
@@ -4977,6 +5005,7 @@ var templatelst =
         globalobj.slidreducefactor = 100;
         rowobj.begin = 0;
         rowobj.end = 100;
+        globalobj.restrictpan = 1;
     }
 },
 ];

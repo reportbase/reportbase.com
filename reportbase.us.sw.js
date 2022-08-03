@@ -1,18 +1,12 @@
 // https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers
 
-const VERSION = "v26"
+const VERSION = "v27"
 const precacheResources = 
 [
     '/',
     '/index.html',
     '/repba.js',
-    '/data/PENO.0000.webp',
-    '/data/PENO.0001.webp',
-    '/data/PENO.0002.webp',
-    '/data/PENO.0003.webp',
-    '/data/PENO.0004.webp',
-    '/data/PENO.0005.webp',
-    '/data/PENO.0006.webp',
+    '/data/HOME.0000.jpg',
 ];
 
 self.addEventListener('install', (event) => 
