@@ -71,7 +71,7 @@ if (url.searchParams.has("p"))
     {
         url.path = k[0];
         url.project = 0; 
-        url.extension = "jpg"; 
+        url.extension = "webp"; 
     }
 }
 else
