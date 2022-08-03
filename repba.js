@@ -70,6 +70,8 @@ if (url.searchParams.has("p"))
     else
     {
         url.path = k[0];
+        url.project = 0; 
+        url.extension = "jpg"; 
     }
 }
 else
@@ -259,7 +261,7 @@ let startlst =
 ];
 
 var positobj = new makeoption("POSITION", 9);
-positobj.begin = 8;
+positobj.begin = 7;
 
 let slideobj = new makeoption("", [5,27.5,50,72.5,95]);
 let startobj = new makeoption("START", startlst);
@@ -272,7 +274,7 @@ startobj.off = function()
 }
 
 localobj.hide = 1;
-localobj.picture = 0;
+localobj.picture = 1;
 localobj.autodirect = 1;
 localobj.showthumb = 1;
 globalobj.timebegin = TIMEOBJ/2;
@@ -4869,6 +4871,7 @@ var templatelst =
     init: function ()
     {
         panxobj.begin  = 20;
+        positobj.begin = 8;
         rowobj.begin = 0;
         rowobj.end = 100;
         globalobj.slidreducefactor = 25;
@@ -4942,6 +4945,7 @@ var templatelst =
         startobj.autopage = 2000;
         localobj.picture = 1;
         globalobj.restrictpan = 0;
+        positobj.begin = 8;
     }
 },
 {
@@ -4972,6 +4976,7 @@ var templatelst =
         startobj.set(1);
         startobj.autopage = 5000;
         globalobj.restrictpan = 0;
+        positobj.begin = 5;
     }
 },
 {
